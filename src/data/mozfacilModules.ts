@@ -52,7 +52,7 @@ export const MOZFACIL_MODULES: readonly MozfacilModuleDefinition[] = [
     ],
     routePath: '/empresas',
     imagePath: '/assets/modules/mod_2.png',
-    isAvailable: false,
+    isAvailable: true,
   },
   {
     id: 'shopping_opportunities',

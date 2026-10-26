@@ -6,6 +6,7 @@ import {
   linkWithPhoneNumber,
   PhoneAuthProvider,
   signInWithCredential,
+  unlink,
 } from 'firebase/auth';
 import {
   auth,
@@ -209,6 +210,18 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
 
     setOtpStep('sending');
     try {
+      // If a different phone number was previously linked, unlink it first
+      if (
+        auth.currentUser?.providerData.some((p) => p.providerId === 'phone') &&
+        auth.currentUser.phoneNumber !== e164Phone
+      ) {
+        try {
+          await unlink(auth.currentUser, 'phone');
+        } catch {
+          // Proceed if provider was already unlinked
+        }
+      }
+
       if (recaptchaVerifierRef.current) {
         try {
           recaptchaVerifierRef.current.clear();

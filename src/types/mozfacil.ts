@@ -37,9 +37,20 @@ export type CategoryType = 'profession' | 'specialty';
 
 export type CategoryReviewStatus = 'pending' | 'approved' | 'rejected' | 'merged';
 
-export type MediaFileType = 'profile_photo' | 'work_photo' | 'certificate';
+export type MediaFileType = 'profile_photo' | 'work_photo' | 'certificate' | 'video';
 
 export type MediaUploadStatus = 'completed' | 'pending' | 'failed';
+
+export type CompanyEntityType =
+  | 'private_company'
+  | 'public_institution'
+  | 'state_institution'
+  | 'ngo'
+  | 'agency';
+
+export type CompanyDocType = 'nuit_doc' | 'alvara' | 'statutes' | 'other';
+
+export type CompanyVerificationStatus = 'pending' | 'verified' | 'rejected';
 
 export type AuditOperation =
   | 'utente_registered'
@@ -53,7 +64,14 @@ export type AuditOperation =
   | 'category_rejected'
   | 'category_renamed'
   | 'category_merged'
-  | 'category_fields_configured';
+  | 'category_fields_configured'
+  | 'company_created'
+  | 'company_updated'
+  | 'company_status_changed'
+  | 'company_verified'
+  | 'company_category_created'
+  | 'company_category_approved'
+  | 'video_viewed';
 
 // Validation constants synchronized with firebase-blueprint.json & firestore.rules
 export const VALIDATION_LIMITS = {
@@ -171,6 +189,9 @@ export interface ProfessionalProfile {
   activityField2Value: string;
   publicationStatus: PublicationStatus;
   rejectionReason: string;
+  videoUrl?: string;
+  videoViews?: number;
+  viewsCount?: number;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -231,6 +252,7 @@ export interface ProfessionalMedia {
   storageRef: string;
   uploadStatus: MediaUploadStatus;
   publicationStatus: PublicationStatus;
+  viewsCount?: number;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -248,6 +270,144 @@ export interface AvailabilitySchedule {
   publicationStatus: PublicationStatus;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+export interface CompanyCategory {
+  id: string;
+  originalName: string;
+  name?: string;
+  normalizedName: string;
+  entityType?: CompanyEntityType | 'all';
+  reviewStatus: CategoryReviewStatus;
+  creatorId: string;
+  subcategories?: string[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface CompanyProfile {
+  id: string;
+  ownerId: string;
+  entityType: CompanyEntityType;
+  officialName: string;
+  displayName: string;
+  tradeName?: string;
+  legalName?: string;
+  nuit: string;
+  primaryCategoryId: string;
+  primaryCategoryName: string;
+  subcategory: string;
+  description: string;
+  logoUrl: string;
+  photoUrl: string;
+  videoUrl: string;
+  videoViews: number;
+  viewsCount: number;
+  responsibleName: string;
+  responsibleRole: string;
+  phone: string;
+  whatsapp: string;
+  email: string;
+  website?: string;
+  foundationYear?: number;
+  phoneVerified: boolean;
+  companyVerified: boolean;
+  verificationStatus?: CompanyVerificationStatus;
+  authorizedPublication: boolean;
+  province: string;
+  district: string;
+  locality: string;
+  neighborhood: string;
+  streetOrReference: string;
+  nearestStop: string;
+  hasGps: boolean;
+  latitude: number;
+  longitude: number;
+  operationalState: OperationalState;
+  workingDaysSummary: string;
+  openingTime: string;
+  closingTime: string;
+  publicationStatus: PublicationStatus;
+  rejectionReason: string;
+  adminNotes?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface CompanyService {
+  id: string;
+  companyId: string;
+  ownerId: string;
+  serviceName: string;
+  name?: string;
+  description: string;
+  conditions: string;
+  price: number;
+  basePrice?: number;
+  hasFixedPrice: boolean;
+  deliveryMethod: ServiceDeliveryMethod;
+  availabilityStatus: AvailabilityStatus;
+  publicationStatus: PublicationStatus;
+  displayOrder?: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface CompanySchedule {
+  id: string;
+  companyId: string;
+  ownerId: string;
+  dayOfWeek: number;
+  dayLabel: string;
+  isOpen: boolean;
+  openingTime: string;
+  closingTime: string;
+  notes: string;
+  publicationStatus: PublicationStatus;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface CompanyMedia {
+  id: string;
+  companyId: string;
+  ownerId: string;
+  fileType: MediaFileType;
+  mediaType?: 'image' | 'video';
+  caption: string;
+  storageRef: string;
+  uploadStatus: MediaUploadStatus;
+  publicationStatus: PublicationStatus;
+  displayOrder?: number;
+  viewsCount?: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface CompanyDocument {
+  id: string;
+  companyId: string;
+  ownerId: string;
+  docType: CompanyDocType;
+  title: string;
+  fileName: string;
+  storageRef: string;
+  fileHash?: string;
+  verificationStatus: CompanyVerificationStatus;
+  reviewedByAdminId?: string;
+  adminNotes?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface CompanySearchFilters {
+  query: string;
+  entityType: CompanyEntityType | 'all';
+  categoryId: string;
+  province: string;
+  district: string;
+  neighborhood: string;
+  operationalState: OperationalState | 'all';
 }
 
 export interface AuditLog {

@@ -254,7 +254,7 @@ export function formatFirebasePhoneAuthError(error: unknown): FormattedPhoneAuth
     return {
       code: 'auth/operation-not-allowed',
       isGatewayConfigIssue: true,
-      userMessage: `O Firebase recusou o envio de SMS (auth/operation-not-allowed). No Firebase Console (projeto ${activeFirebaseConfig.projectId}), ative o fornecedor "Phone" em Authentication > Sign-in method e permita Moçambique (+258) em Authentication > Settings > SMS region policy.`,
+      userMessage: `A autenticação por SMS está desativada no Firebase (auth/operation-not-allowed). No Firebase Console do projeto "${activeFirebaseConfig.projectId}", aceda a Authentication > Sign-in method e ative o fornecedor "Phone" (Telemóvel). Em Authentication > Settings > SMS region policy, certifique-se de que Moçambique (+258) está permitido.`,
     };
   }
 

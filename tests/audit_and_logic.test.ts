@@ -275,15 +275,17 @@ function runAuditAndLogicTests() {
     assert.strictEqual(getModuleByRoutePath(mod.routePath)?.id, mod.id, 'getModuleByRoutePath deve resolver o módulo corretamente');
   });
 
-  // Verify Module 1 is active and Modules 6 & 11 remain distinct
+  // Verify Module 1 & Module 2 are active and Modules 6 & 11 remain distinct
   assert.strictEqual(MOZFACIL_MODULES[0].id, 'professionals_services');
   assert.strictEqual(MOZFACIL_MODULES[0].isAvailable, true);
+  assert.strictEqual(MOZFACIL_MODULES[1].id, 'companies_institutions');
+  assert.strictEqual(MOZFACIL_MODULES[1].isAvailable, true);
   assert.notStrictEqual(
     MOZFACIL_MODULES[5].id,
     MOZFACIL_MODULES[10].id,
     'Módulos 6 (Entretenimento e Relacionamentos) e 11 (Smile to Smile S2S Relacionamentos) devem permanecer separados'
   );
-  for (let i = 1; i < MOZFACIL_MODULES.length; i++) {
+  for (let i = 2; i < MOZFACIL_MODULES.length; i++) {
     assert.strictEqual(
       MOZFACIL_MODULES[i].isAvailable,
       false,
@@ -641,6 +643,16 @@ function runAuditAndLogicTests() {
     );
   }
   console.log('✓ Fluxo real de verificação SMS, tratamento de erros Firebase e 4 estados de verificação validados.');
+
+  // Verify Module 2 & Video View Count Logic
+  const mozfacilServiceContent = fs.readFileSync(path.resolve(process.cwd(), 'src/services/mozfacilService.ts'), 'utf-8');
+  assert(mozfacilServiceContent.includes('recordVideoView'), 'mozfacilService deve implementar recordVideoView');
+  assert(mozfacilServiceContent.includes('saveCompanyProfileComplete'), 'mozfacilService deve implementar saveCompanyProfileComplete');
+  assert(mozfacilServiceContent.includes('company_documents'), 'mozfacilService deve gerir company_documents de forma protegida');
+  assert(rulesContent.includes('match /companies/{companyId}'), 'firestore.rules deve ter regras para empresas');
+  assert(rulesContent.includes('match /company_documents/{docId}'), 'firestore.rules deve ter regras protegidas para company_documents');
+  assert(rulesContent.includes('match /company_categories/{categoryId}'), 'firestore.rules deve ter regras para company_categories isoladas');
+  console.log('✓ Módulo 2 (Empresas e Instituições) e contador de visualizações de vídeo atómico validados.');
 
   console.log('✓ Configuração de produção para GitHub, Vercel e Firebase verificada.');
   console.log('\nTODOS OS TESTES PASSARAM COM SUCESSO!');

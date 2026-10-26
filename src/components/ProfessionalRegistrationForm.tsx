@@ -444,7 +444,6 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
       // If a different phone number was previously linked, unlink the old phone provider first
       if (
         auth.currentUser.providerData.some((p) => p.providerId === 'phone') &&
-        auth.currentUser.phoneNumber &&
         auth.currentUser.phoneNumber !== validation.e164
       ) {
         try {

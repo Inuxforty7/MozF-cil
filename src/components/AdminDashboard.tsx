@@ -12,10 +12,13 @@ import {
   Users,
   Eye,
   Plus,
+  Building2,
 } from 'lucide-react';
 import {
   AuditLog,
   CategoryReviewStatus,
+  CompanyCategory,
+  CompanyProfile,
   OperationalState,
   ProfessionalCategory,
   ProfessionalProfile,
@@ -24,8 +27,11 @@ import {
 import {
   adminConfigureCategoryFields,
   adminManageCategory,
+  adminManageCompanyCategory,
   adminMergeCategories,
+  adminSetCompanyPublicationStatus,
   adminSetProfilePublicationStatus,
+  adminVerifyCompany,
   adminVerifyProfessionalContact,
   proposeOrSelectCategory,
 } from '../services/mozfacilService';
@@ -33,10 +39,13 @@ import {
 interface AdminDashboardProps {
   profiles: ProfessionalProfile[];
   categories: ProfessionalCategory[];
+  companies?: CompanyProfile[];
+  companyCategories?: CompanyCategory[];
   auditLogs: AuditLog[];
   adminId: string;
   adminName: string;
   onInspectProfile: (profileId: string) => void;
+  onInspectCompany?: (companyId: string) => void;
 }
 
 const PUBLICATION_STATUS_LABELS: Record<PublicationStatus, string> = {
@@ -87,14 +96,22 @@ const TARGET_COLLECTION_LABELS: Record<string, string> = {
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   profiles,
   categories,
+  companies = [],
+  companyCategories = [],
   auditLogs,
   adminId,
   adminName,
   onInspectProfile,
+  onInspectCompany,
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'profiles' | 'categories' | 'custom_fields' | 'audit_logs'
+    'profiles' | 'companies' | 'categories' | 'custom_fields' | 'audit_logs'
   >('profiles');
+
+  // Companies tab state
+  const [companyStatusFilter, setCompanyStatusFilter] = useState<PublicationStatus | 'all'>('all');
+  const [companyRejectionNotes, setCompanyRejectionNotes] = useState<Record<string, string>>({});
+  const [busyCompanyId, setBusyCompanyId] = useState<string | null>(null);
 
   // Profiles tab state
   const [statusFilter, setStatusFilter] = useState<PublicationStatus | 'all'>('all');
@@ -278,6 +295,60 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  const filteredCompanies = useMemo(() => {
+    if (companyStatusFilter === 'all') return companies;
+    return companies.filter((c) => c.publicationStatus === companyStatusFilter);
+  }, [companies, companyStatusFilter]);
+
+  const companyCounts = useMemo(() => {
+    return {
+      all: companies.length,
+      pending_review: companies.filter((c) => c.publicationStatus === 'pending_review').length,
+      published: companies.filter((c) => c.publicationStatus === 'published').length,
+      draft: companies.filter((c) => c.publicationStatus === 'draft').length,
+      rejected: companies.filter((c) => c.publicationStatus === 'rejected').length,
+      suspended: companies.filter((c) => c.publicationStatus === 'suspended').length,
+    };
+  }, [companies]);
+
+  const handleCompanyPublicationStatus = async (
+    companyId: string,
+    newStatus: PublicationStatus
+  ) => {
+    const notes = companyRejectionNotes[companyId]?.trim();
+    if ((newStatus === 'rejected' || newStatus === 'suspended') && !notes) {
+      alert('É obrigatório indicar uma nota justificativa da moderação.');
+      return;
+    }
+    setBusyCompanyId(companyId);
+    try {
+      await adminSetCompanyPublicationStatus({
+        companyId,
+        newStatus,
+        adminId,
+        adminName,
+        rejectionReason: notes,
+      });
+      setCompanyRejectionNotes((prev) => ({ ...prev, [companyId]: '' }));
+    } finally {
+      setBusyCompanyId(null);
+    }
+  };
+
+  const handleVerifyCompany = async (companyId: string, verified: boolean) => {
+    setBusyCompanyId(companyId);
+    try {
+      await adminVerifyCompany({
+        companyId,
+        companyVerified: verified,
+        adminId,
+        adminName,
+      });
+    } finally {
+      setBusyCompanyId(null);
+    }
+  };
+
   const handleToggleContactVerification = async (profile: ProfessionalProfile) => {
     setBusyProfileId(profile.id);
     setCatFeedback(null);
@@ -435,6 +506,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             >
               <Users className="w-3.5 h-3.5" />
               <span>Perfis ({profiles.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('companies')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 ${
+                activeTab === 'companies'
+                  ? 'bg-[#F97316] text-white'
+                  : 'text-blue-100 hover:text-white'
+              }`}
+            >
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Empresas ({companies.length})</span>
             </button>
             <button
               type="button"
@@ -683,6 +766,165 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               ) : (
                 <div className="p-6 text-center text-xs text-slate-500">
                   Nenhum perfil encontrado para este filtro.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: GESTÃO DE EMPRESAS E INSTITUIÇÕES (MÓDULO 2)                 */}
+        {/* ================================================================= */}
+        {activeTab === 'companies' && (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl w-fit">
+              {(
+                [
+                  { id: 'all', label: `Todas (${companyCounts.all})` },
+                  {
+                    id: 'pending_review',
+                    label: `Pendentes de Revisão (${companyCounts.pending_review})`,
+                  },
+                  { id: 'published', label: `Publicadas (${companyCounts.published})` },
+                  { id: 'draft', label: `Rascunhos (${companyCounts.draft})` },
+                  { id: 'rejected', label: `Rejeitadas (${companyCounts.rejected})` },
+                  { id: 'suspended', label: `Suspensas (${companyCounts.suspended})` },
+                ] as const
+              ).map((st) => (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => setCompanyStatusFilter(st.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap shrink-0 ${
+                    companyStatusFilter === st.id
+                      ? 'bg-white text-[#0D316E] shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="divide-y divide-slate-200 border border-slate-200 rounded-xl overflow-hidden">
+              {filteredCompanies.length > 0 ? (
+                filteredCompanies.map((comp) => (
+                  <div
+                    key={comp.id}
+                    className="p-4 bg-white flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-extrabold text-[#0D316E] text-sm">
+                          {comp.tradeName}
+                        </span>
+                        <span className="text-xs text-slate-500">({comp.legalName})</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                            comp.publicationStatus === 'published'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : comp.publicationStatus === 'pending_review'
+                              ? 'bg-amber-100 text-amber-800'
+                              : comp.publicationStatus === 'draft'
+                              ? 'bg-slate-100 text-slate-700'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {PUBLICATION_STATUS_LABELS[comp.publicationStatus]}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            comp.verificationStatus === 'verified'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}
+                        >
+                          {comp.verificationStatus === 'verified' ? 'Alvará Verificado' : 'Alvará Não Verificado'}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
+                        <span>
+                          <strong>Categoria:</strong> {comp.primaryCategoryName}
+                        </span>
+                        <span>
+                          <strong>NUIT:</strong> <span className="font-mono">{comp.nuit}</span>
+                        </span>
+                        <span>
+                          <strong>Localização:</strong> {comp.neighborhood}, {comp.district} ({comp.province})
+                        </span>
+                        <span>
+                          <strong>Telefone:</strong> {comp.phone}
+                        </span>
+                      </div>
+
+                      {comp.adminNotes && (
+                        <p className="text-xs text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200 italic">
+                          Nota da moderação: {comp.adminNotes}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+                      <input
+                        type="text"
+                        value={companyRejectionNotes[comp.id] || ''}
+                        onChange={(e) =>
+                          setCompanyRejectionNotes((prev) => ({
+                            ...prev,
+                            [comp.id]: e.target.value,
+                          }))
+                        }
+                        placeholder="Motivo (para rejeitar/suspender)..."
+                        className="p-1.5 rounded-lg border border-slate-300 text-xs text-slate-800 w-48"
+                      />
+
+                      {onInspectCompany && (
+                        <button
+                          type="button"
+                          onClick={() => onInspectCompany(comp.id)}
+                          className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#0D316E] text-xs font-bold flex items-center gap-1"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Ver</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        disabled={busyCompanyId === comp.id}
+                        onClick={() => handleCompanyPublicationStatus(comp.id, 'published')}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 disabled:opacity-50"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Aprovar</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={busyCompanyId === comp.id}
+                        onClick={() => handleCompanyPublicationStatus(comp.id, 'rejected')}
+                        className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1 disabled:opacity-50"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        <span>Rejeitar</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={busyCompanyId === comp.id}
+                        onClick={() => handleVerifyCompany(comp.id, comp.verificationStatus !== 'verified')}
+                        className="px-3 py-1.5 rounded-lg bg-[#0D316E] hover:bg-[#092452] text-white text-xs font-bold flex items-center gap-1 disabled:opacity-50"
+                      >
+                        <Shield className="w-3.5 h-3.5" />
+                        <span>{comp.verificationStatus === 'verified' ? 'Revogar Selo' : 'Atestar Alvará'}</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-6 text-center text-xs text-slate-500">
+                  Nenhuma empresa encontrada para este filtro.
                 </div>
               )}
             </div>

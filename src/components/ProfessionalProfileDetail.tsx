@@ -17,6 +17,9 @@ import {
   AlertTriangle,
   Settings,
   Image as ImageIcon,
+  Play,
+  Eye,
+  Film,
 } from 'lucide-react';
 import {
   AvailabilitySchedule,
@@ -26,6 +29,7 @@ import {
   ProfessionalService,
 } from '../types/mozfacil';
 import {
+  recordVideoView,
   updateProfileOperationalState,
   updateSingleServiceAvailability,
 } from '../services/mozfacilService';
@@ -58,6 +62,36 @@ export const ProfessionalProfileDetail: React.FC<ProfessionalProfileDetailProps>
   const [showAllDetailsExpanded, setShowAllDetailsExpanded] = useState(false);
   const [isUpdatingState, setIsUpdatingState] = useState(false);
   const [updatingServiceId, setUpdatingServiceId] = useState<string | null>(null);
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [videoViewsCount, setVideoViewsCount] = useState(profile.videoViews || 0);
+  const hasRecordedVideoViewRef = React.useRef(false);
+
+  const videoItem =
+    media.find((m) => m.fileType === 'video') ||
+    (profile.videoUrl
+      ? {
+          id: 'video-main',
+          storageRef: profile.videoUrl,
+          fileType: 'video' as const,
+          caption: 'Vídeo de Apresentação / Demonstração dos Serviços',
+        }
+      : null);
+
+  const handleAccessVideo = async () => {
+    setIsPlayingVideo(true);
+    if (!hasRecordedVideoViewRef.current) {
+      hasRecordedVideoViewRef.current = true;
+      setVideoViewsCount((prev) => prev + 1);
+      try {
+        await recordVideoView({
+          collectionName: 'professional_profiles',
+          docId: profile.id,
+        });
+      } catch (err) {
+        console.error('Erro ao registar visualização do vídeo:', err);
+      }
+    }
+  };
 
   const canManage = Boolean(
     currentUserId && (profile.ownerId === currentUserId || isAdmin)
@@ -292,6 +326,75 @@ export const ProfessionalProfileDetail: React.FC<ProfessionalProfileDetailProps>
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* VÍDEO DE APRESENTAÇÃO COM CONTABILIZAÇÃO DE VISUALIZAÇÕES         */}
+        {/* ================================================================= */}
+        {videoItem && (
+          <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-[#0D316E]">
+                <Film className="w-4 h-4 text-[#1E4B9B]" />
+                <span>Vídeo de Demonstração</span>
+              </div>
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-900 text-xs font-bold">
+                <Eye className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>
+                  {videoViewsCount}{' '}
+                  {videoViewsCount === 1 ? 'visualização' : 'visualizações'}
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-900 relative aspect-video flex items-center justify-center">
+              {isPlayingVideo ? (
+                videoItem.storageRef.includes('youtube.com') ||
+                videoItem.storageRef.includes('youtu.be') ? (
+                  <iframe
+                    src={
+                      videoItem.storageRef.includes('watch?v=')
+                        ? videoItem.storageRef.replace('watch?v=', 'embed/')
+                        : videoItem.storageRef
+                    }
+                    title="Vídeo de Apresentação"
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video
+                    src={videoItem.storageRef}
+                    controls
+                    autoPlay
+                    onPlay={handleAccessVideo}
+                    className="w-full h-full object-contain"
+                  >
+                    O seu navegador não suporta a reprodução deste vídeo.
+                  </video>
+                )
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAccessVideo}
+                  className="w-full h-full flex flex-col items-center justify-center gap-2 group p-4 text-center cursor-pointer relative"
+                >
+                  <div className="w-14 h-14 rounded-full bg-[#EA580C] group-hover:bg-[#C2410C] text-white flex items-center justify-center shadow-lg transition-transform group-hover:scale-110">
+                    <Play className="w-7 h-7 fill-white translate-x-0.5" />
+                  </div>
+                  <span className="text-white text-xs sm:text-sm font-extrabold drop-shadow-md">
+                    Reproduzir Apresentação em Vídeo
+                  </span>
+                  <span className="text-slate-300 text-[11px]">
+                    Toque para abrir e contabilizar visualização em direto
+                  </span>
+                </button>
+              )}
+            </div>
+            {videoItem.caption && (
+              <p className="text-xs text-slate-600 italic px-1">{videoItem.caption}</p>
+            )}
           </div>
         )}
 

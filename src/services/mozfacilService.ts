@@ -11,6 +11,7 @@ import {
   writeBatch,
   serverTimestamp,
   Timestamp,
+  increment,
 } from 'firebase/firestore';
 import { User as FirebaseUser } from 'firebase/auth';
 import {
@@ -25,8 +26,18 @@ import {
   AvailabilityStatus,
   CategoryReviewStatus,
   CategoryType,
+  CompanyCategory,
+  CompanyDocType,
+  CompanyDocument,
+  CompanyEntityType,
+  CompanyMedia,
+  CompanyProfile,
+  CompanySchedule,
+  CompanyService,
+  CompanyVerificationStatus,
   CoverageAreaType,
   DeliveryMode,
+  MediaFileType,
   MozUser,
   OperationalState,
   ProfessionalCategory,
@@ -585,7 +596,7 @@ export interface ScheduleInputItem {
 
 export interface MediaInputItem {
   id?: string;
-  fileType: 'profile_photo' | 'work_photo' | 'certificate';
+  fileType: MediaFileType;
   caption: string;
   storageRef: string;
 }
@@ -1664,4 +1675,710 @@ export async function adminMergeCategories(params: {
     }
     handleFirestoreError(error, OperationType.UPDATE, sourcePath);
   }
+}
+
+/**
+ * Atomically increments the video view count (and general view count)
+ * when a user accesses or plays a video in a professional or company profile,
+ * ensuring the view counter never remains stuck at 0.
+ */
+export async function recordVideoView(params: {
+  collectionName: 'professional_profiles' | 'companies';
+  docId: string;
+}): Promise<void> {
+  const safeId = sanitizeId(params.docId);
+  const docRef = doc(db, params.collectionName, safeId);
+  try {
+    await updateDoc(docRef, {
+      videoViews: increment(1),
+      viewsCount: increment(1),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.warn(`Não foi possível registar visualização para ${safeId}:`, err);
+  }
+}
+
+export interface SaveCompanyPayload {
+  companyId?: string;
+  ownerId: string;
+  actorName: string;
+  entityType: CompanyEntityType;
+  officialName: string;
+  displayName: string;
+  nuit: string;
+  primaryCategoryId: string;
+  primaryCategoryName: string;
+  subcategory: string;
+  description: string;
+  logoUrl: string;
+  photoUrl: string;
+  videoUrl: string;
+  responsibleName: string;
+  responsibleRole: string;
+  phone: string;
+  whatsapp: string;
+  email: string;
+  authorizedPublication: boolean;
+  province: string;
+  district: string;
+  locality: string;
+  neighborhood: string;
+  streetOrReference: string;
+  nearestStop: string;
+  hasGps: boolean;
+  latitude: number;
+  longitude: number;
+  operationalState: OperationalState;
+  workingDaysSummary: string;
+  openingTime: string;
+  closingTime: string;
+  publicationStatus: PublicationStatus;
+  rejectionReason?: string;
+  services: {
+    id?: string;
+    serviceName: string;
+    description: string;
+    conditions?: string;
+    price: number;
+    hasFixedPrice: boolean;
+    deliveryMethod: ServiceDeliveryMethod;
+    availabilityStatus: AvailabilityStatus;
+  }[];
+  schedules: {
+    dayOfWeek: number;
+    dayLabel: string;
+    isOpen: boolean;
+    openingTime: string;
+    closingTime: string;
+    notes: string;
+  }[];
+  mediaItems: {
+    id?: string;
+    fileType: MediaFileType;
+    caption: string;
+    storageRef: string;
+  }[];
+  documents: {
+    id?: string;
+    docType: CompanyDocType;
+    title: string;
+    fileName: string;
+    storageRef: string;
+    verificationStatus?: CompanyVerificationStatus;
+  }[];
+}
+
+/**
+ * Dynamically selects an existing company category or proposes a new one atomically,
+ * completely segregated from professional categories.
+ */
+export async function proposeOrSelectCompanyCategory(params: {
+  rawName: string;
+  entityType?: CompanyEntityType | 'all';
+  actorId: string;
+  actorName: string;
+  isAdmin: boolean;
+}): Promise<CompanyCategory> {
+  const displayName = formatCategoryDisplayName(params.rawName);
+  const normalized = normalizeCategoryName(params.rawName);
+  if (normalized.length < 2) {
+    throw new Error('O nome da categoria da empresa deve ter pelo menos 2 caracteres válidos.');
+  }
+
+  const categoryId = sanitizeId(`comp_cat_${normalized.replace(/\s+/g, '_')}`).slice(0, 80);
+  const categoryRef = doc(db, 'company_categories', categoryId);
+  const path = `company_categories/${categoryId}`;
+
+  try {
+    let createdNew = false;
+    const resultCategory = await runTransaction(db, async (tx) => {
+      const existingSnap = await tx.get(categoryRef);
+      if (existingSnap.exists()) {
+        const existingData = existingSnap.data() as CompanyCategory;
+        if (existingData.reviewStatus === 'rejected' && !params.isAdmin) {
+          throw new Error(
+            `A categoria "${existingData.originalName}" foi rejeitada pela administração e não pode ser utilizada.`
+          );
+        }
+        return existingData;
+      }
+
+      createdNew = true;
+      const reviewStatus: CategoryReviewStatus = params.isAdmin ? 'approved' : 'pending';
+      const newCategoryDoc: CompanyCategory = {
+        id: categoryId,
+        originalName: clampStr(displayName, VALIDATION_LIMITS.CATEGORY_NAME_MAX, 'Categoria'),
+        normalizedName: clampStr(normalized, VALIDATION_LIMITS.CATEGORY_NAME_MAX, 'categoria'),
+        entityType: params.entityType || 'all',
+        reviewStatus,
+        creatorId: sanitizeId(params.actorId),
+        subcategories: [],
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      };
+
+      tx.set(categoryRef, {
+        ...newCategoryDoc,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return newCategoryDoc;
+    });
+
+    if (createdNew) {
+      await recordAuditLog({
+        actorId: params.actorId,
+        actorName: params.actorName,
+        operation: 'company_category_created',
+        targetCollection: 'company_categories',
+        targetRecordId: categoryId,
+        details: `Categoria de empresa/instituição "${displayName}" criada com estado "${
+          params.isAdmin ? 'approved' : 'pending'
+        }".`,
+      });
+    }
+
+    return resultCategory;
+  } catch (error) {
+    if (error instanceof Error && !error.message.includes('permission-denied')) {
+      throw error;
+    }
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * Administrator approval/rejection or name update of a company category.
+ */
+export async function adminManageCompanyCategory(params: {
+  categoryId: string;
+  originalName?: string;
+  reviewStatus?: CategoryReviewStatus;
+  subcategories?: string[];
+  adminId: string;
+  adminName: string;
+}): Promise<void> {
+  const catRef = doc(db, 'company_categories', sanitizeId(params.categoryId));
+  const updateData: Record<string, unknown> = {
+    updatedAt: serverTimestamp(),
+  };
+  if (params.originalName) {
+    updateData.originalName = clampStr(
+      formatCategoryDisplayName(params.originalName),
+      VALIDATION_LIMITS.CATEGORY_NAME_MAX,
+      ''
+    );
+    updateData.normalizedName = normalizeCategoryName(params.originalName);
+  }
+  if (params.reviewStatus) {
+    updateData.reviewStatus = params.reviewStatus;
+  }
+  if (params.subcategories) {
+    updateData.subcategories = params.subcategories;
+  }
+
+  await updateDoc(catRef, updateData);
+
+  await recordAuditLog({
+    actorId: params.adminId,
+    actorName: params.adminName,
+    operation: 'company_category_approved',
+    targetCollection: 'company_categories',
+    targetRecordId: params.categoryId,
+    details: `Categoria de empresa "${params.categoryId}" atualizada pela administração.`,
+  });
+}
+
+/**
+ * Atomically saves a Company / Institution profile and synchronizes child collections
+ * (`company_services`, `company_hours`, `company_media`, `company_documents`, and `audit_logs`).
+ */
+export async function saveCompanyProfileComplete(
+  payload: SaveCompanyPayload
+): Promise<string> {
+  const companyId = payload.companyId
+    ? sanitizeId(payload.companyId)
+    : sanitizeId(`comp_${payload.ownerId.slice(0, 20)}_${Date.now()}`);
+  const companyPath = `companies/${companyId}`;
+
+  const boundedServices = payload.services
+    .filter((s) => s.serviceName && s.serviceName.trim().length >= 2)
+    .slice(0, 25);
+  const boundedSchedules = payload.schedules.slice(0, 7);
+  const boundedMedia = payload.mediaItems.filter((m) => m.storageRef).slice(0, 20);
+  const boundedDocs = payload.documents.filter((d) => d.storageRef).slice(0, 10);
+
+  const safeLat = payload.hasGps
+    ? Math.max(-90, Math.min(90, Number(payload.latitude) || 0))
+    : 0;
+  const safeLng = payload.hasGps
+    ? Math.max(-180, Math.min(180, Number(payload.longitude) || 0))
+    : 0;
+
+  let isUpdate = false;
+  try {
+    const compRef = doc(db, 'companies', companyId);
+
+    const [
+      existingSnap,
+      existingSrvSnap,
+      existingSchedSnap,
+      existingMediaSnap,
+      existingDocsSnap,
+      primaryCatSnap,
+    ] = await Promise.all([
+      getDoc(compRef),
+      getDocs(
+        query(
+          collection(db, 'company_services'),
+          where('companyId', '==', companyId),
+          where('ownerId', '==', payload.ownerId)
+        )
+      ),
+      getDocs(
+        query(
+          collection(db, 'company_hours'),
+          where('companyId', '==', companyId),
+          where('ownerId', '==', payload.ownerId)
+        )
+      ),
+      getDocs(
+        query(
+          collection(db, 'company_media'),
+          where('companyId', '==', companyId),
+          where('ownerId', '==', payload.ownerId)
+        )
+      ),
+      getDocs(
+        query(
+          collection(db, 'company_documents'),
+          where('companyId', '==', companyId),
+          where('ownerId', '==', payload.ownerId)
+        )
+      ),
+      payload.primaryCategoryId
+        ? getDoc(doc(db, 'company_categories', sanitizeId(payload.primaryCategoryId)))
+        : Promise.resolve(null),
+    ]);
+
+    let resolvedPrimaryCategoryId = payload.primaryCategoryId
+      ? sanitizeId(payload.primaryCategoryId)
+      : '';
+    let resolvedPrimaryCategoryName = clampStr(
+      payload.primaryCategoryName,
+      VALIDATION_LIMITS.CATEGORY_NAME_MAX,
+      ''
+    );
+    let effectivePublicationStatus: PublicationStatus = payload.publicationStatus;
+
+    if (primaryCatSnap && primaryCatSnap.exists()) {
+      const catData = primaryCatSnap.data() as CompanyCategory;
+      if (catData.reviewStatus === 'rejected') {
+        throw new Error(
+          `A categoria "${catData.originalName}" foi rejeitada e não pode ser utilizada.`
+        );
+      }
+      if (effectivePublicationStatus === 'published' && catData.reviewStatus !== 'approved') {
+        effectivePublicationStatus = 'pending_review';
+      }
+    } else if (effectivePublicationStatus === 'published') {
+      effectivePublicationStatus = 'pending_review';
+    }
+
+    isUpdate = existingSnap.exists();
+    const existingData = isUpdate ? (existingSnap.data() as CompanyProfile) : null;
+
+    // Check phone verification token
+    const phoneValidation = validateMozambiquePhone(payload.phone);
+    const authPhone = auth.currentUser?.phoneNumber || '';
+    const hasFirebaseVerifiedPhone = Boolean(
+      authPhone &&
+        (authPhone === payload.phone.trim() ||
+          (phoneValidation.valid && authPhone === phoneValidation.e164))
+    );
+
+    if (hasFirebaseVerifiedPhone && auth.currentUser) {
+      try {
+        await auth.currentUser.getIdToken(true);
+      } catch {
+        // Ignore offline refresh error
+      }
+    }
+
+    const preservedPhoneVerified =
+      isUpdate &&
+      existingData?.phoneVerified === true &&
+      existingData.phone === payload.phone.trim();
+
+    const effectivePhoneVerified = Boolean(
+      preservedPhoneVerified || hasFirebaseVerifiedPhone
+    );
+
+    const preservedCompanyVerified = isUpdate && Boolean(existingData?.companyVerified);
+
+    const baseCompanyData = {
+      id: companyId,
+      ownerId: sanitizeId(payload.ownerId),
+      entityType: payload.entityType,
+      officialName: clampStr(payload.officialName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, ''),
+      displayName: clampStr(
+        payload.displayName || payload.officialName,
+        VALIDATION_LIMITS.DISPLAY_NAME_MAX,
+        ''
+      ),
+      nuit: clampStr(payload.nuit, VALIDATION_LIMITS.NUIT_MAX, ''),
+      primaryCategoryId: resolvedPrimaryCategoryId,
+      primaryCategoryName: resolvedPrimaryCategoryName,
+      subcategory: clampStr(payload.subcategory, 100, ''),
+      description: clampStr(payload.description, VALIDATION_LIMITS.DESCRIPTION_MAX, ''),
+      logoUrl: clampStr(payload.logoUrl, VALIDATION_LIMITS.PHOTO_URL_MAX, ''),
+      photoUrl: clampStr(payload.photoUrl, VALIDATION_LIMITS.PHOTO_URL_MAX, ''),
+      videoUrl: clampStr(payload.videoUrl, 500, ''),
+      videoViews: existingData?.videoViews || 0,
+      viewsCount: existingData?.viewsCount || 0,
+      responsibleName: clampStr(
+        payload.responsibleName,
+        VALIDATION_LIMITS.RESPONSIBLE_NAME_MAX,
+        ''
+      ),
+      responsibleRole: clampStr(
+        payload.responsibleRole,
+        VALIDATION_LIMITS.RESPONSIBLE_ROLE_MAX,
+        ''
+      ),
+      phone: clampStr(payload.phone, VALIDATION_LIMITS.PHONE_MAX, ''),
+      whatsapp: clampStr(payload.whatsapp, VALIDATION_LIMITS.PHONE_MAX, ''),
+      email: clampStr(payload.email, VALIDATION_LIMITS.EMAIL_MAX, ''),
+      phoneVerified: effectivePhoneVerified,
+      companyVerified: preservedCompanyVerified,
+      authorizedPublication: Boolean(payload.authorizedPublication),
+      province: clampStr(payload.province, VALIDATION_LIMITS.PROVINCE_MAX, ''),
+      district: clampStr(payload.district, VALIDATION_LIMITS.DISTRICT_MAX, ''),
+      locality: clampStr(payload.locality, VALIDATION_LIMITS.LOCALITY_MAX, ''),
+      neighborhood: clampStr(payload.neighborhood, VALIDATION_LIMITS.NEIGHBORHOOD_MAX, ''),
+      streetOrReference: clampStr(
+        payload.streetOrReference,
+        VALIDATION_LIMITS.STREET_REF_MAX,
+        ''
+      ),
+      nearestStop: clampStr(payload.nearestStop, VALIDATION_LIMITS.NEAREST_STOP_MAX, ''),
+      hasGps: Boolean(payload.hasGps),
+      latitude: safeLat,
+      longitude: safeLng,
+      operationalState: payload.operationalState,
+      workingDaysSummary: clampStr(
+        payload.workingDaysSummary,
+        VALIDATION_LIMITS.WORKING_DAYS_SUMMARY_MAX,
+        ''
+      ),
+      openingTime: clampStr(payload.openingTime, VALIDATION_LIMITS.TIME_STRING_MAX, ''),
+      closingTime: clampStr(payload.closingTime, VALIDATION_LIMITS.TIME_STRING_MAX, ''),
+      publicationStatus: effectivePublicationStatus,
+      rejectionReason: clampStr(
+        payload.rejectionReason,
+        VALIDATION_LIMITS.REJECTION_REASON_MAX,
+        ''
+      ),
+      updatedAt: serverTimestamp(),
+    };
+
+    const batch = writeBatch(db);
+
+    if (isUpdate) {
+      const updateFields = { ...baseCompanyData };
+      delete (updateFields as Partial<typeof baseCompanyData>).id;
+      delete (updateFields as Partial<typeof baseCompanyData>).ownerId;
+      delete (updateFields as Partial<typeof baseCompanyData>).companyVerified;
+      if (!hasFirebaseVerifiedPhone) {
+        delete (updateFields as Partial<typeof baseCompanyData>).phoneVerified;
+      }
+      batch.update(compRef, updateFields);
+    } else {
+      batch.set(compRef, {
+        ...baseCompanyData,
+        phoneVerified: Boolean(hasFirebaseVerifiedPhone),
+        companyVerified: false,
+        createdAt: serverTimestamp(),
+      });
+    }
+
+    // 1. Sync company_services in batch
+    const incomingSrvIds = new Set<string>();
+    for (let i = 0; i < boundedServices.length; i++) {
+      const srv = boundedServices[i];
+      const srvId = srv.id
+        ? sanitizeId(srv.id)
+        : sanitizeId(`csrv_${companyId}_${i}_${Date.now()}`);
+      incomingSrvIds.add(srvId);
+
+      const existingDoc = existingSrvSnap.docs.find((d) => d.id === srvId);
+      const srvRef = doc(db, 'company_services', srvId);
+      const srvData = {
+        companyId,
+        ownerId: sanitizeId(payload.ownerId),
+        serviceName: clampStr(srv.serviceName, VALIDATION_LIMITS.SERVICE_NAME_MAX, ''),
+        description: clampStr(srv.description, VALIDATION_LIMITS.SERVICE_DESC_MAX, ''),
+        conditions: clampStr(srv.conditions, VALIDATION_LIMITS.SERVICE_CONDITIONS_MAX, ''),
+        price: Math.max(0, Math.min(VALIDATION_LIMITS.SERVICE_PRICE_MAX, Number(srv.price) || 0)),
+        hasFixedPrice: Boolean(srv.hasFixedPrice),
+        deliveryMethod: srv.deliveryMethod,
+        availabilityStatus: srv.availabilityStatus,
+        publicationStatus: effectivePublicationStatus,
+        updatedAt: serverTimestamp(),
+      };
+
+      if (existingDoc) {
+        batch.update(srvRef, srvData);
+      } else {
+        batch.set(srvRef, {
+          id: srvId,
+          ...srvData,
+          createdAt: serverTimestamp(),
+        });
+      }
+    }
+    for (const oldDoc of existingSrvSnap.docs) {
+      if (!incomingSrvIds.has(oldDoc.id)) {
+        batch.delete(oldDoc.ref);
+      }
+    }
+
+    // 2. Sync company_hours in batch
+    const incomingSchedIds = new Set<string>();
+    for (const sched of boundedSchedules) {
+      const schedId = sanitizeId(`chour_${companyId}_${sched.dayOfWeek}`);
+      incomingSchedIds.add(schedId);
+      const existingDoc = existingSchedSnap.docs.find((d) => d.id === schedId);
+      const schedRef = doc(db, 'company_hours', schedId);
+      const schedData = {
+        companyId,
+        ownerId: sanitizeId(payload.ownerId),
+        dayOfWeek: Math.max(0, Math.min(6, sched.dayOfWeek)),
+        dayLabel: clampStr(sched.dayLabel, 40, 'Dia'),
+        isOpen: Boolean(sched.isOpen),
+        openingTime: clampStr(sched.openingTime, VALIDATION_LIMITS.TIME_STRING_MAX, '08:00'),
+        closingTime: clampStr(sched.closingTime, VALIDATION_LIMITS.TIME_STRING_MAX, '17:00'),
+        notes: clampStr(sched.notes, VALIDATION_LIMITS.SCHEDULE_NOTES_MAX, ''),
+        publicationStatus: effectivePublicationStatus,
+        updatedAt: serverTimestamp(),
+      };
+
+      if (existingDoc) {
+        batch.update(schedRef, schedData);
+      } else {
+        batch.set(schedRef, {
+          id: schedId,
+          ...schedData,
+          createdAt: serverTimestamp(),
+        });
+      }
+    }
+    for (const oldDoc of existingSchedSnap.docs) {
+      if (!incomingSchedIds.has(oldDoc.id)) {
+        batch.delete(oldDoc.ref);
+      }
+    }
+
+    // 3. Sync company_media in batch
+    const incomingMediaIds = new Set<string>();
+    for (let i = 0; i < boundedMedia.length; i++) {
+      const m = boundedMedia[i];
+      const mId = m.id ? sanitizeId(m.id) : sanitizeId(`cmed_${companyId}_${i}_${Date.now()}`);
+      incomingMediaIds.add(mId);
+      const existingDoc = existingMediaSnap.docs.find((d) => d.id === mId);
+      const mRef = doc(db, 'company_media', mId);
+      const mData = {
+        companyId,
+        ownerId: sanitizeId(payload.ownerId),
+        fileType: m.fileType,
+        caption: clampStr(m.caption, VALIDATION_LIMITS.MEDIA_CAPTION_MAX, ''),
+        storageRef: clampStr(m.storageRef, VALIDATION_LIMITS.MEDIA_STORAGE_REF_MAX, ''),
+        uploadStatus: 'completed' as const,
+        publicationStatus: effectivePublicationStatus,
+        updatedAt: serverTimestamp(),
+      };
+
+      if (existingDoc) {
+        batch.update(mRef, mData);
+      } else {
+        batch.set(mRef, {
+          id: mId,
+          ...mData,
+          createdAt: serverTimestamp(),
+        });
+      }
+    }
+    for (const oldDoc of existingMediaSnap.docs) {
+      if (!incomingMediaIds.has(oldDoc.id)) {
+        batch.delete(oldDoc.ref);
+      }
+    }
+
+    // 4. Sync company_documents in batch (protected private verification documents)
+    const incomingDocIds = new Set<string>();
+    for (let i = 0; i < boundedDocs.length; i++) {
+      const d = boundedDocs[i];
+      const dId = d.id ? sanitizeId(d.id) : sanitizeId(`cdoc_${companyId}_${i}_${Date.now()}`);
+      incomingDocIds.add(dId);
+      const existingDoc = existingDocsSnap.docs.find((item) => item.id === dId);
+      const dRef = doc(db, 'company_documents', dId);
+      const dData = {
+        companyId,
+        ownerId: sanitizeId(payload.ownerId),
+        docType: d.docType,
+        title: clampStr(d.title, 120, 'Documento de Verificação'),
+        fileName: clampStr(d.fileName, 120, 'ficheiro'),
+        storageRef: clampStr(d.storageRef, VALIDATION_LIMITS.MEDIA_STORAGE_REF_MAX, ''),
+        verificationStatus: d.verificationStatus || 'pending',
+        updatedAt: serverTimestamp(),
+      };
+
+      if (existingDoc) {
+        batch.update(dRef, dData);
+      } else {
+        batch.set(dRef, {
+          id: dId,
+          ...dData,
+          createdAt: serverTimestamp(),
+        });
+      }
+    }
+    for (const oldDoc of existingDocsSnap.docs) {
+      if (!incomingDocIds.has(oldDoc.id)) {
+        batch.delete(oldDoc.ref);
+      }
+    }
+
+    // 5. Record Audit Log in batch
+    const auditId = sanitizeId(`audit_comp_${companyId}_${Date.now()}`);
+    batch.set(doc(db, 'audit_logs', auditId), {
+      id: auditId,
+      actorId: sanitizeId(payload.ownerId),
+      actorName: clampStr(payload.actorName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, 'Titular'),
+      operation: isUpdate ? 'company_updated' : 'company_created',
+      targetCollection: 'companies',
+      targetRecordId: companyId,
+      details: `Empresa/Instituição "${baseCompanyData.displayName}" (${baseCompanyData.entityType}) guardada com estado "${effectivePublicationStatus}".`,
+      createdAt: serverTimestamp(),
+    });
+
+    await batch.commit();
+    return companyId;
+  } catch (error) {
+    if (error instanceof Error && !error.message.includes('permission-denied')) {
+      throw error;
+    }
+    handleFirestoreError(error, isUpdate ? OperationType.UPDATE : OperationType.CREATE, companyPath);
+  }
+}
+
+/**
+ * Updates operational state (ON/OFF/STOP) for a company without touching publicationStatus.
+ */
+export async function updateCompanyOperationalState(params: {
+  companyId: string;
+  operationalState: OperationalState;
+}): Promise<void> {
+  const compRef = doc(db, 'companies', sanitizeId(params.companyId));
+  await updateDoc(compRef, {
+    operationalState: params.operationalState,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Toggles single service availability in company_services.
+ */
+export async function updateSingleCompanyServiceAvailability(params: {
+  serviceId: string;
+  availabilityStatus: AvailabilityStatus;
+}): Promise<void> {
+  const srvRef = doc(db, 'company_services', sanitizeId(params.serviceId));
+  await updateDoc(srvRef, {
+    availabilityStatus: params.availabilityStatus,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Administrator company publication moderation: approve, reject, suspend, reactivate.
+ */
+export async function adminSetCompanyPublicationStatus(params: {
+  companyId: string;
+  newStatus: PublicationStatus;
+  rejectionReason?: string;
+  adminId: string;
+  adminName: string;
+}): Promise<void> {
+  if (
+    (params.newStatus === 'rejected' || params.newStatus === 'suspended') &&
+    !params.rejectionReason?.trim()
+  ) {
+    throw new Error('É obrigatório indicar uma justificação técnica ao rejeitar ou suspender uma empresa.');
+  }
+
+  const compRef = doc(db, 'companies', sanitizeId(params.companyId));
+  const batch = writeBatch(db);
+
+  batch.update(compRef, {
+    publicationStatus: params.newStatus,
+    rejectionReason: clampStr(
+      params.rejectionReason,
+      VALIDATION_LIMITS.REJECTION_REASON_MAX,
+      ''
+    ),
+    updatedAt: serverTimestamp(),
+  });
+
+  const auditId = sanitizeId(`audit_comp_mod_${params.companyId}_${Date.now()}`);
+  batch.set(doc(db, 'audit_logs', auditId), {
+    id: auditId,
+    actorId: sanitizeId(params.adminId),
+    actorName: clampStr(params.adminName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, 'Administrador'),
+    operation: 'company_status_changed',
+    targetCollection: 'companies',
+    targetRecordId: params.companyId,
+    details: `Estado de publicação da empresa "${params.companyId}" alterado para "${params.newStatus}". ${
+      params.rejectionReason ? `Motivo: ${params.rejectionReason}` : ''
+    }`,
+    createdAt: serverTimestamp(),
+  });
+
+  await batch.commit();
+}
+
+/**
+ * Administrator legal verification of a company (companyVerified).
+ */
+export async function adminVerifyCompany(params: {
+  companyId: string;
+  companyVerified: boolean;
+  adminId: string;
+  adminName: string;
+  note?: string;
+}): Promise<void> {
+  const compRef = doc(db, 'companies', sanitizeId(params.companyId));
+  const batch = writeBatch(db);
+
+  batch.update(compRef, {
+    companyVerified: params.companyVerified,
+    updatedAt: serverTimestamp(),
+  });
+
+  const auditId = sanitizeId(`audit_comp_verif_${params.companyId}_${Date.now()}`);
+  batch.set(doc(db, 'audit_logs', auditId), {
+    id: auditId,
+    actorId: sanitizeId(params.adminId),
+    actorName: clampStr(params.adminName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, 'Administrador'),
+    operation: 'company_verified',
+    targetCollection: 'companies',
+    targetRecordId: params.companyId,
+    details: `Verificação de empresa/instituição para "${params.companyId}" definida como ${
+      params.companyVerified ? 'VERIFICADA' : 'NÃO VERIFICADA'
+    }. ${params.note || ''}`,
+    createdAt: serverTimestamp(),
+  });
+
+  await batch.commit();
 }

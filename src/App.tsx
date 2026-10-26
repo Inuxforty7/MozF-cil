@@ -62,6 +62,12 @@ import {
 import {
   AuditLog,
   AvailabilitySchedule,
+  CompanyCategory,
+  CompanyDocument,
+  CompanyMedia,
+  CompanyProfile,
+  CompanySchedule,
+  CompanyService,
   CoverageAreaType,
   MozUser,
   ProfessionalCategory,
@@ -93,6 +99,9 @@ import {
 import { normalizeCategoryName } from './utils/categoryNormalization';
 import { ProfessionalRegistrationForm } from './components/ProfessionalRegistrationForm';
 import { ProfessionalProfileDetail } from './components/ProfessionalProfileDetail';
+import { CompaniesDirectory } from './components/CompaniesDirectory';
+import { CompanyProfileDetail } from './components/CompanyProfileDetail';
+import { CompanyRegistrationForm } from './components/CompanyRegistrationForm';
 import { AdminDashboard } from './components/AdminDashboard';
 import { UtenteRegistrationScreen } from './components/UtenteRegistrationScreen';
 import {
@@ -115,13 +124,18 @@ type AppView =
   | 'my_profiles'
   | 'register_edit'
   | 'detail'
-  | 'admin';
+  | 'admin'
+  | 'companies_directory'
+  | 'company_registration'
+  | 'company_detail';
 
 interface NavigationStateSnapshot {
   view: AppView;
   moduleId?: MozfacilModuleId | null;
   profileId?: string | null;
   editingProfileId?: string | null;
+  companyId?: string | null;
+  editingCompanyId?: string | null;
 }
 
 function resolveInitialNavigationFromUrl(): NavigationStateSnapshot {
@@ -152,6 +166,25 @@ function resolveInitialNavigationFromUrl(): NavigationStateSnapshot {
       };
     }
   }
+  if (pathname === '/empresas') {
+    return { view: 'companies_directory', moduleId: 'companies_institutions', profileId: null, editingProfileId: null, companyId: null, editingCompanyId: null };
+  }
+  if (pathname === '/empresas/registar') {
+    return { view: 'company_registration', moduleId: 'companies_institutions', profileId: null, editingProfileId: null, companyId: null, editingCompanyId: null };
+  }
+  if (pathname.startsWith('/empresas/')) {
+    const rawCompanyId = decodeURIComponent(pathname.slice('/empresas/'.length)).trim();
+    if (rawCompanyId) {
+      return {
+        view: 'company_detail',
+        moduleId: 'companies_institutions',
+        profileId: null,
+        editingProfileId: null,
+        companyId: rawCompanyId,
+        editingCompanyId: null,
+      };
+    }
+  }
   if (pathname === '/cadastro-utente') {
     return { view: 'utente_registration', moduleId: null, profileId: null, editingProfileId: null };
   }
@@ -163,6 +196,9 @@ function resolveInitialNavigationFromUrl(): NavigationStateSnapshot {
   }
   const matchedModule = getModuleByRoutePath(pathname);
   if (matchedModule) {
+    if (matchedModule.id === 'companies_institutions') {
+      return { view: 'companies_directory', moduleId: 'companies_institutions', profileId: null, editingProfileId: null };
+    }
     if (matchedModule.isAvailable) {
       return { view: 'directory', moduleId: matchedModule.id, profileId: null, editingProfileId: null };
     }
@@ -179,6 +215,12 @@ function resolvePathForNavigation(snap: NavigationStateSnapshot): string {
       return '/explore';
     case 'directory':
       return '/profissionais';
+    case 'companies_directory':
+      return '/empresas';
+    case 'company_registration':
+      return '/empresas/registar';
+    case 'company_detail':
+      return snap.companyId ? `/empresas/${snap.companyId}` : '/empresas';
     case 'module_info': {
       const mod = getModuleById(snap.moduleId);
       return mod ? mod.routePath : '/explore';
@@ -269,6 +311,24 @@ export default function App() {
   const [editingProfileId, setEditingProfileId] = useState<string | null>(
     initialNav.editingProfileId || null
   );
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
+    initialNav.companyId || null
+  );
+  const [editingCompanyId, setEditingCompanyId] = useState<string | null>(
+    initialNav.editingCompanyId || null
+  );
+
+  // Module 2 Companies State (Partitioned for Zero-Trust ABAC Security & Real-Time Sync)
+  const [publishedCompanies, setPublishedCompanies] = useState<CompanyProfile[]>([]);
+  const [myCompanies, setMyCompanies] = useState<CompanyProfile[]>([]);
+  const [adminAllCompanies, setAdminAllCompanies] = useState<CompanyProfile[]>([]);
+  const [publicCompanyCategories, setPublicCompanyCategories] = useState<CompanyCategory[]>([]);
+  const [adminCompanyCategories, setAdminCompanyCategories] = useState<CompanyCategory[]>([]);
+  const [selectedCompanyServices, setSelectedCompanyServices] = useState<CompanyService[]>([]);
+  const [selectedCompanySchedules, setSelectedCompanySchedules] = useState<CompanySchedule[]>([]);
+  const [selectedCompanyMedia, setSelectedCompanyMedia] = useState<CompanyMedia[]>([]);
+  const [selectedCompanyDocuments, setSelectedCompanyDocuments] = useState<CompanyDocument[]>([]);
+
   const [myProfilesFilter, setMyProfilesFilter] = useState<PublicationStatus | 'all'>('all');
   const [consultationNotice, setConsultationNotice] = useState<string | null>(null);
   const [isConsulting, setIsConsulting] = useState(false);
@@ -323,6 +383,8 @@ export default function App() {
         moduleId?: MozfacilModuleId | null;
         profileId?: string | null;
         editingProfileId?: string | null;
+        companyId?: string | null;
+        editingCompanyId?: string | null;
         replace?: boolean;
       }
     ) => {
@@ -332,12 +394,17 @@ export default function App() {
         profileId: opts?.profileId !== undefined ? opts.profileId : selectedProfileId,
         editingProfileId:
           opts?.editingProfileId !== undefined ? opts.editingProfileId : editingProfileId,
+        companyId: opts?.companyId !== undefined ? opts.companyId : selectedCompanyId,
+        editingCompanyId:
+          opts?.editingCompanyId !== undefined ? opts.editingCompanyId : editingCompanyId,
       };
 
       setActiveView(nextSnap.view);
       if (opts?.moduleId !== undefined) setSelectedModuleId(opts.moduleId);
       if (opts?.profileId !== undefined) setSelectedProfileId(opts.profileId);
       if (opts?.editingProfileId !== undefined) setEditingProfileId(opts.editingProfileId);
+      if (opts?.companyId !== undefined) setSelectedCompanyId(opts.companyId);
+      if (opts?.editingCompanyId !== undefined) setEditingCompanyId(opts.editingCompanyId);
 
       if (typeof window !== 'undefined') {
         const targetPath = resolvePathForNavigation(nextSnap);
@@ -353,7 +420,7 @@ export default function App() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     },
-    [selectedModuleId, selectedProfileId, editingProfileId]
+    [selectedModuleId, selectedProfileId, editingProfileId, selectedCompanyId, editingCompanyId]
   );
 
   // Sync initial history entry and listen to browser back/forward (popstate)
@@ -372,12 +439,16 @@ export default function App() {
         setSelectedModuleId(state.moduleId ?? null);
         setSelectedProfileId(state.profileId ?? null);
         setEditingProfileId(state.editingProfileId ?? null);
+        setSelectedCompanyId(state.companyId ?? null);
+        setEditingCompanyId(state.editingCompanyId ?? null);
       } else {
         const fallback = resolveInitialNavigationFromUrl();
         setActiveView(fallback.view);
         setSelectedModuleId(fallback.moduleId ?? null);
         setSelectedProfileId(fallback.profileId ?? null);
         setEditingProfileId(fallback.editingProfileId ?? null);
+        setSelectedCompanyId(fallback.companyId ?? null);
+        setEditingCompanyId(fallback.editingCompanyId ?? null);
       }
     };
 
@@ -387,7 +458,9 @@ export default function App() {
 
   const handleSelectExploreModule = useCallback(
     (module: MozfacilModuleDefinition) => {
-      if (module.id === 'professionals_services' || module.isAvailable) {
+      if (module.id === 'companies_institutions') {
+        navigateTo('companies_directory', { moduleId: 'companies_institutions' });
+      } else if (module.id === 'professionals_services' || module.isAvailable) {
         navigateTo('directory', { moduleId: 'professionals_services' });
       } else {
         navigateTo('module_info', { moduleId: module.id });
@@ -446,8 +519,11 @@ export default function App() {
       } else {
         setMozUser(null);
         setMyProfiles([]);
+        setMyCompanies([]);
         setAdminAllProfiles([]);
+        setAdminAllCompanies([]);
         setAdminCategories([]);
+        setAdminCompanyCategories([]);
         setAuditLogs([]);
       }
       setIsAuthReady(true);
@@ -522,12 +598,165 @@ export default function App() {
       }
     );
 
+    // Module 2: Published Companies & Company Categories Listeners (Hardened Zero-Trust ABAC Queries)
+    const compQuery = query(
+      collection(db, 'companies'),
+      where('publicationStatus', '==', 'published'),
+      limit(200)
+    );
+    const unsubComp = onSnapshot(
+      compQuery,
+      (snap) => {
+        setPublishedCompanies(snap.docs.map((d) => d.data() as CompanyProfile));
+      },
+      (err) => {
+        handleFirestoreError(err, OperationType.LIST, 'companies');
+      }
+    );
+
+    const compCatQuery = query(
+      collection(db, 'company_categories'),
+      where('reviewStatus', 'in', ['approved', 'pending', 'merged']),
+      limit(200)
+    );
+    const unsubCompCat = onSnapshot(
+      compCatQuery,
+      (snap) => {
+        setPublicCompanyCategories(snap.docs.map((d) => d.data() as CompanyCategory));
+      },
+      (err) => {
+        handleFirestoreError(err, OperationType.LIST, 'company_categories');
+      }
+    );
+
     return () => {
       unsubPubProf();
       unsubCat();
       unsubPubSrv();
+      unsubComp();
+      unsubCompCat();
     };
   }, []);
+
+  // Memoized unified companies & categories across public, owner, and admin tiers
+  const companies = useMemo(() => {
+    const map = new Map<string, CompanyProfile>();
+    publishedCompanies.forEach((c) => map.set(c.id, c));
+    myCompanies.forEach((c) => map.set(c.id, c));
+    adminAllCompanies.forEach((c) => map.set(c.id, c));
+    return Array.from(map.values());
+  }, [publishedCompanies, myCompanies, adminAllCompanies]);
+
+  const companyCategories = useMemo(() => {
+    if (isAdmin && adminCompanyCategories.length > 0) {
+      return adminCompanyCategories;
+    }
+    return publicCompanyCategories;
+  }, [isAdmin, adminCompanyCategories, publicCompanyCategories]);
+
+  // Module 2: Selected or Edited Company Subcollections Listener
+  useEffect(() => {
+    const targetCompId = selectedCompanyId || editingCompanyId;
+    if (!targetCompId) {
+      setSelectedCompanyServices([]);
+      setSelectedCompanySchedules([]);
+      setSelectedCompanyMedia([]);
+      setSelectedCompanyDocuments([]);
+      return;
+    }
+
+    const targetCompany = companies.find((c) => c.id === targetCompId);
+    const canReadUnpublishedCompany =
+      Boolean(firebaseUser) &&
+      (isAdmin || (targetCompany && targetCompany.ownerId === firebaseUser?.uid));
+
+    const unsubs: Array<() => void> = [];
+
+    if (canReadUnpublishedCompany) {
+      // Owner or Admin: full access to all company services, hours, media, and private verification documents
+      unsubs.push(
+        onSnapshot(
+          query(collection(db, 'company_services'), where('companyId', '==', targetCompId), limit(50)),
+          (snap) => setSelectedCompanyServices(snap.docs.map((d) => d.data() as CompanyService)),
+          (err) => handleFirestoreError(err, OperationType.LIST, 'company_services')
+        )
+      );
+      unsubs.push(
+        onSnapshot(
+          query(collection(db, 'company_hours'), where('companyId', '==', targetCompId), limit(20)),
+          (snap) => setSelectedCompanySchedules(snap.docs.map((d) => d.data() as CompanySchedule)),
+          (err) => handleFirestoreError(err, OperationType.LIST, 'company_hours')
+        )
+      );
+      unsubs.push(
+        onSnapshot(
+          query(collection(db, 'company_media'), where('companyId', '==', targetCompId), limit(30)),
+          (snap) => setSelectedCompanyMedia(snap.docs.map((d) => d.data() as CompanyMedia)),
+          (err) => handleFirestoreError(err, OperationType.LIST, 'company_media')
+        )
+      );
+      unsubs.push(
+        onSnapshot(
+          query(collection(db, 'company_documents'), where('companyId', '==', targetCompId), limit(20)),
+          (snap) => setSelectedCompanyDocuments(snap.docs.map((d) => d.data() as CompanyDocument)),
+          (err) => handleFirestoreError(err, OperationType.LIST, 'company_documents')
+        )
+      );
+    } else {
+      // Public Visitor: bounded read of published services, hours, media; documents are strictly private
+      unsubs.push(
+        onSnapshot(
+          query(
+            collection(db, 'company_services'),
+            where('companyId', '==', targetCompId),
+            where('publicationStatus', '==', 'published'),
+            limit(50)
+          ),
+          (snap) => setSelectedCompanyServices(snap.docs.map((d) => d.data() as CompanyService)),
+          (err) => handleFirestoreError(err, OperationType.LIST, 'company_services')
+        )
+      );
+      unsubs.push(
+        onSnapshot(
+          query(
+            collection(db, 'company_hours'),
+            where('companyId', '==', targetCompId),
+            where('publicationStatus', '==', 'published'),
+            limit(20)
+          ),
+          (snap) => setSelectedCompanySchedules(snap.docs.map((d) => d.data() as CompanySchedule)),
+          (err) => handleFirestoreError(err, OperationType.LIST, 'company_hours')
+        )
+      );
+      unsubs.push(
+        onSnapshot(
+          query(
+            collection(db, 'company_media'),
+            where('companyId', '==', targetCompId),
+            where('publicationStatus', '==', 'published'),
+            limit(30)
+          ),
+          (snap) => setSelectedCompanyMedia(snap.docs.map((d) => d.data() as CompanyMedia)),
+          (err) => handleFirestoreError(err, OperationType.LIST, 'company_media')
+        )
+      );
+      setSelectedCompanyDocuments([]);
+    }
+
+    return () => {
+      unsubs.forEach((u) => u());
+    };
+  }, [selectedCompanyId, editingCompanyId, firebaseUser, isAdmin, companies]);
+
+  const selectedCompany = useMemo(() => {
+    if (!selectedCompanyId) return null;
+    return companies.find((c) => c.id === selectedCompanyId) || null;
+  }, [companies, selectedCompanyId]);
+
+  const editingCompany = useMemo(() => {
+    if (!editingCompanyId) return null;
+    return companies.find((c) => c.id === editingCompanyId) || null;
+  }, [companies, editingCompanyId]);
 
   // Resolve all known profiles across public, owner, and admin listeners
   const allKnownProfiles = useMemo(() => {
@@ -718,20 +947,36 @@ export default function App() {
       (err) => handleFirestoreError(err, OperationType.LIST, 'professional_media')
     );
 
+    const myCompQ = query(
+      collection(db, 'companies'),
+      where('ownerId', '==', uid),
+      limit(100)
+    );
+    const unsubMyComp = onSnapshot(
+      myCompQ,
+      (snap) => {
+        setMyCompanies(snap.docs.map((d) => d.data() as CompanyProfile));
+      },
+      (err) => handleFirestoreError(err, OperationType.LIST, 'companies')
+    );
+
     return () => {
       unsubUserDoc();
       unsubMyProf();
       unsubMySrv();
       unsubMySched();
       unsubMyMedia();
+      unsubMyComp();
     };
   }, [isAuthReady, firebaseUser]);
 
-  // 4. Administrator Listeners (Bounded Profiles, Categories, Audit Logs)
+  // 4. Administrator Listeners (Bounded Profiles, Categories, Companies, Audit Logs)
   useEffect(() => {
     if (!isAuthReady || !firebaseUser || !isAdmin) {
       setAdminAllProfiles([]);
+      setAdminAllCompanies([]);
       setAdminCategories([]);
+      setAdminCompanyCategories([]);
       setAuditLogs([]);
       return;
     }
@@ -752,6 +997,22 @@ export default function App() {
       (err) => handleFirestoreError(err, OperationType.LIST, 'professional_categories')
     );
 
+    const unsubAllComp = onSnapshot(
+      query(collection(db, 'companies'), limit(200)),
+      (snap) => {
+        setAdminAllCompanies(snap.docs.map((d) => d.data() as CompanyProfile));
+      },
+      (err) => handleFirestoreError(err, OperationType.LIST, 'companies')
+    );
+
+    const unsubAllCompCat = onSnapshot(
+      query(collection(db, 'company_categories'), limit(200)),
+      (snap) => {
+        setAdminCompanyCategories(snap.docs.map((d) => d.data() as CompanyCategory));
+      },
+      (err) => handleFirestoreError(err, OperationType.LIST, 'company_categories')
+    );
+
     const unsubLogs = onSnapshot(
       query(collection(db, 'audit_logs'), limit(100)),
       (snap) => {
@@ -769,6 +1030,8 @@ export default function App() {
     return () => {
       unsubAllProf();
       unsubAllCat();
+      unsubAllComp();
+      unsubAllCompCat();
       unsubLogs();
     };
   }, [isAuthReady, firebaseUser, isAdmin]);
@@ -2351,10 +2614,62 @@ export default function App() {
             <AdminDashboard
               profiles={adminAllProfiles.length > 0 ? adminAllProfiles : allKnownProfiles}
               categories={categories}
+              companies={companies}
+              companyCategories={companyCategories}
               auditLogs={auditLogs}
               adminId={firebaseUser.uid}
               adminName={mozUser?.displayName || firebaseUser.email || 'Admin'}
               onInspectProfile={(profId) => navigateTo('detail', { profileId: profId })}
+              onInspectCompany={(compId) => navigateTo('company_detail', { companyId: compId })}
+            />
+          )}
+
+          {/* VIEW 6: MODULE 2 — COMPANIES & INSTITUTIONS DIRECTORY */}
+          {activeView === 'companies_directory' && (
+            <CompaniesDirectory
+              companies={companies}
+              categories={companyCategories}
+              onSelectCompany={(comp) => navigateTo('company_detail', { companyId: comp.id })}
+              onRegisterCompany={() => {
+                if (!firebaseUser) {
+                  handleLogin();
+                } else {
+                  navigateTo('company_registration', { editingCompanyId: null });
+                }
+              }}
+              isAdmin={isAdmin}
+            />
+          )}
+
+          {/* VIEW 7: MODULE 2 — COMPANY REGISTRATION / EDIT FORM */}
+          {activeView === 'company_registration' && firebaseUser && (
+            <CompanyRegistrationForm
+              categories={companyCategories}
+              currentUserId={firebaseUser.uid}
+              initialCompany={editingCompany}
+              initialServices={selectedCompanyServices}
+              initialSchedules={selectedCompanySchedules}
+              initialMedia={selectedCompanyMedia}
+              initialDocuments={selectedCompanyDocuments}
+              onBack={() => navigateTo('companies_directory')}
+              onSaved={(savedId) => navigateTo('company_detail', { companyId: savedId })}
+            />
+          )}
+
+          {/* VIEW 8: MODULE 2 — COMPANY PROFILE DETAIL */}
+          {activeView === 'company_detail' && selectedCompany && (
+            <CompanyProfileDetail
+              company={selectedCompany}
+              services={selectedCompanyServices}
+              schedules={selectedCompanySchedules}
+              media={selectedCompanyMedia}
+              documents={selectedCompanyDocuments}
+              currentUserId={firebaseUser?.uid}
+              isAdmin={isAdmin}
+              onBack={() => navigateTo('companies_directory')}
+              onEdit={() =>
+                navigateTo('company_registration', { editingCompanyId: selectedCompany.id })
+              }
             />
           )}
         </main>
@@ -2443,19 +2758,23 @@ export default function App() {
             <button
               type="button"
               onClick={() =>
-                navigateTo('module_info', { moduleId: 'companies_institutions' })
+                navigateTo('companies_directory', { moduleId: 'companies_institutions' })
               }
               className={`relative py-2.5 px-1 flex flex-col items-center justify-center gap-1 text-xs font-semibold transition-colors ${
-                activeView === 'module_info' &&
-                selectedModuleId === 'companies_institutions'
+                activeView === 'companies_directory' ||
+                activeView === 'company_registration' ||
+                activeView === 'company_detail' ||
+                (activeView === 'module_info' && selectedModuleId === 'companies_institutions')
                   ? 'text-[#F97316]'
                   : 'text-white hover:text-orange-200'
               }`}
             >
               <Building2 className="w-6 h-6 shrink-0" />
               <span className="truncate">Empresas</span>
-              {activeView === 'module_info' &&
-                selectedModuleId === 'companies_institutions' && (
+              {(activeView === 'companies_directory' ||
+                activeView === 'company_registration' ||
+                activeView === 'company_detail' ||
+                (activeView === 'module_info' && selectedModuleId === 'companies_institutions')) && (
                   <span
                     aria-hidden="true"
                     className="absolute bottom-1 inset-x-4 h-1 rounded-full bg-[#F97316]"
