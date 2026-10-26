@@ -7,7 +7,11 @@ import {
   PhoneAuthProvider,
   signInWithCredential,
 } from 'firebase/auth';
-import { auth } from '../firebase';
+import {
+  auth,
+  formatFirebaseAuthError,
+  isUnauthorizedDomainError,
+} from '../firebase';
 import { MozUser } from '../types/mozfacil';
 import {
   getProvinces,
@@ -260,10 +264,13 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
         setOtpStep('idle');
         setOtpCooldown(60);
         setOtpError('Muitas tentativas. Aguarde 60 segundos antes de tentar novamente.');
+      } else if (isUnauthorizedDomainError(err)) {
+        setOtpStep('idle');
+        setOtpError(formatFirebaseAuthError(err));
       } else {
         setOtpStep('idle');
         setOtpError(
-          firebaseErr.message || 'Não foi possível enviar o SMS de verificação.'
+          formatFirebaseAuthError(err) || 'Não foi possível enviar o SMS de verificação.'
         );
       }
     }

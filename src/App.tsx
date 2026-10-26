@@ -5,8 +5,10 @@
 
 import React, { useState, useEffect, useMemo, useCallback, Component, ErrorInfo, ReactNode } from 'react';
 import {
+  getRedirectResult,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
   User as FirebaseUser,
 } from 'firebase/auth';
@@ -47,10 +49,14 @@ import {
   Menu,
 } from 'lucide-react';
 import {
+  activeFirebaseConfig,
   auth,
   db,
+  formatFirebaseAuthError,
+  getCurrentHostDomain,
   googleProvider,
   handleFirestoreError,
+  isUnauthorizedDomainError,
   OperationType,
 } from './firebase';
 import {
@@ -244,6 +250,8 @@ export default function App() {
   const [mozUser, setMozUser] = useState<MozUser | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isDomainUnauthorized, setIsDomainUnauthorized] = useState(false);
+  const [domainCopied, setDomainCopied] = useState(false);
 
   // Network Availability State
   const [isOnline, setIsOnline] = useState<boolean>(
@@ -417,9 +425,18 @@ export default function App() {
 
   // 1. Firebase Auth Listener
   useEffect(() => {
+    getRedirectResult(auth).catch((err) => {
+      if (err) {
+        setIsDomainUnauthorized(isUnauthorizedDomainError(err));
+        setAuthError(formatFirebaseAuthError(err));
+      }
+    });
+
     const unsub = onAuthStateChanged(auth, async (user) => {
       setFirebaseUser(user);
       if (user) {
+        setAuthError(null);
+        setIsDomainUnauthorized(false);
         try {
           const userDoc = await ensureUserDocument(user);
           setMozUser(userDoc);
@@ -929,12 +946,24 @@ export default function App() {
 
   const handleLogin = async () => {
     setAuthError(null);
+    setIsDomainUnauthorized(false);
+    setDomainCopied(false);
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
-      setAuthError(
-        err instanceof Error ? err.message : 'Não foi possível iniciar sessão com Google.'
-      );
+      const code = (err as { code?: string })?.code || '';
+      if (code === 'auth/popup-blocked') {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirErr) {
+          setIsDomainUnauthorized(isUnauthorizedDomainError(redirErr));
+          setAuthError(formatFirebaseAuthError(redirErr));
+          return;
+        }
+      }
+      setIsDomainUnauthorized(isUnauthorizedDomainError(err));
+      setAuthError(formatFirebaseAuthError(err));
     }
   };
 
@@ -1299,15 +1328,48 @@ export default function App() {
         {/* Auth Error Notice */}
         {authError && (
           <div className="max-w-3xl mx-auto px-4 pt-2 w-full">
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center justify-between">
-              <span>{authError}</span>
-              <button
-                type="button"
-                onClick={() => setAuthError(null)}
-                className="font-bold underline ml-3"
-              >
-                Fechar
-              </button>
+            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <span className="font-semibold leading-relaxed">{authError}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthError(null);
+                    setIsDomainUnauthorized(false);
+                  }}
+                  className="font-bold underline shrink-0"
+                >
+                  Fechar
+                </button>
+              </div>
+              {isDomainUnauthorized && (
+                <div className="pt-1.5 border-t border-red-200/80 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const host = getCurrentHostDomain();
+                      if (navigator.clipboard) {
+                        navigator.clipboard.writeText(host).then(() => {
+                          setDomainCopied(true);
+                        });
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-red-300 hover:bg-red-100 text-red-900 font-bold text-[11px] transition-colors"
+                  >
+                    {domainCopied
+                      ? `Domínio copiado (${getCurrentHostDomain()})`
+                      : `Copiar domínio: ${getCurrentHostDomain()}`}
+                  </button>
+                  <a
+                    href={`https://console.firebase.google.com/project/${activeFirebaseConfig.projectId}/authentication/settings`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1 rounded-lg bg-[#0D316E] hover:bg-[#092452] text-white font-bold text-[11px] transition-colors"
+                  >
+                    Abrir Domínios Autorizados no Firebase Console
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         )}

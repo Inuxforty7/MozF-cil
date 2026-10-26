@@ -3,10 +3,72 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
-export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env || {};
+
+export const activeFirebaseConfig = {
+  ...firebaseConfig,
+  apiKey: env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey,
+  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain,
+  projectId: env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId,
+  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfig.storageBucket,
+  messagingSenderId:
+    env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfig.messagingSenderId,
+  appId: env.VITE_FIREBASE_APP_ID || firebaseConfig.appId,
+  firestoreDatabaseId:
+    env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || firebaseConfig.firestoreDatabaseId,
+};
+
+export const app = getApps().length > 0 ? getApp() : initializeApp(activeFirebaseConfig);
+export const db = getFirestore(app, activeFirebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+export function getCurrentHostDomain(): string {
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    return window.location.hostname;
+  }
+  return 'moz-facil.vercel.app';
+}
+
+export function isUnauthorizedDomainError(error: unknown): boolean {
+  const code = (error as { code?: string })?.code || '';
+  const msg = error instanceof Error ? error.message : String(error || '');
+  return (
+    code === 'auth/unauthorized-domain' ||
+    msg.includes('auth/unauthorized-domain')
+  );
+}
+
+export function formatFirebaseAuthError(error: unknown): string {
+  const code = (error as { code?: string })?.code || '';
+  const msg = error instanceof Error ? error.message : String(error || '');
+
+  if (isUnauthorizedDomainError(error)) {
+    const domain = getCurrentHostDomain();
+    return `O domínio "${domain}" ainda não está autorizado no Firebase Authentication. No Firebase Console (projeto ${activeFirebaseConfig.projectId}), aceda a Authentication > Configurações (Settings) > Domínios autorizados (Authorized domains) e adicione "${domain}".`;
+  }
+
+  if (
+    code === 'auth/popup-closed-by-user' ||
+    msg.includes('auth/popup-closed-by-user') ||
+    code === 'auth/cancelled-popup-request'
+  ) {
+    return 'A janela de início de sessão Google foi fechada antes de concluir. Tente novamente.';
+  }
+
+  if (code === 'auth/popup-blocked' || msg.includes('auth/popup-blocked')) {
+    return 'O navegador bloqueou a janela de login. Permita pop-ups para este site e tente novamente.';
+  }
+
+  if (
+    code === 'auth/network-request-failed' ||
+    msg.includes('auth/network-request-failed')
+  ) {
+    return 'Falha de ligação à rede ao comunicar com o servidor de autenticação. Verifique a sua internet.';
+  }
+
+  return msg || 'Não foi possível iniciar sessão com Google.';
+}
 
 export enum OperationType {
   CREATE = 'create',
