@@ -580,10 +580,70 @@ function runAuditAndLogicTests() {
     'UtenteRegistrationScreen deve usar os textos concisos aprovados e a secção compacta de saldo de consultas sem mensagens redundantes'
   );
 
+  console.log('\n=== 9. TESTE DO FLUXO REAL DE VERIFICAÇÃO SMS FIREBASE, VALIDAÇÃO +258 E ESTADOS DE CONTACTO ===');
+  // Ensure the misleading notice claiming the gateway is inactive by default is gone
+  assert(
+    !regFormContent.includes(
+      'O envio de SMS pelo gateway Firebase não está ativo neste projeto no momento'
+    ),
+    'ProfessionalRegistrationForm não deve exibir aviso enganador pré-definido afirmando que o gateway SMS está desativado sem reportar o erro real do Firebase'
+  );
+
+  // Ensure 6-digit OTP input is ONLY displayed after Firebase returns ConfirmationResult (otpConfirmation)
+  assert(
+    regFormContent.includes('{otpConfirmation && !isPhoneActuallyVerified && ('),
+    'ProfessionalRegistrationForm só deve apresentar as caixas de 6 dígitos do Código SMS após o Firebase iniciar o envio (otpConfirmation !== null)'
+  );
+
+  // Ensure all 4 contact verification states are explicitly distinguished in ProfessionalRegistrationForm
+  assert(
+    regFormContent.includes('Estado: Contacto verificado pelo Firebase (SMS)') &&
+      regFormContent.includes('Estado: Contacto verificado pela administração') &&
+      regFormContent.includes('Estado: Verificação por SMS pendente') &&
+      regFormContent.includes('Estado: Contacto não verificado'),
+    'ProfessionalRegistrationForm deve distinguir claramente os 4 estados de verificação de contacto'
+  );
+
+  // Ensure ID token refresh after OTP confirmation so Firestore rules see request.auth.token.phone_number != null
+  assert(
+    regFormContent.includes('await auth.currentUser.getIdToken(true)') &&
+      utenteScreenContent.includes('await auth.currentUser.getIdToken(true)') &&
+      serviceContent.includes('await auth.currentUser.getIdToken(true)'),
+    'Após confirmar o código SMS, a aplicação deve atualizar o ID token (getIdToken(true)) antes de gravar no Firestore'
+  );
+
+  // Ensure professional_profiles rules align phoneVerified with request.auth.token.phone_number != null
+  assert(
+    rulesContent.includes('incoming().phoneVerified == (request.auth.token.phone_number != null)') &&
+      rulesContent.includes("'phone', 'whatsapp', 'email', 'phoneVerified', 'authorizedPublication'"),
+    'firestore.rules deve permitir phoneVerified == true quando o token Firebase Auth contém phone_number verificado, impedindo falsificação por utilizadores não verificados'
+  );
+
+  // Ensure firebase.ts defines validateMozambiquePhone and formatFirebasePhoneAuthError covering all required error codes
+  const requiredAuthErrorCodes = [
+    'auth/invalid-phone-number',
+    'auth/unauthorized-domain',
+    'auth/captcha-check-failed',
+    'auth/missing-client-identifier',
+    'auth/quota-exceeded',
+    'auth/billing-not-enabled',
+    'auth/operation-not-allowed',
+    'auth/too-many-requests',
+    'auth/code-expired',
+    'auth/invalid-verification-code',
+    'auth/credential-already-in-use',
+    'auth/provider-already-linked',
+  ];
+  for (const errCode of requiredAuthErrorCodes) {
+    assert(
+      firebaseTsContent.includes(errCode),
+      `src/firebase.ts deve tratar explicitamente o código de erro Firebase Phone Auth: ${errCode}`
+    );
+  }
+  console.log('✓ Fluxo real de verificação SMS, tratamento de erros Firebase e 4 estados de verificação validados.');
+
   console.log('✓ Configuração de produção para GitHub, Vercel e Firebase verificada.');
   console.log('\nTODOS OS TESTES PASSARAM COM SUCESSO!');
 }
 
 runAuditAndLogicTests();
-
-

@@ -506,7 +506,10 @@ service cloud.firestore {
         (
           (
             incoming().ownerId == request.auth.uid &&
-            incoming().phoneVerified == false &&
+            (
+              incoming().phoneVerified == false ||
+              incoming().phoneVerified == (request.auth.token.phone_number != null)
+            ) &&
             incoming().publicationStatus in ['draft', 'pending_review', 'published']
           ) ||
           isAdmin()
@@ -524,17 +527,20 @@ service cloud.firestore {
           isPublishableProfile(incoming())
         ) &&
         (
-          // Action 1: Owner updates their own non-suspended profile (cannot self-forge phoneVerified)
+          // Action 1: Owner updates their own non-suspended profile (cannot self-forge phoneVerified without real Firebase Phone Auth token)
           (
             existing().ownerId == request.auth.uid &&
             existing().publicationStatus != 'suspended' &&
-            incoming().phoneVerified == existing().phoneVerified &&
+            (
+              incoming().phoneVerified == existing().phoneVerified ||
+              incoming().phoneVerified == (request.auth.token.phone_number != null)
+            ) &&
             incoming().publicationStatus in ['draft', 'pending_review', 'published'] &&
             incoming().diff(existing()).affectedKeys().hasOnly([
               'profileType', 'displayName', 'responsibleName', 'responsibleRole',
               'nuit', 'photoUrl', 'primaryCategoryId', 'primaryCategoryName',
               'specialtyIds', 'specialtyNames', 'experienceYears', 'description',
-              'phone', 'whatsapp', 'email', 'authorizedPublication',
+              'phone', 'whatsapp', 'email', 'phoneVerified', 'authorizedPublication',
               'province', 'district', 'locality', 'neighborhood', 'streetOrReference', 'nearestStop',
               'hasGps', 'latitude', 'longitude', 'coverageAreaType', 'coverageLocations',
               'deliveryMode', 'availabilityStatus', 'operationalState',

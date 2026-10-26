@@ -9,8 +9,8 @@ import {
 } from 'firebase/auth';
 import {
   auth,
-  formatFirebaseAuthError,
-  isUnauthorizedDomainError,
+  formatFirebasePhoneAuthError,
+  validateMozambiquePhone,
 } from '../firebase';
 import { MozUser } from '../types/mozfacil';
 import {
@@ -147,17 +147,8 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
   };
 
   const formatMozPhoneE164 = (raw: string): string | null => {
-    const digits = raw.replace(/\D/g, '');
-    if (digits.startsWith('258') && digits.length === 12) {
-      return `+${digits}`;
-    }
-    if (digits.length === 9 && /^8[2-7]\d{7}$/.test(digits)) {
-      return `+258${digits}`;
-    }
-    if (raw.trim().startsWith('+') && digits.length >= 10 && digits.length <= 15) {
-      return `+${digits}`;
-    }
-    return null;
+    const res = validateMozambiquePhone(raw);
+    return res.valid ? res.e164 : null;
   };
 
   // Attempt WebOTP API automatic SMS code reading on supported mobile browsers
@@ -195,9 +186,24 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
       return;
     }
 
-    const e164Phone = formatMozPhoneE164(whatsapp);
-    if (!e164Phone) {
-      setOtpError('Introduza um número válido de Moçambique (ex: +258 84 123 4567).');
+    const phoneValidation = validateMozambiquePhone(whatsapp);
+    if (!phoneValidation.valid) {
+      setOtpError(
+        phoneValidation.error ||
+          'Introduza um número válido de Moçambique (ex: +258 84 123 4567).'
+      );
+      return;
+    }
+    const e164Phone = phoneValidation.e164;
+
+    if (auth.currentUser?.phoneNumber === e164Phone) {
+      try {
+        await auth.currentUser.getIdToken(true);
+      } catch {
+        // Ignore offline refresh error
+      }
+      setOtpStep('verified');
+      setOtpMessage(`Número ${phoneValidation.formattedDisplay} já verificado na sua conta.`);
       return;
     }
 
@@ -233,7 +239,7 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
       confirmationResultRef.current = confirmation;
       setOtpStep('code_sent');
       setOtpCooldown(60);
-      setOtpMessage(`Código enviado para ${e164Phone}.`);
+      setOtpMessage(`Código enviado para ${phoneValidation.formattedDisplay}.`);
       startWebOtpListener();
     } catch (err: unknown) {
       if (recaptchaVerifierRef.current) {
@@ -245,33 +251,19 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
         recaptchaVerifierRef.current = null;
       }
 
-      const firebaseErr = err as { code?: string; message?: string };
-      if (firebaseErr.code === 'auth/provider-already-linked') {
+      const formattedErr = formatFirebasePhoneAuthError(err);
+      if (
+        formattedErr.code === 'auth/provider-already-linked' &&
+        auth.currentUser?.phoneNumber === e164Phone
+      ) {
         setOtpStep('verified');
         setOtpMessage('Número já verificado na sua conta.');
-      } else if (firebaseErr.code === 'auth/credential-already-in-use') {
-        setOtpStep('idle');
-        setOtpError('Este número já está associado a outra conta.');
-      } else if (
-        firebaseErr.code === 'auth/operation-not-allowed' ||
-        firebaseErr.code === 'auth/billing-not-enabled'
-      ) {
-        setOtpStep('idle');
-        setOtpError(
-          'O envio de SMS não está disponível de momento. Pode guardar o cadastro e verificar o número mais tarde.'
-        );
-      } else if (firebaseErr.code === 'auth/too-many-requests') {
-        setOtpStep('idle');
-        setOtpCooldown(60);
-        setOtpError('Muitas tentativas. Aguarde 60 segundos antes de tentar novamente.');
-      } else if (isUnauthorizedDomainError(err)) {
-        setOtpStep('idle');
-        setOtpError(formatFirebaseAuthError(err));
       } else {
+        if (formattedErr.code === 'auth/too-many-requests') {
+          setOtpCooldown(60);
+        }
         setOtpStep('idle');
-        setOtpError(
-          formatFirebaseAuthError(err) || 'Não foi possível enviar o SMS de verificação.'
-        );
+        setOtpError(formattedErr.userMessage);
       }
     }
   };
@@ -292,6 +284,14 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
     setOtpStep('verifying');
     try {
       await confirmationResultRef.current.confirm(cleanCode);
+      if (auth.currentUser) {
+        try {
+          await auth.currentUser.getIdToken(true);
+          await auth.currentUser.reload();
+        } catch {
+          // Ignore offline reload warning
+        }
+      }
       setOtpStep('verified');
       setOtpMessage('Número verificado com sucesso.');
     } catch (err: unknown) {
@@ -320,7 +320,8 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
         }
       }
       setOtpStep('code_sent');
-      setOtpError('Código inválido ou expirado.');
+      const formattedErr = formatFirebasePhoneAuthError(err);
+      setOtpError(formattedErr.userMessage);
     }
   };
 
@@ -478,7 +479,7 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
           )}
 
           {/* Invisible reCAPTCHA Mount Point */}
-          <div ref={recaptchaContainerRef} className="hidden" />
+          <div ref={recaptchaContainerRef} id="mozfacil-utente-recaptcha" aria-hidden="true" />
 
           {/* Main Form */}
           <form onSubmit={handleSubmitForm} className="space-y-4">

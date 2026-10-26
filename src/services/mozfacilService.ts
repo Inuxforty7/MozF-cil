@@ -13,7 +13,13 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { User as FirebaseUser } from 'firebase/auth';
-import { auth, db, handleFirestoreError, OperationType } from '../firebase';
+import {
+  auth,
+  db,
+  handleFirestoreError,
+  OperationType,
+  validateMozambiquePhone,
+} from '../firebase';
 import {
   AuditOperation,
   AvailabilityStatus,
@@ -227,6 +233,14 @@ export async function saveUtenteRegistration(payload: SaveUtentePayload): Promis
 
   const hasTokenVerifiedPhone = Boolean(auth.currentUser?.phoneNumber);
   const hasTokenVerifiedEmail = Boolean(auth.currentUser?.emailVerified);
+
+  if (hasTokenVerifiedPhone && auth.currentUser) {
+    try {
+      await auth.currentUser.getIdToken(true);
+    } catch {
+      // Ignore offline token refresh warnings
+    }
+  }
 
   try {
     const userRef = doc(db, 'users', uid);
@@ -753,11 +767,31 @@ export async function saveProfessionalProfileComplete(
     const isUpdate = existingSnap.exists();
     const existingData = isUpdate ? (existingSnap.data() as ProfessionalProfile) : null;
 
-    // Preserve phoneVerified ONLY if already verified by Admin and phone number was not changed
+    // Preserve phoneVerified if already verified by Admin (and phone was not changed) OR verified via Firebase Phone Auth
+    const phoneValidation = validateMozambiquePhone(payload.phone);
+    const authPhone = auth.currentUser?.phoneNumber || '';
+    const hasFirebaseVerifiedPhone = Boolean(
+      authPhone &&
+        (authPhone === payload.phone.trim() ||
+          (phoneValidation.valid && authPhone === phoneValidation.e164))
+    );
+
+    if (hasFirebaseVerifiedPhone && auth.currentUser) {
+      try {
+        await auth.currentUser.getIdToken(true);
+      } catch {
+        // Ignore offline token refresh warnings
+      }
+    }
+
     const preservedPhoneVerified =
       isUpdate &&
       existingData?.phoneVerified === true &&
       existingData.phone === payload.phone.trim();
+
+    const effectivePhoneVerified = Boolean(
+      preservedPhoneVerified || hasFirebaseVerifiedPhone
+    );
 
     const baseProfileData = {
       id: profileId,
@@ -785,7 +819,7 @@ export async function saveProfessionalProfileComplete(
       phone: clampStr(payload.phone, VALIDATION_LIMITS.PHONE_MAX, ''),
       whatsapp: clampStr(payload.whatsapp, VALIDATION_LIMITS.PHONE_MAX, ''),
       email: clampStr(payload.email, VALIDATION_LIMITS.EMAIL_MAX, ''),
-      phoneVerified: Boolean(preservedPhoneVerified),
+      phoneVerified: effectivePhoneVerified,
       authorizedPublication: Boolean(payload.authorizedPublication),
       province: clampStr(payload.province, VALIDATION_LIMITS.PROVINCE_MAX, ''),
       district: clampStr(payload.district, VALIDATION_LIMITS.DISTRICT_MAX, ''),
@@ -851,12 +885,14 @@ export async function saveProfessionalProfileComplete(
       const updateFields = { ...baseProfileData };
       delete (updateFields as Partial<typeof baseProfileData>).id;
       delete (updateFields as Partial<typeof baseProfileData>).ownerId;
-      delete (updateFields as Partial<typeof baseProfileData>).phoneVerified;
+      if (!hasFirebaseVerifiedPhone) {
+        delete (updateFields as Partial<typeof baseProfileData>).phoneVerified;
+      }
       batch.update(profileRef, updateFields);
     } else {
       batch.set(profileRef, {
         ...baseProfileData,
-        phoneVerified: false,
+        phoneVerified: Boolean(hasFirebaseVerifiedPhone),
         createdAt: serverTimestamp(),
       });
     }

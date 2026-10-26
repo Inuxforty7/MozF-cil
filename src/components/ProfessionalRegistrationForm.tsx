@@ -23,8 +23,13 @@ import {
   ConfirmationResult,
   RecaptchaVerifier,
   linkWithPhoneNumber,
+  unlink,
 } from 'firebase/auth';
-import { auth } from '../firebase';
+import {
+  auth,
+  formatFirebasePhoneAuthError,
+  validateMozambiquePhone,
+} from '../firebase';
 import {
   AvailabilitySchedule,
   AvailabilityStatus,
@@ -207,7 +212,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
     existingProfile?.authorizedPublication ?? true
   );
 
-  // Real Firebase SMS OTP state for Section 2 (matching reference layout)
+  // Real Firebase SMS OTP state for Section 2
   const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [otpConfirmation, setOtpConfirmation] = useState<ConfirmationResult | null>(null);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -215,9 +220,19 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
   const [otpCooldown, setOtpCooldown] = useState(0);
   const [otpNotice, setOtpNotice] = useState<string | null>(null);
   const [otpError, setOtpError] = useState<string | null>(null);
+  const [otpGatewayFallbackNote, setOtpGatewayFallbackNote] = useState<string | null>(null);
+  const [verifiedFirebasePhone, setVerifiedFirebasePhone] = useState<string>(
+    () => auth.currentUser?.phoneNumber || ''
+  );
   const recaptchaContainerRef = useRef<HTMLDivElement | null>(null);
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const digitRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (auth.currentUser?.phoneNumber) {
+      setVerifiedFirebasePhone(auth.currentUser.phoneNumber);
+    }
+  }, [auth.currentUser?.phoneNumber]);
 
   useEffect(() => {
     if (otpCooldown <= 0) return;
@@ -227,12 +242,23 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
     return () => window.clearInterval(timer);
   }, [otpCooldown]);
 
-  const isPhoneActuallyVerified = Boolean(
-    (existingProfile?.phoneVerified &&
-      existingProfile.phone.trim() !== '' &&
-      existingProfile.phone.trim() === phone.trim()) ||
-      Boolean(auth.currentUser?.phoneNumber)
+  const phoneValidation = useMemo(() => validateMozambiquePhone(phone), [phone]);
+
+  const isPhoneVerifiedByFirebase = Boolean(
+    verifiedFirebasePhone &&
+      ((phoneValidation.valid && phoneValidation.e164 === verifiedFirebasePhone) ||
+        phone.trim() === verifiedFirebasePhone)
   );
+
+  const isPhoneVerifiedByAdmin = Boolean(
+    !isPhoneVerifiedByFirebase &&
+      existingProfile?.phoneVerified &&
+      existingProfile.phone.trim() !== '' &&
+      existingProfile.phone.trim() === phone.trim()
+  );
+
+  const isPhoneActuallyVerified = isPhoneVerifiedByFirebase || isPhoneVerifiedByAdmin;
+  const isSmsVerificationPending = Boolean(!isPhoneActuallyVerified && otpConfirmation !== null);
 
   const isEmailActuallyVerified = Boolean(
     currentUserEmailVerified &&
@@ -378,65 +404,93 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
     return categories.find((c) => c.id === primaryCategoryId) || null;
   }, [categories, primaryCategoryId]);
 
-  const formatE164MozPhone = (raw: string): string => {
-    const digits = raw.replace(/\D/g, '');
-    if (digits.startsWith('258')) return `+${digits}`;
-    return `+258${digits}`;
-  };
-
-  // Clean up RecaptchaVerifier widget on component unmount
-  useEffect(() => {
-    return () => {
-      if (recaptchaVerifierRef.current) {
-        try {
-          recaptchaVerifierRef.current.clear();
-        } catch {
-          // Ignore cleanup errors on unmount
-        }
-        recaptchaVerifierRef.current = null;
-      }
-    };
-  }, []);
-
   const handleRequestPhoneOtp = async () => {
     if (isSendingOtp || otpCooldown > 0) return;
     setOtpError(null);
     setOtpNotice(null);
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length < 9) {
-      setOtpError('Introduza um número de telefone válido (+258 84/85/82/86/87...) antes de pedir o código SMS.');
-      return;
-    }
-    if (!auth.currentUser) {
-      setOtpError('Autentique-se para solicitar o código SMS de verificação.');
+    setOtpGatewayFallbackNote(null);
+
+    const validation = validateMozambiquePhone(phone);
+    if (!validation.valid) {
+      setOtpError(
+        validation.error ||
+          'Introduza um número de telefone válido de Moçambique (+258 82/83/84/85/86/87 XXX XXXX).'
+      );
       return;
     }
 
-    const e164 = formatE164MozPhone(phone);
+    if (!auth.currentUser) {
+      setOtpError('Inicie sessão na sua conta antes de solicitar o código SMS de verificação.');
+      return;
+    }
+
+    // If this exact E.164 phone is already verified on the current Firebase user token
+    if (auth.currentUser.phoneNumber === validation.e164) {
+      try {
+        await auth.currentUser.getIdToken(true);
+      } catch {
+        // Ignore offline refresh error
+      }
+      setVerifiedFirebasePhone(validation.e164);
+      setOtpConfirmation(null);
+      setOtpNotice(
+        `O número ${validation.formattedDisplay} já se encontra verificado pelo Firebase na sua conta.`
+      );
+      return;
+    }
+
     setIsSendingOtp(true);
     try {
-      if (!recaptchaVerifierRef.current && recaptchaContainerRef.current) {
+      // If a different phone number was previously linked, unlink the old phone provider first
+      if (
+        auth.currentUser.providerData.some((p) => p.providerId === 'phone') &&
+        auth.currentUser.phoneNumber &&
+        auth.currentUser.phoneNumber !== validation.e164
+      ) {
+        try {
+          await unlink(auth.currentUser, 'phone');
+          setVerifiedFirebasePhone('');
+        } catch {
+          // Proceed if provider was already unlinked
+        }
+      }
+
+      if (recaptchaVerifierRef.current) {
+        try {
+          recaptchaVerifierRef.current.clear();
+        } catch {
+          // Ignore clear error
+        }
+        recaptchaVerifierRef.current = null;
+      }
+
+      if (recaptchaContainerRef.current) {
+        recaptchaContainerRef.current.innerHTML = '';
         recaptchaVerifierRef.current = new RecaptchaVerifier(
           auth,
           recaptchaContainerRef.current,
           { size: 'invisible' }
         );
       }
+
       if (!recaptchaVerifierRef.current) {
-        throw new Error('Verificador reCAPTCHA indisponível.');
+        throw new Error('Não foi possível inicializar o verificador reCAPTCHA na página.');
       }
 
       const result = await linkWithPhoneNumber(
         auth.currentUser,
-        e164,
+        validation.e164,
         recaptchaVerifierRef.current
       );
       setOtpConfirmation(result);
+      setOtpDigits(['', '', '', '', '', '']);
       setOtpCooldown(60);
-      setOtpNotice(`Código SMS enviado para ${e164}. Digite os 6 dígitos abaixo.`);
+      setOtpNotice(
+        `Código SMS enviado para ${validation.formattedDisplay}. Introduza os 6 dígitos recebidos abaixo.`
+      );
 
-      // Real WebOTP API auto-read if supported by mobile browser
-      if ('OTPCredential' in window && navigator.credentials) {
+      // Optional WebOTP API auto-read if supported by mobile browser
+      if (typeof window !== 'undefined' && 'OTPCredential' in window && navigator.credentials) {
         try {
           const abortCtrl = new AbortController();
           navigator.credentials
@@ -447,7 +501,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             })
             .then((cred: unknown) => {
               const code = (cred as { code?: string })?.code;
-              if (code && code.length === 6) {
+              if (code && /^\d{6}$/.test(code)) {
                 setOtpDigits(code.split('').slice(0, 6));
               }
             })
@@ -467,22 +521,24 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
         }
         recaptchaVerifierRef.current = null;
       }
-      const code = (err as { code?: string })?.code || '';
-      const message = err instanceof Error ? err.message : String(err);
+      setOtpConfirmation(null);
+
+      const formattedErr = formatFirebasePhoneAuthError(err);
       if (
-        code.includes('auth/operation-not-allowed') ||
-        message.includes('auth/operation-not-allowed') ||
-        code.includes('auth/billing-not-enabled')
+        formattedErr.code === 'auth/provider-already-linked' &&
+        auth.currentUser?.phoneNumber === validation.e164
       ) {
+        setVerifiedFirebasePhone(validation.e164);
         setOtpNotice(
-          'O envio de SMS pelo gateway Firebase não está ativo neste projeto no momento. Pode criar e publicar o seu Perfil Profissional normalmente — a confirmação do contacto é realizada pela administração.'
+          `O número ${validation.formattedDisplay} já está verificado pelo Firebase na sua conta.`
         );
-      } else if (code.includes('auth/provider-already-linked')) {
-        setOtpNotice('A sua conta já possui um número de telefone associado na autenticação.');
       } else {
-        setOtpError(
-          'Não foi possível enviar o SMS agora. Pode concluir e publicar o seu perfil normalmente.'
-        );
+        setOtpError(formattedErr.userMessage);
+        if (formattedErr.isGatewayConfigIssue) {
+          setOtpGatewayFallbackNote(
+            'Pode guardar ou submeter o seu Perfil Profissional com o estado "Contacto não verificado"; o perfil ficará identificado como não verificado por SMS e sujeito a revisão administrativa.'
+          );
+        }
       }
     } finally {
       setIsSendingOtp(false);
@@ -491,18 +547,37 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
 
   const handleConfirmOtpDigits = async () => {
     const code = otpDigits.join('').trim();
-    if (!otpConfirmation || code.length !== 6) {
-      setOtpError('Digite os 6 dígitos do código SMS recebido.');
+    if (!otpConfirmation) {
+      setOtpError('Solicite primeiro o envio do código SMS clicando em "Enviar código".');
+      return;
+    }
+    if (!/^\d{6}$/.test(code)) {
+      setOtpError('Introduza os 6 dígitos numéricos do código SMS recebido.');
       return;
     }
     setIsVerifyingOtp(true);
     setOtpError(null);
+    setOtpGatewayFallbackNote(null);
     try {
       await otpConfirmation.confirm(code);
+      if (auth.currentUser) {
+        try {
+          await auth.currentUser.getIdToken(true);
+          await auth.currentUser.reload();
+        } catch {
+          // Ignore offline reload warning
+        }
+      }
+      const verifiedE164 =
+        auth.currentUser?.phoneNumber ||
+        (phoneValidation.valid ? phoneValidation.e164 : phone.trim());
+      setVerifiedFirebasePhone(verifiedE164);
       setOtpConfirmation(null);
-      setOtpNotice('Número de telefone confirmado com sucesso na sua conta autenticada.');
-    } catch {
-      setOtpError('Código SMS inválido ou expirado. Verifique os dígitos e tente novamente.');
+      setOtpDigits(['', '', '', '', '', '']);
+      setOtpNotice('Contacto telefónico verificado com sucesso pelo Firebase (SMS).');
+    } catch (err: unknown) {
+      const formattedErr = formatFirebasePhoneAuthError(err);
+      setOtpError(formattedErr.userMessage);
     } finally {
       setIsVerifyingOtp(false);
     }
@@ -841,8 +916,8 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-      {/* Hidden container for real Firebase Phone Auth reCAPTCHA */}
-      <div ref={recaptchaContainerRef} className="hidden" />
+      {/* Container for real Firebase Phone Auth reCAPTCHA */}
+      <div ref={recaptchaContainerRef} id="mozfacil-prof-recaptcha" aria-hidden="true" />
 
       {/* ================================================================= */}
       {/* TOP DARK NAVY HEADER BANNER MATCHING REFERENCE PRINT              */}
@@ -1182,11 +1257,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                   value={phone}
                   onChange={(e) => {
                     setPhone(e.target.value);
+                    setOtpError(null);
+                    setOtpGatewayFallbackNote(null);
                     if (otpConfirmation) {
                       setOtpConfirmation(null);
                       setOtpDigits(['', '', '', '', '', '']);
                       setOtpNotice(null);
-                      setOtpError(null);
                     }
                   }}
                   placeholder="84 123 4567"
@@ -1196,12 +1272,14 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
 
               <button
                 type="button"
-                disabled={isSendingOtp || otpCooldown > 0}
+                disabled={isSendingOtp || otpCooldown > 0 || isPhoneVerifiedByFirebase}
                 onClick={handleRequestPhoneOtp}
                 className="px-3.5 py-2 rounded-lg bg-[#1E4B9B] hover:bg-[#0D316E] text-white font-extrabold text-xs shrink-0 transition-colors disabled:opacity-50 shadow-xs"
               >
                 {isSendingOtp
                   ? 'A enviar...'
+                  : isPhoneVerifiedByFirebase
+                  ? 'Verificado'
                   : otpCooldown > 0
                   ? `Reenviar (${otpCooldown}s)`
                   : 'Enviar código'}
@@ -1209,67 +1287,92 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             </div>
           </div>
 
-          {/* 6-Digit SMS Code Boxes matching reference print */}
-          <div className="space-y-1.5">
-            <div className="flex flex-wrap items-center justify-between gap-1">
-              <span className="text-xs font-extrabold text-[#0D316E]">Código SMS</span>
-              <span className="text-[11px] text-slate-500">
-                Digite o código recebido por SMS
-              </span>
-            </div>
+          {/* 6-Digit SMS Code Boxes — displayed ONLY after Firebase initiates SMS (otpConfirmation !== null) */}
+          <div className="space-y-2">
+            {otpConfirmation && !isPhoneActuallyVerified && (
+              <div className="space-y-1.5 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div className="flex flex-wrap items-center justify-between gap-1">
+                  <span className="text-xs font-extrabold text-[#0D316E]">Código SMS</span>
+                  <span className="text-[11px] text-slate-500">
+                    Digite o código de 6 dígitos recebido por SMS
+                  </span>
+                </div>
 
-            <div className="flex items-center gap-2">
-              <div className="grid grid-cols-6 gap-1.5 flex-1 max-w-xs">
-                {otpDigits.map((digit, i) => (
-                  <input
-                    key={i}
-                    ref={(el) => {
-                      digitRefs.current[i] = el;
-                    }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpDigitChange(i, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                    aria-label={`Dígito ${i + 1} do código SMS`}
-                    className="w-full h-10 text-center font-extrabold text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
-                  />
-                ))}
+                <div className="flex items-center gap-2">
+                  <div className="grid grid-cols-6 gap-1.5 flex-1 max-w-xs">
+                    {otpDigits.map((digit, i) => (
+                      <input
+                        key={i}
+                        ref={(el) => {
+                          digitRefs.current[i] = el;
+                        }}
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete={i === 0 ? 'one-time-code' : 'off'}
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpDigitChange(i, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                        aria-label={`Dígito ${i + 1} do código SMS`}
+                        className="w-full h-10 text-center font-extrabold text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={isVerifyingOtp}
+                    onClick={handleConfirmOtpDigits}
+                    className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 disabled:opacity-50"
+                  >
+                    {isVerifyingOtp ? 'A validar...' : 'Confirmar'}
+                  </button>
+                </div>
               </div>
-
-              {otpConfirmation && (
-                <button
-                  type="button"
-                  disabled={isVerifyingOtp}
-                  onClick={handleConfirmOtpDigits}
-                  className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0"
-                >
-                  {isVerifyingOtp ? 'A validar...' : 'Confirmar'}
-                </button>
-              )}
-            </div>
+            )}
 
             {otpNotice && (
-              <p className="text-[11px] text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5">
+              <p className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 font-medium">
                 {otpNotice}
               </p>
             )}
             {otpError && (
-              <p className="text-[11px] text-red-700 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5">
-                {otpError}
-              </p>
+              <div className="text-[11px] text-red-800 bg-red-50 border border-red-200 rounded-lg px-2.5 py-2 space-y-1">
+                <p className="font-semibold flex items-start gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                  <span>{otpError}</span>
+                </p>
+                {otpGatewayFallbackNote && (
+                  <p className="text-slate-700 bg-white/80 border border-red-100 rounded px-2 py-1 text-[10px]">
+                    {otpGatewayFallbackNote}
+                  </p>
+                )}
+              </div>
             )}
 
-            <div className="text-[11px] flex items-center gap-1 pt-0.5">
-              {isPhoneActuallyVerified ? (
-                <span className="text-emerald-700 font-bold inline-flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Contacto Telefónico Verificado
+            {/* Explicit 4-state contact verification indicator */}
+            <div className="text-[11px] flex items-center gap-1.5 pt-0.5">
+              {isPhoneVerifiedByFirebase ? (
+                <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md font-bold inline-flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span>Estado: Contacto verificado pelo Firebase (SMS)</span>
+                </span>
+              ) : isPhoneVerifiedByAdmin ? (
+                <span className="text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-md font-bold inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  <span>Estado: Contacto verificado pela administração</span>
+                </span>
+              ) : isSmsVerificationPending ? (
+                <span className="text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-md font-bold inline-flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 shrink-0" />
+                  <span>Estado: Verificação por SMS pendente (aguarda confirmação do código)</span>
                 </span>
               ) : (
-                <span className="text-slate-500 inline-flex items-center gap-1">
-                  <Smartphone className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Estado: Contacto sujeito a confirmação real</span>
+                <span className="text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md font-medium inline-flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>
+                    Estado: Contacto não verificado (aguarda verificação por SMS ou revisão administrativa)
+                  </span>
                 </span>
               )}
             </div>
