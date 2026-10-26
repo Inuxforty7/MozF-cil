@@ -1,0 +1,6 @@
+{
+  "name": "MozFácil — Profissionais e Serviços",
+  "description": "Plataforma de registo, pesquisa e gestão de profissionais independentes, prestadores de serviços e vendedores ambulantes em Moçambique.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,816 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // 0. GLOBAL SAFETY NET (Default-Deny Catch-All)
+    // =========================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // 1. GLOBAL PRIMITIVE HELPERS
+    // =========================================================================
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && (
+        request.auth.token.email_verified == true ||
+        request.auth.token.phone_number != null
+      );
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (
+          request.auth.token.email_verified == true &&
+          request.auth.token.email == 'inuxforty@gmail.com'
+        ) ||
+        (
+          isVerifiedUser() &&
+          exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        )
+      );
+    }
+
+    // =========================================================================
+    // 2. ENTITY VALIDATION BLUEPRINTS
+    // =========================================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll([
+        'id', 'displayName', 'email', 'phone', 'whatsapp',
+        'province', 'district', 'neighborhood', 'termsAccepted',
+        'creditsBalance', 'consultationsCount',
+        'role', 'phoneVerified', 'emailVerified', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'displayName', 'email', 'phone', 'whatsapp',
+        'province', 'district', 'neighborhood', 'termsAccepted',
+        'creditsBalance', 'consultationsCount',
+        'role', 'phoneVerified', 'emailVerified', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      (data.id == request.auth.uid || isAdmin()) &&
+      data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120 &&
+      data.email is string && data.email.size() <= 120 &&
+      data.phone is string && data.phone.size() <= 40 &&
+      data.whatsapp is string && data.whatsapp.size() <= 40 &&
+      data.province is string && data.province.size() <= 80 &&
+      data.district is string && data.district.size() <= 80 &&
+      data.neighborhood is string && data.neighborhood.size() <= 100 &&
+      data.termsAccepted is bool &&
+      data.creditsBalance is number && data.creditsBalance >= 0 && data.creditsBalance <= 1000000 &&
+      data.consultationsCount is number && data.consultationsCount >= 0 && data.consultationsCount <= 1000000 &&
+      data.role is string && data.role in ['visitor', 'professional', 'admin'] &&
+      data.phoneVerified is bool &&
+      data.emailVerified is bool &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidUserConsultation(data) {
+      return data.keys().hasAll([
+        'id', 'userId', 'targetProfileId', 'targetProfileName',
+        'creditsDebited', 'amountMzn', 'createdAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'userId', 'targetProfileId', 'targetProfileName',
+        'creditsDebited', 'amountMzn', 'createdAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.userId) &&
+      data.userId == request.auth.uid &&
+      isValidId(data.targetProfileId) &&
+      data.id == (data.userId + '_' + data.targetProfileId) &&
+      data.targetProfileName is string && data.targetProfileName.size() >= 1 && data.targetProfileName.size() <= 120 &&
+      data.creditsDebited == 1 &&
+      data.amountMzn == 1 &&
+      data.createdAt is timestamp;
+    }
+
+    function isValidAdmin(data) {
+      return data.keys().hasAll(['id', 'email', 'createdAt']) &&
+      data.keys().hasOnly(['id', 'email', 'createdAt']) &&
+      isValidId(data.id) &&
+      data.email is string && data.email.size() >= 3 && data.email.size() <= 120 &&
+      data.createdAt is timestamp;
+    }
+
+    function isValidProfessionalProfile(data) {
+      return data.keys().hasAll([
+        'id', 'ownerId', 'profileType', 'displayName', 'responsibleName', 'responsibleRole',
+        'nuit', 'photoUrl', 'primaryCategoryId', 'primaryCategoryName',
+        'specialtyIds', 'specialtyNames', 'experienceYears', 'description',
+        'phone', 'whatsapp', 'email', 'phoneVerified', 'authorizedPublication',
+        'province', 'district', 'locality', 'neighborhood', 'streetOrReference', 'nearestStop',
+        'hasGps', 'latitude', 'longitude', 'coverageAreaType', 'coverageLocations',
+        'deliveryMode', 'availabilityStatus', 'operationalState',
+        'workingDaysSummary', 'openingTime', 'closingTime',
+        'activityField1Label', 'activityField1Value', 'activityField2Label', 'activityField2Value',
+        'publicationStatus', 'rejectionReason', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'ownerId', 'profileType', 'displayName', 'responsibleName', 'responsibleRole',
+        'nuit', 'photoUrl', 'primaryCategoryId', 'primaryCategoryName',
+        'specialtyIds', 'specialtyNames', 'experienceYears', 'description',
+        'phone', 'whatsapp', 'email', 'phoneVerified', 'authorizedPublication',
+        'province', 'district', 'locality', 'neighborhood', 'streetOrReference', 'nearestStop',
+        'hasGps', 'latitude', 'longitude', 'coverageAreaType', 'coverageLocations',
+        'deliveryMode', 'availabilityStatus', 'operationalState',
+        'workingDaysSummary', 'openingTime', 'closingTime',
+        'activityField1Label', 'activityField1Value', 'activityField2Label', 'activityField2Value',
+        'publicationStatus', 'rejectionReason', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.ownerId) &&
+      (data.ownerId == request.auth.uid || isAdmin()) &&
+      data.profileType is string && data.profileType in ['independent', 'service_provider', 'street_vendor'] &&
+      data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120 &&
+      data.responsibleName is string && data.responsibleName.size() <= 120 &&
+      data.responsibleRole is string && data.responsibleRole.size() <= 80 &&
+      data.nuit is string && data.nuit.size() <= 30 &&
+      data.photoUrl is string && data.photoUrl.size() <= 250000 &&
+      data.primaryCategoryId is string && data.primaryCategoryId.size() <= 128 &&
+      data.primaryCategoryName is string && data.primaryCategoryName.size() <= 100 &&
+      data.specialtyIds is list && data.specialtyIds.size() <= 10 &&
+      (data.specialtyIds.size() == 0 || (data.specialtyIds[0] is string && data.specialtyIds[0].size() <= 128)) &&
+      data.specialtyNames is list && data.specialtyNames.size() <= 10 &&
+      (data.specialtyNames.size() == 0 || (data.specialtyNames[0] is string && data.specialtyNames[0].size() <= 100)) &&
+      data.experienceYears is number && data.experienceYears >= 0 && data.experienceYears <= 80 &&
+      data.description is string && data.description.size() <= 2000 &&
+      data.phone is string && data.phone.size() <= 40 &&
+      data.whatsapp is string && data.whatsapp.size() <= 40 &&
+      data.email is string && data.email.size() <= 120 &&
+      data.phoneVerified is bool &&
+      data.authorizedPublication is bool &&
+      data.province is string && data.province.size() <= 80 &&
+      data.district is string && data.district.size() <= 80 &&
+      data.locality is string && data.locality.size() <= 100 &&
+      data.neighborhood is string && data.neighborhood.size() <= 100 &&
+      data.streetOrReference is string && data.streetOrReference.size() <= 250 &&
+      data.nearestStop is string && data.nearestStop.size() <= 200 &&
+      data.hasGps is bool &&
+      data.latitude is number && data.latitude >= -90 && data.latitude <= 90 &&
+      data.longitude is number && data.longitude >= -180 && data.longitude <= 180 &&
+      data.coverageAreaType is string && data.coverageAreaType in ['neighborhood', 'district', 'province', 'selected_locations'] &&
+      data.coverageLocations is string && data.coverageLocations.size() <= 500 &&
+      data.deliveryMode is string && data.deliveryMode in ['customer_location', 'professional_location', 'both', 'mobile_route'] &&
+      data.availabilityStatus is string && data.availabilityStatus in ['available', 'unavailable'] &&
+      data.operationalState is string && data.operationalState in ['on', 'off', 'stop'] &&
+      data.workingDaysSummary is string && data.workingDaysSummary.size() <= 200 &&
+      data.openingTime is string && data.openingTime.size() <= 20 &&
+      data.closingTime is string && data.closingTime.size() <= 20 &&
+      data.activityField1Label is string && data.activityField1Label.size() <= 100 &&
+      data.activityField1Value is string && data.activityField1Value.size() <= 500 &&
+      data.activityField2Label is string && data.activityField2Label.size() <= 100 &&
+      data.activityField2Value is string && data.activityField2Value.size() <= 500 &&
+      data.publicationStatus is string && data.publicationStatus in ['draft', 'pending_review', 'published', 'rejected', 'suspended'] &&
+      data.rejectionReason is string && data.rejectionReason.size() <= 500 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isPublishableProfile(data) {
+      return data.displayName.size() >= 2 &&
+        isValidId(data.primaryCategoryId) &&
+        data.primaryCategoryName.size() >= 2 &&
+        data.phone.size() >= 6 &&
+        data.province.size() >= 2 &&
+        data.district.size() >= 2 &&
+        data.neighborhood.size() >= 1 &&
+        data.authorizedPublication == true &&
+        getAfter(/databases/$(database)/documents/professional_categories/$(data.primaryCategoryId)).data.categoryType == 'profession' &&
+        (
+          (
+            data.publicationStatus == 'pending_review' &&
+            getAfter(/databases/$(database)/documents/professional_categories/$(data.primaryCategoryId)).data.reviewStatus in ['approved', 'pending']
+          ) ||
+          (
+            data.publicationStatus == 'published' &&
+            getAfter(/databases/$(database)/documents/professional_categories/$(data.primaryCategoryId)).data.reviewStatus == 'approved'
+          )
+        );
+    }
+
+    function isValidProfessionalCategory(data) {
+      return data.keys().hasAll([
+        'id', 'originalName', 'normalizedName', 'categoryType', 'parentCategoryId',
+        'reviewStatus', 'creatorId', 'reviewerId', 'canonicalCategoryId',
+        'activityField1Label', 'activityField1Placeholder', 'activityField1Required',
+        'activityField2Label', 'activityField2Placeholder', 'activityField2Required',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'originalName', 'normalizedName', 'categoryType', 'parentCategoryId',
+        'reviewStatus', 'creatorId', 'reviewerId', 'canonicalCategoryId',
+        'activityField1Label', 'activityField1Placeholder', 'activityField1Required',
+        'activityField2Label', 'activityField2Placeholder', 'activityField2Required',
+        'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      data.originalName is string && data.originalName.size() >= 2 && data.originalName.size() <= 100 &&
+      data.normalizedName is string && data.normalizedName.size() >= 2 && data.normalizedName.size() <= 100 &&
+      data.categoryType is string && data.categoryType in ['profession', 'specialty'] &&
+      data.parentCategoryId is string && data.parentCategoryId.size() <= 128 &&
+      data.reviewStatus is string && data.reviewStatus in ['pending', 'approved', 'rejected', 'merged'] &&
+      isValidId(data.creatorId) &&
+      (data.creatorId == request.auth.uid || isAdmin()) &&
+      data.reviewerId is string && data.reviewerId.size() <= 128 &&
+      data.canonicalCategoryId is string && data.canonicalCategoryId.size() <= 128 &&
+      data.activityField1Label is string && data.activityField1Label.size() <= 100 &&
+      data.activityField1Placeholder is string && data.activityField1Placeholder.size() <= 150 &&
+      data.activityField1Required is bool &&
+      data.activityField2Label is string && data.activityField2Label.size() <= 100 &&
+      data.activityField2Placeholder is string && data.activityField2Placeholder.size() <= 150 &&
+      data.activityField2Required is bool &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidProfessionalSpecialty(data) {
+      return data.keys().hasAll([
+        'id', 'profileId', 'ownerId', 'categoryId', 'specialtyName',
+        'publicationStatus', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'profileId', 'ownerId', 'categoryId', 'specialtyName',
+        'publicationStatus', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.profileId) &&
+      isValidId(data.ownerId) &&
+      (data.ownerId == request.auth.uid || isAdmin()) &&
+      isValidId(data.categoryId) &&
+      data.specialtyName is string && data.specialtyName.size() >= 1 && data.specialtyName.size() <= 100 &&
+      data.publicationStatus is string && data.publicationStatus in ['draft', 'pending_review', 'published', 'rejected', 'suspended'] &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidProfessionalService(data) {
+      return data.keys().hasAll([
+        'id', 'profileId', 'ownerId', 'serviceName', 'description',
+        'conditions', 'price', 'hasFixedPrice', 'deliveryMethod',
+        'availabilityStatus', 'publicationStatus', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'profileId', 'ownerId', 'serviceName', 'description',
+        'conditions', 'price', 'hasFixedPrice', 'deliveryMethod',
+        'availabilityStatus', 'publicationStatus', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.profileId) &&
+      isValidId(data.ownerId) &&
+      (data.ownerId == request.auth.uid || isAdmin()) &&
+      data.serviceName is string && data.serviceName.size() >= 2 && data.serviceName.size() <= 120 &&
+      data.description is string && data.description.size() <= 1000 &&
+      data.conditions is string && data.conditions.size() <= 500 &&
+      data.price is number && data.price >= 0 && data.price <= 100000000 &&
+      data.hasFixedPrice is bool &&
+      data.deliveryMethod is string && data.deliveryMethod in ['customer_location', 'professional_location', 'both', 'remote'] &&
+      data.availabilityStatus is string && data.availabilityStatus in ['available', 'unavailable'] &&
+      data.publicationStatus is string && data.publicationStatus in ['draft', 'pending_review', 'published', 'rejected', 'suspended'] &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidProfessionalMedia(data) {
+      return data.keys().hasAll([
+        'id', 'profileId', 'ownerId', 'fileType', 'caption',
+        'storageRef', 'uploadStatus', 'publicationStatus', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'profileId', 'ownerId', 'fileType', 'caption',
+        'storageRef', 'uploadStatus', 'publicationStatus', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.profileId) &&
+      isValidId(data.ownerId) &&
+      (data.ownerId == request.auth.uid || isAdmin()) &&
+      data.fileType is string && data.fileType in ['profile_photo', 'work_photo', 'certificate'] &&
+      data.caption is string && data.caption.size() <= 200 &&
+      data.storageRef is string && data.storageRef.size() >= 1 && data.storageRef.size() <= 300000 &&
+      data.uploadStatus is string && data.uploadStatus in ['completed', 'pending', 'failed'] &&
+      data.publicationStatus is string && data.publicationStatus in ['draft', 'pending_review', 'published', 'rejected', 'suspended'] &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidAvailabilitySchedule(data) {
+      return data.keys().hasAll([
+        'id', 'profileId', 'ownerId', 'dayOfWeek', 'dayLabel',
+        'isOpen', 'openingTime', 'closingTime', 'notes',
+        'publicationStatus', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'profileId', 'ownerId', 'dayOfWeek', 'dayLabel',
+        'isOpen', 'openingTime', 'closingTime', 'notes',
+        'publicationStatus', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.profileId) &&
+      isValidId(data.ownerId) &&
+      (data.ownerId == request.auth.uid || isAdmin()) &&
+      data.dayOfWeek is number && data.dayOfWeek >= 0 && data.dayOfWeek <= 6 &&
+      data.dayLabel is string && data.dayLabel.size() >= 2 && data.dayLabel.size() <= 40 &&
+      data.isOpen is bool &&
+      data.openingTime is string && data.openingTime.size() >= 1 && data.openingTime.size() <= 10 &&
+      data.closingTime is string && data.closingTime.size() >= 1 && data.closingTime.size() <= 10 &&
+      data.notes is string && data.notes.size() <= 200 &&
+      data.publicationStatus is string && data.publicationStatus in ['draft', 'pending_review', 'published', 'rejected', 'suspended'] &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll([
+        'id', 'actorId', 'actorName', 'operation',
+        'targetCollection', 'targetRecordId', 'details', 'createdAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'actorId', 'actorName', 'operation',
+        'targetCollection', 'targetRecordId', 'details', 'createdAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.actorId) &&
+      data.actorId == request.auth.uid &&
+      data.actorName is string && data.actorName.size() >= 1 && data.actorName.size() <= 120 &&
+      data.operation is string && (
+        data.operation in [
+          'utente_registered', 'consultation_debit',
+          'profile_created', 'profile_updated', 'category_created'
+        ] ||
+        (
+          isAdmin() &&
+          data.operation in [
+            'profile_status_changed', 'contact_verified',
+            'category_approved', 'category_rejected',
+            'category_renamed', 'category_merged', 'category_fields_configured'
+          ]
+        )
+      ) &&
+      data.targetCollection is string && data.targetCollection.size() >= 1 && data.targetCollection.size() <= 80 &&
+      isValidId(data.targetRecordId) &&
+      data.details is string && data.details.size() >= 1 && data.details.size() <= 1000 &&
+      data.createdAt is timestamp;
+    }
+
+    // =========================================================================
+    // 3. COLLECTION RULES
+    // =========================================================================
+
+    // --- /users/{userId} (PII Isolated + 100 Credit Initial Package & Verified 1 Credit Debit) ---
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin() && existing().id is string;
+
+      allow create: if isVerifiedUser() &&
+        isValidId(userId) &&
+        isValidUser(incoming()) &&
+        incoming().id == userId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (
+          (
+            request.auth.uid == userId &&
+            incoming().role in ['visitor', 'professional'] &&
+            incoming().creditsBalance == 100 &&
+            incoming().consultationsCount == 0 &&
+            incoming().phoneVerified == (request.auth.token.phone_number != null) &&
+            incoming().emailVerified == (request.auth.token.email_verified == true)
+          ) ||
+          isAdmin()
+        );
+
+      allow update: if isVerifiedUser() &&
+        isValidId(userId) &&
+        isValidUser(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          // Action 1: Owner updates Utente registration data (cannot inflate creditsBalance or self-forge phoneVerified)
+          (
+            request.auth.uid == userId &&
+            incoming().role == existing().role &&
+            incoming().creditsBalance == existing().creditsBalance &&
+            incoming().consultationsCount == existing().consultationsCount &&
+            (
+              incoming().phoneVerified == existing().phoneVerified ||
+              incoming().phoneVerified == (request.auth.token.phone_number != null)
+            ) &&
+            (
+              incoming().emailVerified == existing().emailVerified ||
+              incoming().emailVerified == (request.auth.token.email_verified == true)
+            ) &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'displayName', 'email', 'phone', 'whatsapp',
+              'province', 'district', 'neighborhood', 'termsAccepted',
+              'phoneVerified', 'emailVerified', 'updatedAt'
+            ])
+          ) ||
+          // Action 2: Direct Consultation Debit (debits exactly 1 credit = 1 MT; requires termsAccepted == true)
+          (
+            request.auth.uid == userId &&
+            incoming().role == existing().role &&
+            existing().termsAccepted == true &&
+            incoming().termsAccepted == true &&
+            existing().creditsBalance >= 1 &&
+            incoming().creditsBalance == existing().creditsBalance - 1 &&
+            incoming().consultationsCount == existing().consultationsCount + 1 &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'creditsBalance', 'consultationsCount', 'updatedAt'
+            ])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    // --- /user_consultations/{consultationId} (Idempotent Consultation Receipt Ledger) ---
+    match /user_consultations/{consultationId} {
+      allow get: if isSignedIn() && isValidId(consultationId) && (
+        existing().userId == request.auth.uid || isAdmin()
+      );
+      allow list: if isSignedIn() && (
+        existing().userId == request.auth.uid || isAdmin()
+      );
+
+      allow create: if isVerifiedUser() &&
+        isValidId(consultationId) &&
+        !exists(/databases/$(database)/documents/user_consultations/$(consultationId)) &&
+        isValidUserConsultation(incoming()) &&
+        incoming().id == consultationId &&
+        incoming().createdAt == request.time &&
+        exists(/databases/$(database)/documents/professional_profiles/$(incoming().targetProfileId)) &&
+        get(/databases/$(database)/documents/professional_profiles/$(incoming().targetProfileId)).data.publicationStatus == 'published' &&
+        getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.creditsBalance ==
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.creditsBalance - 1 &&
+        getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.consultationsCount ==
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.consultationsCount + 1;
+
+      allow update, delete: if false;
+    }
+
+    // --- /test/{testId} (SDK connectivity probe) ---
+    match /test/{testId} {
+      allow get: if true;
+    }
+
+    // --- /admins/{adminId} ---
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && (request.auth.uid == adminId || isAdmin());
+      allow list: if isAdmin() && existing().id is string;
+      allow create: if isAdmin() && isValidId(adminId) && isValidAdmin(incoming()) && incoming().id == adminId && incoming().createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // --- /professional_profiles/{profileId} ---
+    match /professional_profiles/{profileId} {
+      allow get: if isValidId(profileId) && (
+        existing().publicationStatus == 'published' ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()))
+      );
+
+      allow list: if existing().publicationStatus == 'published' ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()));
+
+      allow create: if isVerifiedUser() &&
+        isValidId(profileId) &&
+        isValidProfessionalProfile(incoming()) &&
+        incoming().id == profileId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().publicationStatus == 'draft' ||
+          isPublishableProfile(incoming())
+        ) &&
+        (
+          (
+            incoming().ownerId == request.auth.uid &&
+            incoming().phoneVerified == false &&
+            incoming().publicationStatus in ['draft', 'pending_review', 'published']
+          ) ||
+          isAdmin()
+        );
+
+      allow update: if isVerifiedUser() &&
+        isValidId(profileId) &&
+        isValidProfessionalProfile(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().publicationStatus == 'draft' ||
+          isPublishableProfile(incoming())
+        ) &&
+        (
+          // Action 1: Owner updates their own non-suspended profile (cannot self-forge phoneVerified)
+          (
+            existing().ownerId == request.auth.uid &&
+            existing().publicationStatus != 'suspended' &&
+            incoming().phoneVerified == existing().phoneVerified &&
+            incoming().publicationStatus in ['draft', 'pending_review', 'published'] &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'profileType', 'displayName', 'responsibleName', 'responsibleRole',
+              'nuit', 'photoUrl', 'primaryCategoryId', 'primaryCategoryName',
+              'specialtyIds', 'specialtyNames', 'experienceYears', 'description',
+              'phone', 'whatsapp', 'email', 'authorizedPublication',
+              'province', 'district', 'locality', 'neighborhood', 'streetOrReference', 'nearestStop',
+              'hasGps', 'latitude', 'longitude', 'coverageAreaType', 'coverageLocations',
+              'deliveryMode', 'availabilityStatus', 'operationalState',
+              'workingDaysSummary', 'openingTime', 'closingTime',
+              'activityField1Label', 'activityField1Value', 'activityField2Label', 'activityField2Value',
+              'publicationStatus', 'rejectionReason', 'updatedAt'
+            ])
+          ) ||
+          // Action 2: Owner toggles availability/operational state only
+          (
+            existing().ownerId == request.auth.uid &&
+            existing().publicationStatus != 'suspended' &&
+            incoming().publicationStatus == existing().publicationStatus &&
+            incoming().phoneVerified == existing().phoneVerified &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'availabilityStatus', 'operationalState', 'updatedAt'
+            ])
+          ) ||
+          // Action 3: Administrator full lifecycle, contact verification & category merge management
+          isAdmin()
+        );
+
+      allow delete: if isAdmin() && isValidId(profileId);
+    }
+
+    // --- /professional_categories/{categoryId} ---
+    match /professional_categories/{categoryId} {
+      allow get: if isValidId(categoryId) && (
+        existing().reviewStatus in ['approved', 'pending', 'merged'] ||
+        (isSignedIn() && (existing().creatorId == request.auth.uid || isAdmin()))
+      );
+
+      allow list: if existing().reviewStatus in ['approved', 'pending', 'merged'] ||
+        (isSignedIn() && (existing().creatorId == request.auth.uid || isAdmin()));
+
+      allow create: if isVerifiedUser() &&
+        isValidId(categoryId) &&
+        isValidProfessionalCategory(incoming()) &&
+        incoming().id == categoryId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (
+          (
+            incoming().creatorId == request.auth.uid &&
+            incoming().reviewStatus == 'pending' &&
+            incoming().reviewerId == '' &&
+            incoming().canonicalCategoryId == ''
+          ) ||
+          isAdmin()
+        );
+
+      allow update: if isVerifiedUser() &&
+        isValidId(categoryId) &&
+        isValidProfessionalCategory(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().creatorId == existing().creatorId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        isAdmin() &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'originalName', 'normalizedName', 'parentCategoryId',
+          'reviewStatus', 'reviewerId', 'canonicalCategoryId',
+          'activityField1Label', 'activityField1Placeholder', 'activityField1Required',
+          'activityField2Label', 'activityField2Placeholder', 'activityField2Required',
+          'updatedAt'
+        ]);
+
+      allow delete: if isAdmin() && isValidId(categoryId);
+    }
+
+    // --- /professional_specialties/{specialtyAssocId} ---
+    match /professional_specialties/{specialtyAssocId} {
+      allow get: if isValidId(specialtyAssocId) && (
+        existing().publicationStatus == 'published' ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()))
+      );
+
+      allow list: if existing().publicationStatus == 'published' ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()));
+
+      allow create: if isVerifiedUser() &&
+        isValidId(specialtyAssocId) &&
+        isValidProfessionalSpecialty(incoming()) &&
+        incoming().id == specialtyAssocId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        getAfter(/databases/$(database)/documents/professional_categories/$(incoming().categoryId)).data.categoryType == 'specialty' &&
+        (
+          (
+            getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.ownerId == request.auth.uid &&
+            incoming().publicationStatus == getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.publicationStatus
+          ) ||
+          isAdmin()
+        );
+
+      allow update: if isVerifiedUser() &&
+        isValidId(specialtyAssocId) &&
+        isValidProfessionalSpecialty(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().profileId == existing().profileId &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          (
+            existing().ownerId == request.auth.uid &&
+            incoming().publicationStatus == getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.publicationStatus &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'categoryId', 'specialtyName', 'publicationStatus', 'updatedAt'
+            ])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isVerifiedUser() && isValidId(specialtyAssocId) && (
+        existing().ownerId == request.auth.uid || isAdmin()
+      );
+    }
+
+    // --- /professional_services/{serviceId} ---
+    match /professional_services/{serviceId} {
+      allow get: if isValidId(serviceId) && (
+        existing().publicationStatus == 'published' ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()))
+      );
+
+      allow list: if existing().publicationStatus == 'published' ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()));
+
+      allow create: if isVerifiedUser() &&
+        isValidId(serviceId) &&
+        isValidProfessionalService(incoming()) &&
+        incoming().id == serviceId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (
+          (
+            getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.ownerId == request.auth.uid &&
+            incoming().publicationStatus == getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.publicationStatus
+          ) ||
+          isAdmin()
+        );
+
+      allow update: if isVerifiedUser() &&
+        isValidId(serviceId) &&
+        isValidProfessionalService(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().profileId == existing().profileId &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          (
+            existing().ownerId == request.auth.uid &&
+            incoming().publicationStatus == getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.publicationStatus &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'serviceName', 'description', 'conditions', 'price', 'hasFixedPrice',
+              'deliveryMethod', 'availabilityStatus', 'publicationStatus', 'updatedAt'
+            ])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isVerifiedUser() && isValidId(serviceId) && (
+        existing().ownerId == request.auth.uid || isAdmin()
+      );
+    }
+
+    // --- /professional_media/{mediaId} ---
+    match /professional_media/{mediaId} {
+      allow get: if isValidId(mediaId) && (
+        existing().publicationStatus == 'published' ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()))
+      );
+
+      allow list: if existing().publicationStatus == 'published' ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()));
+
+      allow create: if isVerifiedUser() &&
+        isValidId(mediaId) &&
+        isValidProfessionalMedia(incoming()) &&
+        incoming().id == mediaId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (
+          (
+            getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.ownerId == request.auth.uid &&
+            incoming().publicationStatus == getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.publicationStatus
+          ) ||
+          isAdmin()
+        );
+
+      allow update: if isVerifiedUser() &&
+        isValidId(mediaId) &&
+        isValidProfessionalMedia(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().profileId == existing().profileId &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          (
+            existing().ownerId == request.auth.uid &&
+            incoming().publicationStatus == getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.publicationStatus &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'fileType', 'caption', 'storageRef', 'uploadStatus', 'publicationStatus', 'updatedAt'
+            ])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isVerifiedUser() && isValidId(mediaId) && (
+        existing().ownerId == request.auth.uid || isAdmin()
+      );
+    }
+
+    // --- /availability_schedules/{scheduleId} ---
+    match /availability_schedules/{scheduleId} {
+      allow get: if isValidId(scheduleId) && (
+        existing().publicationStatus == 'published' ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()))
+      );
+
+      allow list: if existing().publicationStatus == 'published' ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()));
+
+      allow create: if isVerifiedUser() &&
+        isValidId(scheduleId) &&
+        isValidAvailabilitySchedule(incoming()) &&
+        incoming().id == scheduleId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (
+          (
+            getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.ownerId == request.auth.uid &&
+            incoming().publicationStatus == getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.publicationStatus
+          ) ||
+          isAdmin()
+        );
+
+      allow update: if isVerifiedUser() &&
+        isValidId(scheduleId) &&
+        isValidAvailabilitySchedule(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().profileId == existing().profileId &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          (
+            existing().ownerId == request.auth.uid &&
+            incoming().publicationStatus == getAfter(/databases/$(database)/documents/professional_profiles/$(incoming().profileId)).data.publicationStatus &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'dayOfWeek', 'dayLabel', 'isOpen', 'openingTime', 'closingTime', 'notes', 'publicationStatus', 'updatedAt'
+            ])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isVerifiedUser() && isValidId(scheduleId) && (
+        existing().ownerId == request.auth.uid || isAdmin()
+      );
+    }
+
+    // --- /audit_logs/{logId} (Immutable Audit Trail) ---
+    match /audit_logs/{logId} {
+      allow get: if isSignedIn() && isValidId(logId) && (existing().actorId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().actorId == request.auth.uid || isAdmin());
+
+      allow create: if isVerifiedUser() &&
+        isValidId(logId) &&
+        isValidAuditLog(incoming()) &&
+        incoming().id == logId &&
+        incoming().createdAt == request.time;
+
+      allow update, delete: if false;
+    }
+  }
+}

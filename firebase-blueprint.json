@@ -1,0 +1,930 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Private user (Utente / Profissional / Admin) account identity, location, terms acceptance, and credit balance.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Unique user UID matching Firebase Auth UID."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "User full name or display name."
+        },
+        "email": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120,
+          "description": "User email address."
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40,
+          "description": "Primary phone number."
+        },
+        "whatsapp": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40,
+          "description": "WhatsApp contact number (+258)."
+        },
+        "province": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 80,
+          "description": "Utente province in Mozambique."
+        },
+        "district": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 80,
+          "description": "Utente district in Mozambique."
+        },
+        "neighborhood": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100,
+          "description": "Utente neighborhood (Bairro)."
+        },
+        "termsAccepted": {
+          "type": "boolean",
+          "description": "Whether the user accepted the MozFácil terms and 1 credit (1 MT) per consultation rule."
+        },
+        "creditsBalance": {
+          "type": "number",
+          "description": "Current balance of consultation credits (1 credit = 1 MT; initial package = 100 credits)."
+        },
+        "consultationsCount": {
+          "type": "number",
+          "description": "Total number of direct consultations performed by this user."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["visitor", "professional", "admin"],
+          "description": "Role assigned to the user."
+        },
+        "phoneVerified": {
+          "type": "boolean",
+          "description": "Whether the phone number has been verified via real OTP or Admin."
+        },
+        "emailVerified": {
+          "type": "boolean",
+          "description": "Whether the email address is verified by Firebase Auth."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": [
+        "id",
+        "displayName",
+        "email",
+        "phone",
+        "whatsapp",
+        "province",
+        "district",
+        "neighborhood",
+        "termsAccepted",
+        "creditsBalance",
+        "consultationsCount",
+        "role",
+        "phoneVerified",
+        "emailVerified",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Administrator privilege record.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "email", "createdAt"]
+    },
+    "ProfessionalProfile": {
+      "title": "ProfessionalProfile",
+      "description": "Independent professional, service provider, or mobile/street vendor profile.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "profileType": {
+          "type": "string",
+          "enum": ["independent", "service_provider", "street_vendor"]
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "responsibleName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120
+        },
+        "responsibleRole": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 80
+        },
+        "nuit": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 30
+        },
+        "photoUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 250000
+        },
+        "primaryCategoryId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 128
+        },
+        "primaryCategoryName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100
+        },
+        "specialtyIds": {
+          "type": "array",
+          "description": "Bounded list of up to 10 specialty category IDs."
+        },
+        "specialtyNames": {
+          "type": "array",
+          "description": "Bounded list of up to 10 specialty display names."
+        },
+        "experienceYears": {
+          "type": "number"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2000
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40
+        },
+        "whatsapp": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40
+        },
+        "email": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120
+        },
+        "phoneVerified": {
+          "type": "boolean"
+        },
+        "authorizedPublication": {
+          "type": "boolean"
+        },
+        "province": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 80
+        },
+        "district": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 80
+        },
+        "locality": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100
+        },
+        "neighborhood": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100
+        },
+        "streetOrReference": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 250
+        },
+        "nearestStop": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "hasGps": {
+          "type": "boolean"
+        },
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        },
+        "coverageAreaType": {
+          "type": "string",
+          "enum": ["neighborhood", "district", "province", "selected_locations"]
+        },
+        "coverageLocations": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "deliveryMode": {
+          "type": "string",
+          "enum": ["customer_location", "professional_location", "both", "mobile_route"]
+        },
+        "availabilityStatus": {
+          "type": "string",
+          "enum": ["available", "unavailable"]
+        },
+        "operationalState": {
+          "type": "string",
+          "enum": ["on", "off", "stop"]
+        },
+        "workingDaysSummary": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "openingTime": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 20
+        },
+        "closingTime": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 20
+        },
+        "activityField1Label": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100
+        },
+        "activityField1Value": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "activityField2Label": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100
+        },
+        "activityField2Value": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "publicationStatus": {
+          "type": "string",
+          "enum": ["draft", "pending_review", "published", "rejected", "suspended"]
+        },
+        "rejectionReason": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "profileType",
+        "displayName",
+        "responsibleName",
+        "responsibleRole",
+        "nuit",
+        "photoUrl",
+        "primaryCategoryId",
+        "primaryCategoryName",
+        "specialtyIds",
+        "specialtyNames",
+        "experienceYears",
+        "description",
+        "phone",
+        "whatsapp",
+        "email",
+        "phoneVerified",
+        "authorizedPublication",
+        "province",
+        "district",
+        "locality",
+        "neighborhood",
+        "streetOrReference",
+        "nearestStop",
+        "hasGps",
+        "latitude",
+        "longitude",
+        "coverageAreaType",
+        "coverageLocations",
+        "deliveryMode",
+        "availabilityStatus",
+        "operationalState",
+        "workingDaysSummary",
+        "openingTime",
+        "closingTime",
+        "activityField1Label",
+        "activityField1Value",
+        "activityField2Label",
+        "activityField2Value",
+        "publicationStatus",
+        "rejectionReason",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProfessionalCategory": {
+      "title": "ProfessionalCategory",
+      "description": "Dynamic, organically created professional categories and specialties.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "originalName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "normalizedName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "categoryType": {
+          "type": "string",
+          "enum": ["profession", "specialty"]
+        },
+        "parentCategoryId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 128
+        },
+        "reviewStatus": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected", "merged"]
+        },
+        "creatorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "reviewerId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 128
+        },
+        "canonicalCategoryId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 128
+        },
+        "activityField1Label": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100
+        },
+        "activityField1Placeholder": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150
+        },
+        "activityField1Required": {
+          "type": "boolean"
+        },
+        "activityField2Label": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100
+        },
+        "activityField2Placeholder": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150
+        },
+        "activityField2Required": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "originalName",
+        "normalizedName",
+        "categoryType",
+        "parentCategoryId",
+        "reviewStatus",
+        "creatorId",
+        "reviewerId",
+        "canonicalCategoryId",
+        "activityField1Label",
+        "activityField1Placeholder",
+        "activityField1Required",
+        "activityField2Label",
+        "activityField2Placeholder",
+        "activityField2Required",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProfessionalSpecialty": {
+      "title": "ProfessionalSpecialty",
+      "description": "Relational link between a professional profile and a specialty category.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "categoryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "specialtyName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "publicationStatus": {
+          "type": "string",
+          "enum": ["draft", "pending_review", "published", "rejected", "suspended"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "profileId", "ownerId", "categoryId", "specialtyName", "publicationStatus", "createdAt", "updatedAt"]
+    },
+    "ProfessionalService": {
+      "title": "ProfessionalService",
+      "description": "Individual service record associated with a professional profile.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "serviceName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 1000
+        },
+        "conditions": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "price": {
+          "type": "number"
+        },
+        "hasFixedPrice": {
+          "type": "boolean"
+        },
+        "deliveryMethod": {
+          "type": "string",
+          "enum": ["customer_location", "professional_location", "both", "remote"]
+        },
+        "availabilityStatus": {
+          "type": "string",
+          "enum": ["available", "unavailable"]
+        },
+        "publicationStatus": {
+          "type": "string",
+          "enum": ["draft", "pending_review", "published", "rejected", "suspended"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "profileId",
+        "ownerId",
+        "serviceName",
+        "description",
+        "conditions",
+        "price",
+        "hasFixedPrice",
+        "deliveryMethod",
+        "availabilityStatus",
+        "publicationStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProfessionalMedia": {
+      "title": "ProfessionalMedia",
+      "description": "Media records (photographs, work portfolio) associated with a professional profile.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "fileType": {
+          "type": "string",
+          "enum": ["profile_photo", "work_photo", "certificate"]
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "storageRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300000
+        },
+        "uploadStatus": {
+          "type": "string",
+          "enum": ["completed", "pending", "failed"]
+        },
+        "publicationStatus": {
+          "type": "string",
+          "enum": ["draft", "pending_review", "published", "rejected", "suspended"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "profileId",
+        "ownerId",
+        "fileType",
+        "caption",
+        "storageRef",
+        "uploadStatus",
+        "publicationStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AvailabilitySchedule": {
+      "title": "AvailabilitySchedule",
+      "description": "Working hours schedule per day of the week for a professional profile.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "dayOfWeek": {
+          "type": "number"
+        },
+        "dayLabel": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 40
+        },
+        "isOpen": {
+          "type": "boolean"
+        },
+        "openingTime": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10
+        },
+        "closingTime": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "publicationStatus": {
+          "type": "string",
+          "enum": ["draft", "pending_review", "published", "rejected", "suspended"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "profileId",
+        "ownerId",
+        "dayOfWeek",
+        "dayLabel",
+        "isOpen",
+        "openingTime",
+        "closingTime",
+        "notes",
+        "publicationStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Audit log entry recording administrative or critical profile lifecycle operations.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "actorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "utente_registered",
+            "consultation_debit",
+            "profile_created",
+            "profile_updated",
+            "profile_status_changed",
+            "contact_verified",
+            "category_created",
+            "category_approved",
+            "category_rejected",
+            "category_renamed",
+            "category_merged",
+            "category_fields_configured"
+          ]
+        },
+        "targetCollection": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "targetRecordId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "details": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "actorId",
+        "actorName",
+        "operation",
+        "targetCollection",
+        "targetRecordId",
+        "details",
+        "createdAt"
+      ]
+    },
+    "UserConsultation": {
+      "title": "UserConsultation",
+      "description": "Idempotent receipt for a direct profile consultation debiting 1 credit (1 MT).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "targetProfileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "targetProfileName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "creditsDebited": {
+          "type": "number"
+        },
+        "amountMzn": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "targetProfileId",
+        "targetProfileName",
+        "creditsDebited",
+        "amountMzn",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Private user account records."
+    },
+    "/user_consultations/{consultationId}": {
+      "schema": "UserConsultation",
+      "description": "Idempotent direct consultation receipts (userId_targetProfileId)."
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Administrator registry records."
+    },
+    "/professional_profiles/{profileId}": {
+      "schema": "ProfessionalProfile",
+      "description": "Professional, service provider, and street vendor profiles."
+    },
+    "/professional_categories/{categoryId}": {
+      "schema": "ProfessionalCategory",
+      "description": "Dynamic professional categories and specialties."
+    },
+    "/professional_specialties/{specialtyAssocId}": {
+      "schema": "ProfessionalSpecialty",
+      "description": "Associations between professional profiles and specialty categories."
+    },
+    "/professional_services/{serviceId}": {
+      "schema": "ProfessionalService",
+      "description": "Individual services offered by professionals."
+    },
+    "/professional_media/{mediaId}": {
+      "schema": "ProfessionalMedia",
+      "description": "Profile photos and work gallery media."
+    },
+    "/availability_schedules/{scheduleId}": {
+      "schema": "AvailabilitySchedule",
+      "description": "Weekly working hours schedules for professionals."
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Immutable audit trail of profile and category operations."
+    }
+  }
+}
