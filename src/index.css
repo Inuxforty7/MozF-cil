@@ -14,4 +14,14 @@
     font-family: 'JetBrains Mono', monospace;
     font-variant-numeric: tabular-nums;
   }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not(.moz-inline-search),
+  select {
+    min-height: 44px;
+    line-height: 1.4;
+  }
+
+  textarea {
+    line-height: 1.5;
+  }
 }

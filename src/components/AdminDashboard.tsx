@@ -784,7 +784,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <span className="font-mono">{prof.phone}</span>
                       </div>
 
-                      <div className="pt-1 flex items-center gap-2 max-w-md">
+                      <div className="pt-1.5 flex items-center gap-2 max-w-md">
                         <input
                           type="text"
                           value={rejectionNotes[prof.id] ?? prof.rejectionReason ?? ''}
@@ -795,7 +795,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             }))
                           }
                           placeholder="Motivo de rejeição / correção ou nota administrativa..."
-                          className="w-full px-2.5 py-1 text-xs border border-slate-300 rounded-lg"
+                          className="w-full min-h-[42px] px-3.5 py-2 text-xs border border-slate-300 rounded-xl"
                         />
                       </div>
                     </div>
@@ -988,7 +988,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           }))
                         }
                         placeholder="Motivo (para rejeitar/suspender)..."
-                        className="p-1.5 rounded-lg border border-slate-300 text-xs text-slate-800 w-48"
+                        className="min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 w-full sm:w-52"
                       />
 
                       {onInspectCompany && (
@@ -1454,20 +1454,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <Plus className="w-4 h-4 text-[#F97316]" />
                   <span>Adicionar Categoria ou Especialidade Oficial</span>
                 </h3>
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col sm:flex-row gap-2.5">
                   <input
                     type="text"
                     value={newAdminCatName}
                     onChange={(e) => setNewAdminCatName(e.target.value)}
                     placeholder="Nome da profissão ou especialidade..."
-                    className="flex-1 px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg"
+                    className="w-full sm:flex-1 min-h-[46px] px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl"
                   />
                   <select
                     value={newAdminCatType}
                     onChange={(e) =>
                       setNewAdminCatType(e.target.value as 'profession' | 'specialty')
                     }
-                    className="px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg"
+                    className="min-h-[46px] px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl"
                   >
                     <option value="profession">Profissão</option>
                     <option value="specialty">Especialidade</option>
@@ -1476,7 +1476,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     type="button"
                     disabled={isBusyCat}
                     onClick={handleCreateOfficialCategory}
-                    className="px-4 py-2 rounded-lg bg-[#0D316E] text-white text-xs font-bold hover:bg-[#092452]"
+                    className="min-h-[46px] px-4 py-2.5 rounded-xl bg-[#0D316E] text-white text-xs sm:text-sm font-bold hover:bg-[#092452]"
                   >
                     Criar Aprovada
                   </button>
@@ -1489,14 +1489,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <GitMerge className="w-4 h-4 text-[#F97316]" />
                   <span>Fundir Categorias Duplicadas (Sem Perda de Perfis)</span>
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <select
                     value={mergeSourceId}
                     onChange={(e) => {
                       setMergeSourceId(e.target.value);
                       setMergeTargetId('');
                     }}
-                    className="px-2.5 py-2 text-xs bg-white border border-slate-300 rounded-lg"
+                    className="min-h-[46px] px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl"
                   >
                     <option value="">Categoria duplicada (Origem)...</option>
                     {categories
@@ -1511,7 +1511,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <select
                     value={mergeTargetId}
                     onChange={(e) => setMergeTargetId(e.target.value)}
-                    className="px-2.5 py-2 text-xs bg-white border border-slate-300 rounded-lg"
+                    className="min-h-[46px] px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl"
                   >
                     <option value="">Categoria oficial (Destino)...</option>
                     {categories
@@ -1533,7 +1533,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     type="button"
                     disabled={isBusyCat || !mergeSourceId || !mergeTargetId}
                     onClick={handleMergeDuplicateCategories}
-                    className="px-3 py-2 rounded-lg bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold disabled:opacity-50"
+                    className="min-h-[46px] px-3.5 py-2.5 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold disabled:opacity-50"
                   >
                     Fundir e Migrar Perfis
                   </button>
@@ -1579,7 +1579,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 value={catSearchQuery}
                 onChange={(e) => setCatSearchQuery(e.target.value)}
                 placeholder="Pesquisar categoria ou duplicada..."
-                className="min-w-[220px] px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#F97316]"
+                className="min-w-[230px] min-h-[44px] px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#F97316]"
               />
             </div>
 
@@ -1602,7 +1602,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               [cat.id]: e.target.value,
                             }))
                           }
-                          className="px-2.5 py-1 text-sm font-bold text-[#0D316E] border border-slate-300 rounded-lg bg-white"
+                          className="min-h-[42px] px-3 py-1.5 text-sm font-bold text-[#0D316E] border border-slate-300 rounded-xl bg-white"
                         />
                         <span className="text-xs text-slate-600">
                           · Tipo:{' '}
@@ -1665,13 +1665,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </p>
 
             <div>
-              <label className="block text-xs font-bold text-[#0D316E] mb-1">
+              <label className="block text-xs font-bold text-[#0D316E] mb-1.5">
                 Selecionar Profissão a Configurar
               </label>
               <select
                 value={selectedConfigCatId}
                 onChange={(e) => handleSelectConfigCategory(e.target.value)}
-                className="w-full min-h-[42px] px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg"
+                className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
               >
                 {professionCategories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -1682,8 +1682,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             {selectedConfigCat && (
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
-                <div className="space-y-2">
+              <div className="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+                <div className="space-y-2.5">
                   <h4 className="text-xs font-extrabold text-[#0D316E]">
                     Campo Específico 1 da Atividade
                   </h4>
@@ -1692,14 +1692,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     value={f1Label}
                     onChange={(e) => setF1Label(e.target.value)}
                     placeholder="Título do Campo 1 (ex: Tipos de Viaturas Atendidas)"
-                    className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg"
+                    className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
                   />
                   <input
                     type="text"
                     value={f1Placeholder}
                     onChange={(e) => setF1Placeholder(e.target.value)}
                     placeholder="Texto de exemplo / ajuda"
-                    className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg"
+                    className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
                   />
                   <label className="flex items-center gap-2 text-xs text-slate-700">
                     <input
@@ -1711,7 +1711,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </label>
                 </div>
 
-                <div className="space-y-2 pt-2 border-t border-slate-200">
+                <div className="space-y-2.5 pt-3 border-t border-slate-200">
                   <h4 className="text-xs font-extrabold text-[#0D316E]">
                     Campo Específico 2 da Atividade
                   </h4>
@@ -1720,14 +1720,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     value={f2Label}
                     onChange={(e) => setF2Label(e.target.value)}
                     placeholder="Título do Campo 2 (ex: Serviço de Reboque / Socorro)"
-                    className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg"
+                    className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
                   />
                   <input
                     type="text"
                     value={f2Placeholder}
                     onChange={(e) => setF2Placeholder(e.target.value)}
                     placeholder="Texto de exemplo / ajuda"
-                    className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg"
+                    className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
                   />
                   <label className="flex items-center gap-2 text-xs text-slate-700">
                     <input
@@ -1743,7 +1743,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="button"
                   disabled={isBusyCat}
                   onClick={handleSaveCustomFields}
-                  className="px-4 py-2.5 rounded-xl bg-[#0D316E] hover:bg-[#092452] text-white text-xs font-bold"
+                  className="min-h-[46px] px-4 py-2.5 rounded-xl bg-[#0D316E] hover:bg-[#092452] text-white text-xs sm:text-sm font-bold"
                 >
                   Guardar Configuração da Atividade
                 </button>
@@ -1756,12 +1756,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* TAB 4: HISTÓRICO DE ATIVIDADE E REGISTOS                          */}
         {/* ================================================================= */}
         {activeTab === 'audit_logs' && (
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2.5">
               <select
                 value={auditOpFilter}
                 onChange={(e) => setAuditOpFilter(e.target.value)}
-                className="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg font-bold text-[#0D316E]"
+                className="min-h-[44px] px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl font-bold text-[#0D316E]"
               >
                 <option value="all">Todas as Operações ({auditLogs.length})</option>
                 <option value="profile_created">Perfis Criados</option>
@@ -1780,7 +1780,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 value={auditSearchQuery}
                 onChange={(e) => setAuditSearchQuery(e.target.value)}
                 placeholder="Filtrar por utilizador ou detalhe..."
-                className="min-w-[220px] px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#F97316]"
+                className="min-w-[230px] min-h-[44px] px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#F97316]"
               />
             </div>
 

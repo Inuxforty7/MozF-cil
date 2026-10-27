@@ -1408,6 +1408,263 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
     );
   }
 
+  // =========================================================================
+  // SPECIAL FULL-FIDELITY MODAL 3: CADASTRE-SE AGORA NO MOZFÁCIL
+  // (Matching image_c49d4897.png — Unified Navy & Orange palette)
+  // =========================================================================
+  if (activeModal === 'register_choice') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+        <div
+          className="fixed inset-0 bg-black/65 backdrop-blur-[1px]"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+
+        <div className="relative z-10 w-full max-w-[420px] bg-white rounded-[26px] shadow-[0_20px_50px_rgba(0,0,0,0.45)] border border-white/80 overflow-hidden flex flex-col max-h-[92vh]">
+          {/* Header with Navy Gradient, Orange "MozFácil" highlight, and Curved Orange/Gold Swooshes */}
+          <div className="relative bg-gradient-to-b from-[#082A66] via-[#051D49] to-[#031230] text-white pt-4 pb-6 px-5 shrink-0 overflow-hidden">
+            <div className="relative z-10 flex items-center justify-between gap-2">
+              <h3 className="text-[20px] sm:text-[22px] font-extrabold tracking-tight leading-tight text-white">
+                Cadastre-se Agora no{' '}
+                <span className="text-[#FF6B00]">MozFácil</span>
+              </h3>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fechar janela de cadastro"
+                className="p-1 rounded-lg text-white/90 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+              >
+                <X className="w-6 h-6 stroke-[2.2]" />
+              </button>
+            </div>
+
+            {/* Bottom Decorative Orange & Amber Swooshes matching reference print */}
+            <svg
+              viewBox="0 0 420 28"
+              preserveAspectRatio="none"
+              className="pointer-events-none absolute bottom-0 inset-x-0 w-full h-5"
+              aria-hidden="true"
+            >
+              {/* Left-to-center orange wave */}
+              <path
+                d="M0,6 Q115,27 255,26 L0,28 Z"
+                fill="#020E26"
+                opacity="0.65"
+              />
+              <path
+                d="M0,4 Q120,25 265,26"
+                fill="none"
+                stroke="#EA580C"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+              {/* Right-to-center warm gold/orange wave */}
+              <path
+                d="M215,27 Q335,23 420,3"
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+              <path
+                d="M245,27 Q345,25 420,10"
+                fill="none"
+                stroke="#EA580C"
+                strokeWidth="2"
+                strokeLinecap="round"
+                opacity="0.85"
+              />
+            </svg>
+          </div>
+
+          {/* Modal Body */}
+          <div className="px-4 sm:px-5 pt-3.5 pb-5 space-y-3.5 overflow-y-auto">
+            <p className="text-[14.5px] sm:text-[15.5px] font-medium text-[#061E45] leading-snug">
+              Escolha o tipo de registo que pretende efetuar na plataforma MozFácil:
+            </p>
+
+            {/* Card 1: 1. Cadastro do Utente (Consultar Serviços) — Navy & Soft Blue */}
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onNavigateUtenteRegistration();
+              }}
+              className="w-full rounded-[20px] border-[2px] border-[#062356] bg-[#EEF5FC] hover:bg-[#E3EFFB] px-3.5 sm:px-4 py-3.5 flex items-center gap-3.5 text-left transition-all active:scale-[0.99]"
+            >
+              {/* Solid Navy User Silhouette Icon */}
+              <div className="w-11 sm:w-12 flex items-center justify-center shrink-0">
+                <svg
+                  viewBox="0 0 48 48"
+                  className="w-11 h-11 sm:w-12 sm:h-12"
+                  aria-hidden="true"
+                >
+                  <circle cx="24" cy="15" r="8.5" fill="#062356" />
+                  <path
+                    d="M8 39c0-7.8 6.8-13 16-13s16 5.2 16 13v2H8v-2z"
+                    fill="#062356"
+                  />
+                </svg>
+              </div>
+
+              {/* Vertical Divider */}
+              <div
+                className="w-[1px] self-stretch my-1 bg-[#062356]/25 shrink-0"
+                aria-hidden="true"
+              />
+
+              {/* Text Content */}
+              <div className="flex-1 min-w-0">
+                <div className="text-[16.5px] sm:text-[18px] font-extrabold text-[#062356] leading-tight">
+                  1. Cadastro do Utente
+                  <br />
+                  (Consultar Serviços)
+                </div>
+                <p className="text-[13px] sm:text-[14px] text-[#1E293B] leading-snug mt-1.5 font-normal">
+                  Registe os seus dados para consultar profissionais, empresas e serviços em Moçambique.
+                </p>
+              </div>
+
+              {/* Orange Right Chevron */}
+              <ChevronRight className="w-6 h-6 text-[#FF6B00] stroke-[2.8] shrink-0" />
+            </button>
+
+            {/* Card 2: 2. Cadastrar Profissional / Serviço (100% Gratuito) — Orange & Warm Cream */}
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onNavigateProfessionalRegistration();
+              }}
+              className="w-full rounded-[20px] border-[2px] border-[#FF6B00] bg-[#FFF5EC] hover:bg-[#FEEBD9] px-3.5 sm:px-4 py-3.5 flex items-center gap-3.5 text-left transition-all active:scale-[0.99]"
+            >
+              {/* Solid Orange Professional with Hard Hat Icon */}
+              <div className="w-11 sm:w-12 flex items-center justify-center shrink-0">
+                <svg
+                  viewBox="0 0 48 48"
+                  className="w-11 h-11 sm:w-12 sm:h-12"
+                  aria-hidden="true"
+                >
+                  {/* Hard Hat Dome & Rib */}
+                  <path
+                    d="M14 15c0-5.2 4.3-9.5 10-9.5s10 4.3 10 9.5H14z"
+                    fill="#FF6B00"
+                  />
+                  <rect x="22.2" y="4" width="3.6" height="11" rx="1.5" fill="#FFF5EC" />
+                  <rect x="22.8" y="4" width="2.4" height="11" rx="1" fill="#FF6B00" />
+                  {/* Hard Hat Brim */}
+                  <rect x="11.5" y="15" width="25" height="3" rx="1.5" fill="#FF6B00" />
+                  {/* Head */}
+                  <path
+                    d="M16.5 19.5h15c0 4.6-3.4 8.2-7.5 8.2s-7.5-3.6-7.5-8.2z"
+                    fill="#FF6B00"
+                  />
+                  {/* Shoulders / Collar */}
+                  <path
+                    d="M8 40c0-6.8 5.6-10.5 12.2-11.2L24 33l3.8-4.2C34.4 29.5 40 33.2 40 40v1.5H8V40z"
+                    fill="#FF6B00"
+                  />
+                </svg>
+              </div>
+
+              {/* Vertical Divider */}
+              <div
+                className="w-[1px] self-stretch my-1 bg-[#FF6B00]/35 shrink-0"
+                aria-hidden="true"
+              />
+
+              {/* Text Content */}
+              <div className="flex-1 min-w-0">
+                <div className="text-[16.5px] sm:text-[18px] font-extrabold text-[#EA580C] leading-tight">
+                  2. Cadastrar Profissional / Serviço (100% Gratuito)
+                </div>
+                <p className="text-[13px] sm:text-[14px] text-[#1E293B] leading-snug mt-1.5 font-normal">
+                  Divulgue a sua profissão, oficina, prestação de serviços ou atividade móvel no diretório público.
+                </p>
+              </div>
+
+              {/* Orange Right Chevron */}
+              <ChevronRight className="w-6 h-6 text-[#FF6B00] stroke-[2.8] shrink-0" />
+            </button>
+
+            {/* Card 3: 3. Cadastrar Empresa / Instituição (100% Gratuito) — Unified Navy & Soft Blue */}
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (onNavigateCompanyRegistration) {
+                  onNavigateCompanyRegistration();
+                } else {
+                  onNavigateProfessionalRegistration();
+                }
+              }}
+              className="w-full rounded-[20px] border-[2px] border-[#062356] bg-[#EEF5FC] hover:bg-[#E3EFFB] px-3.5 sm:px-4 py-3.5 flex items-center gap-3.5 text-left transition-all active:scale-[0.99]"
+            >
+              {/* Solid Navy Twin Buildings Icon matching reference print */}
+              <div className="w-11 sm:w-12 flex items-center justify-center shrink-0">
+                <svg
+                  viewBox="0 0 48 48"
+                  className="w-11 h-11 sm:w-12 sm:h-12"
+                  aria-hidden="true"
+                >
+                  {/* Left Shorter Building */}
+                  <rect x="6" y="18" width="12" height="24" rx="1.5" fill="#062356" />
+                  <rect x="8.5" y="21" width="2.8" height="2.8" fill="#EEF5FC" />
+                  <rect x="12.7" y="21" width="2.8" height="2.8" fill="#EEF5FC" />
+                  <rect x="8.5" y="26" width="2.8" height="2.8" fill="#EEF5FC" />
+                  <rect x="12.7" y="26" width="2.8" height="2.8" fill="#EEF5FC" />
+                  <rect x="8.5" y="31" width="2.8" height="2.8" fill="#EEF5FC" />
+                  <rect x="12.7" y="31" width="2.8" height="2.8" fill="#EEF5FC" />
+                  <rect x="8.5" y="36" width="2.8" height="2.8" fill="#EEF5FC" />
+                  <rect x="12.7" y="36" width="2.8" height="2.8" fill="#EEF5FC" />
+
+                  {/* Center Taller Building */}
+                  <rect x="20" y="9" width="14" height="33" rx="1.5" fill="#062356" />
+                  <rect x="23" y="12.5" width="3" height="3" fill="#EEF5FC" />
+                  <rect x="28" y="12.5" width="3" height="3" fill="#EEF5FC" />
+                  <rect x="23" y="18" width="3" height="3" fill="#EEF5FC" />
+                  <rect x="28" y="18" width="3" height="3" fill="#EEF5FC" />
+                  <rect x="23" y="23.5" width="3" height="3" fill="#EEF5FC" />
+                  <rect x="28" y="23.5" width="3" height="3" fill="#EEF5FC" />
+                  <rect x="23" y="29" width="3" height="3" fill="#EEF5FC" />
+                  <rect x="28" y="29" width="3" height="3" fill="#EEF5FC" />
+                  {/* Door on Center Building */}
+                  <rect x="25" y="35" width="4" height="7" fill="#EEF5FC" />
+
+                  {/* Right Annex Building */}
+                  <rect x="35.5" y="22" width="7.5" height="20" rx="1" fill="#062356" />
+                  <rect x="37.8" y="25" width="3" height="2.8" fill="#EEF5FC" />
+                  <rect x="37.8" y="30" width="3" height="2.8" fill="#EEF5FC" />
+                  <rect x="37.8" y="35" width="3" height="2.8" fill="#EEF5FC" />
+                </svg>
+              </div>
+
+              {/* Vertical Divider */}
+              <div
+                className="w-[1px] self-stretch my-1 bg-[#062356]/25 shrink-0"
+                aria-hidden="true"
+              />
+
+              {/* Text Content */}
+              <div className="flex-1 min-w-0">
+                <div className="text-[16.5px] sm:text-[18px] font-extrabold text-[#062356] leading-tight">
+                  3. Cadastrar Empresa / Instituição (100% Gratuito)
+                </div>
+                <p className="text-[13px] sm:text-[14px] text-[#1E293B] leading-snug mt-1.5 font-normal">
+                  Registe a sua empresa privada, instituição pública, ONG ou agência no diretório nacional de Empresas.
+                </p>
+              </div>
+
+              {/* Orange Right Chevron */}
+              <ChevronRight className="w-6 h-6 text-[#FF6B00] stroke-[2.8] shrink-0" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
@@ -1420,7 +1677,6 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
         {/* Modal Header */}
         <div className="bg-gradient-to-r from-[#051F4E] to-[#0D316E] text-white px-5 py-4 flex items-center justify-between">
           <h3 className="text-base font-extrabold">
-            {activeModal === 'register_choice' && 'Cadastre-se Agora no MozFácil'}
             {activeModal === 'customer_line' && 'Linha do Cliente — Via WhatsApp'}
             {activeModal === 'share_mozfacil' &&
               'É moçambicano? Partilhe o MozFácil!'}
@@ -1499,75 +1755,6 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
                     </button>
                   )}
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* 1. REGISTER CHOICE MODAL ("Cadastre-se Agora") */}
-          {activeModal === 'register_choice' && (
-            <div className="space-y-3">
-              <p className="text-slate-600">
-                Escolha o tipo de registo que pretende efetuar na plataforma MozFácil:
-              </p>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onNavigateUtenteRegistration();
-                }}
-                className="w-full p-4 rounded-xl border-2 border-[#0D316E] bg-blue-50/60 hover:bg-blue-50 text-left flex items-center justify-between gap-3 transition-colors"
-              >
-                <div className="space-y-1">
-                  <div className="font-extrabold text-[#0D316E] text-sm">
-                    1. Cadastro do Utente (Consultar Serviços)
-                  </div>
-                  <p className="text-xs text-slate-600">
-                    Registe os seus dados para consultar profissionais, empresas e serviços em Moçambique.
-                  </p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-[#0D316E] shrink-0" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onNavigateProfessionalRegistration();
-                }}
-                className="w-full p-4 rounded-xl border-2 border-[#F97316] bg-orange-50/60 hover:bg-orange-50 text-left flex items-center justify-between gap-3 transition-colors"
-              >
-                <div className="space-y-1">
-                  <div className="font-extrabold text-[#EA580C] text-sm">
-                    2. Cadastrar Profissional / Serviço (100% Gratuito)
-                  </div>
-                  <p className="text-xs text-slate-600">
-                    Divulgue a sua profissão, oficina, prestação de serviços ou atividade móvel no diretório público.
-                  </p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-[#EA580C] shrink-0" />
-              </button>
-
-              {onNavigateCompanyRegistration && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onNavigateCompanyRegistration();
-                  }}
-                  className="w-full p-4 rounded-xl border-2 border-emerald-600 bg-emerald-50/60 hover:bg-emerald-50 text-left flex items-center justify-between gap-3 transition-colors"
-                >
-                  <div className="space-y-1">
-                    <div className="font-extrabold text-emerald-800 text-sm flex items-center gap-1.5">
-                      <Building2 className="w-4 h-4 text-emerald-700 shrink-0" />
-                      <span>3. Cadastrar Empresa / Instituição (100% Gratuito)</span>
-                    </div>
-                    <p className="text-xs text-slate-600">
-                      Registe a sua empresa privada, instituição pública, ONG ou agência no diretório nacional de Empresas.
-                    </p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-emerald-700 shrink-0" />
-                </button>
               )}
             </div>
           )}

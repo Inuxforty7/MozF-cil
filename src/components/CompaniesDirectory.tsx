@@ -126,24 +126,24 @@ export const CompaniesDirectory: React.FC<CompaniesDirectoryProps> = ({
       </div>
 
       {/* Search & Quick Filter Bar */}
-      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-xs space-y-3">
-        <div className="flex items-center gap-2">
+      <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200 shadow-xs space-y-3.5">
+        <div className="flex items-center gap-2.5">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Pesquisar por nome comercial, categoria, NUIT ou bairro..."
-              className="w-full pl-9 pr-8 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-[#0D316E] focus:border-transparent text-slate-800"
+              className="w-full min-h-[48px] h-12 pl-10 pr-9 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-[#0D316E] focus:border-transparent text-slate-800"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
@@ -151,7 +151,7 @@ export const CompaniesDirectory: React.FC<CompaniesDirectoryProps> = ({
           <button
             type="button"
             onClick={() => setShowFilters((prev) => !prev)}
-            className={`min-h-[42px] px-3 py-2 rounded-xl border text-xs font-extrabold flex items-center gap-1.5 transition-colors shrink-0 ${
+            className={`min-h-[48px] h-12 px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-extrabold flex items-center gap-1.5 transition-colors shrink-0 ${
               showFilters || selectedCategory !== 'all' || selectedEntityType !== 'all' || selectedProvince !== 'all'
                 ? 'bg-blue-50 border-[#0D316E] text-[#0D316E]'
                 : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
@@ -164,13 +164,13 @@ export const CompaniesDirectory: React.FC<CompaniesDirectoryProps> = ({
 
         {/* Expandable Advanced Filter Panel */}
         {showFilters && (
-          <div className="pt-3 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
+          <div className="pt-3.5 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Categoria:</label>
+              <label className="block font-bold text-slate-700 mb-1.5">Categoria:</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full py-2 px-2.5 rounded-lg border border-slate-300 text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0D316E]"
+                className="w-full min-h-[46px] py-2.5 px-3 rounded-xl border border-slate-300 bg-white text-sm text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0D316E]"
               >
                 <option value="all">Todas as Categorias</option>
                 {categories.map((cat) => (
@@ -182,11 +182,11 @@ export const CompaniesDirectory: React.FC<CompaniesDirectoryProps> = ({
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Tipo de Entidade:</label>
+              <label className="block font-bold text-slate-700 mb-1.5">Tipo de Entidade:</label>
               <select
                 value={selectedEntityType}
                 onChange={(e) => setSelectedEntityType(e.target.value)}
-                className="w-full py-2 px-2.5 rounded-lg border border-slate-300 text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0D316E]"
+                className="w-full min-h-[46px] py-2.5 px-3 rounded-xl border border-slate-300 bg-white text-sm text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0D316E]"
               >
                 <option value="all">Todos os Tipos</option>
                 <option value="private_company">Empresa Privada</option>
@@ -198,11 +198,11 @@ export const CompaniesDirectory: React.FC<CompaniesDirectoryProps> = ({
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Província:</label>
+              <label className="block font-bold text-slate-700 mb-1.5">Província:</label>
               <select
                 value={selectedProvince}
                 onChange={(e) => setSelectedProvince(e.target.value)}
-                className="w-full py-2 px-2.5 rounded-lg border border-slate-300 text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0D316E]"
+                className="w-full min-h-[46px] py-2.5 px-3 rounded-xl border border-slate-300 bg-white text-sm text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0D316E]"
               >
                 <option value="all">Todas as Províncias</option>
                 {getProvinces().map((p: string) => (
@@ -214,11 +214,11 @@ export const CompaniesDirectory: React.FC<CompaniesDirectoryProps> = ({
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Estado de Serviço:</label>
+              <label className="block font-bold text-slate-700 mb-1.5">Estado de Serviço:</label>
               <select
                 value={operationalFilter}
                 onChange={(e) => setOperationalFilter(e.target.value)}
-                className="w-full py-2 px-2.5 rounded-lg border border-slate-300 text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0D316E]"
+                className="w-full min-h-[46px] py-2.5 px-3 rounded-xl border border-slate-300 bg-white text-sm text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0D316E]"
               >
                 <option value="all">Qualquer Estado</option>
                 <option value="on">Apenas Abertos (ON)</option>

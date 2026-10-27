@@ -977,7 +977,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
         </div>
       </div>
 
-      <div className="p-3.5 sm:p-5 space-y-4 bg-[#F1F5F9]">
+      <div className="p-4 sm:p-6 space-y-5 bg-[#F1F5F9]">
         {validationError && (
           <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs sm:text-sm flex items-start gap-2.5">
             <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
@@ -991,7 +991,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
         {/* ================================================================= */}
         {/* SECTION 1: FOTO E DADOS DO PROFISSIONAL / SERVIÇO                 */}
         {/* ================================================================= */}
-        <section className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-xs space-y-3.5">
+        <section className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
             <span className="w-6 h-6 rounded-full bg-[#EA580C] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs">
               1
@@ -1002,9 +1002,9 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
           </div>
 
           {/* Left Photo Box + Right Core Fields matching reference print */}
-          <div className="flex flex-col sm:flex-row gap-3.5 items-stretch">
+          <div className="flex flex-col sm:flex-row gap-4 items-stretch">
             {/* Square Photo Upload Tile */}
-            <label className="w-full sm:w-32 min-h-[128px] rounded-xl border-2 border-dashed border-blue-300 bg-[#F0F6FF] hover:bg-blue-50 flex flex-col items-center justify-center cursor-pointer transition-colors overflow-hidden shrink-0 relative">
+            <label className="w-full sm:w-32 min-h-[136px] rounded-xl border-2 border-dashed border-blue-300 bg-[#F0F6FF] hover:bg-blue-50 flex flex-col items-center justify-center cursor-pointer transition-colors overflow-hidden shrink-0 relative">
               {photoUrl ? (
                 <img
                   src={photoUrl}
@@ -1030,9 +1030,9 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
               />
             </label>
 
-            <div className="flex-1 w-full space-y-2.5">
+            <div className="w-full sm:flex-1 space-y-3.5">
               <div>
-                <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+                <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                   Nome do Profissional / Serviço <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -1040,13 +1040,13 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Ex: Dr. António Machava / Mestre João Auto"
-                  className="w-full min-h-[40px] px-3 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-extrabold text-[#0D316E] mb-1 flex items-center justify-between">
+                  <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5 flex items-center justify-between">
                     <span>NUIT</span>
                     <span className="text-[10px] font-normal text-slate-400">Opcional</span>
                   </label>
@@ -1055,12 +1055,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                     value={nuit}
                     onChange={(e) => setNuit(e.target.value)}
                     placeholder="Ex: 123456789"
-                    className="w-full min-h-[40px] px-3 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                    className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+                  <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                     Experiência (Anos)
                   </label>
                   <input
@@ -1069,17 +1069,17 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                     max={80}
                     value={experienceYears}
                     onChange={(e) => setExperienceYears(Number(e.target.value) || 0)}
-                    className="w-full min-h-[40px] px-3 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                    className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
                   />
                 </div>
               </div>
 
               {/* Compact Profile Type Pills */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                <label className="block text-[11px] font-bold text-slate-600 mb-1.5">
                   Modalidade de Registo
                 </label>
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-3 gap-2">
                   {(
                     [
                       { value: 'independent', label: 'Independente' },
@@ -1091,7 +1091,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                       key={item.value}
                       type="button"
                       onClick={() => setProfileType(item.value)}
-                      className={`py-1.5 px-2 rounded-lg border text-[11px] font-extrabold text-center transition-all ${
+                      className={`min-h-[42px] py-2 px-2.5 rounded-xl border text-xs font-extrabold text-center transition-all ${
                         profileType === item.value
                           ? 'bg-[#0D316E] text-white border-[#0D316E]'
                           : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#0D316E]'
@@ -1136,14 +1136,14 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
 
           {/* Dynamic Activity-Specific Fields */}
           {(activeCategoryObj?.activityField1Label || activeCategoryObj?.activityField2Label) && (
-            <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 space-y-2.5">
+            <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 space-y-3">
               <div className="text-xs font-bold text-[#0D316E]">
                 Detalhes Específicos da Atividade ({activeCategoryObj.originalName})
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {activeCategoryObj.activityField1Label && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       {activeCategoryObj.activityField1Label}
                       {activeCategoryObj.activityField1Required && (
                         <span className="text-red-500"> *</span>
@@ -1156,13 +1156,13 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                       placeholder={
                         activeCategoryObj.activityField1Placeholder || 'Preencha se aplicável'
                       }
-                      className="w-full min-h-[38px] px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                      className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
                     />
                   </div>
                 )}
                 {activeCategoryObj.activityField2Label && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       {activeCategoryObj.activityField2Label}
                       {activeCategoryObj.activityField2Required && (
                         <span className="text-red-500"> *</span>
@@ -1175,7 +1175,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                       placeholder={
                         activeCategoryObj.activityField2Placeholder || 'Preencha se aplicável'
                       }
-                      className="w-full min-h-[38px] px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                      className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
                     />
                   </div>
                 )}
@@ -1184,15 +1184,15 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
           )}
 
           <div>
-            <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+            <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
               Resumo da Experiência e Atividade Profissional
             </label>
             <textarea
-              rows={2}
+              rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Descreva brevemente a sua experiência, especialidades e garantias de atendimento..."
-              className="w-full p-2.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+              className="w-full min-h-[92px] p-3.5 text-sm bg-white border border-slate-300 rounded-xl leading-relaxed focus:outline-none focus:border-[#EA580C]"
             />
           </div>
         </section>
@@ -1200,7 +1200,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
         {/* ================================================================= */}
         {/* SECTION 2: RESPONSÁVEL E AUTORIZAÇÃO (MATCHING REFERENCE PRINT)   */}
         {/* ================================================================= */}
-        <section className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-xs space-y-3.5">
+        <section className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
             <span className="w-6 h-6 rounded-full bg-[#EA580C] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs">
               2
@@ -1210,9 +1210,9 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Nome do Responsável <span className="text-red-500">*</span>
               </label>
               <input
@@ -1220,18 +1220,18 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                 value={responsibleName}
                 onChange={(e) => setResponsibleName(e.target.value)}
                 placeholder="Ex: João Silva"
-                className="w-full min-h-[40px] px-3 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Função <span className="text-red-500">*</span>
               </label>
               <select
                 value={responsibleRole}
                 onChange={(e) => setResponsibleRole(e.target.value)}
-                className="w-full min-h-[40px] px-3 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               >
                 <option value="Proprietário">Proprietário</option>
                 <option value="Titular / Profissional">Titular / Profissional Independente</option>
@@ -1243,12 +1243,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
 
           {/* Contact Phone + "Enviar código" Button matching reference print */}
           <div>
-            <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+            <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
               Contacto do Responsável <span className="text-red-500">*</span>
             </label>
-            <div className="flex items-stretch gap-2">
-              <div className="flex-1 flex items-center bg-white border border-slate-300 rounded-lg overflow-hidden focus-within:border-[#EA580C]">
-                <span className="px-2.5 py-2 bg-slate-100 text-xs font-bold text-slate-700 border-r border-slate-300 shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch gap-2.5">
+              <div className="w-full sm:flex-1 flex items-center bg-white border border-slate-300 rounded-xl overflow-hidden focus-within:border-[#EA580C]">
+                <span className="px-3.5 min-h-[48px] h-12 flex items-center bg-slate-100 text-xs sm:text-sm font-bold text-slate-700 border-r border-slate-300 shrink-0">
                   🇲🇿 +258
                 </span>
                 <input
@@ -1265,7 +1265,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                     }
                   }}
                   placeholder="84 123 4567"
-                  className="flex-1 min-h-[40px] px-3 py-1.5 text-xs sm:text-sm focus:outline-none"
+                  className="flex-1 min-h-[48px] h-12 px-3.5 py-2.5 text-sm focus:outline-none"
                 />
               </div>
 
@@ -1273,7 +1273,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                 type="button"
                 disabled={isSendingOtp || otpCooldown > 0 || isPhoneVerifiedByFirebase}
                 onClick={handleRequestPhoneOtp}
-                className="px-3.5 py-2 rounded-lg bg-[#1E4B9B] hover:bg-[#0D316E] text-white font-extrabold text-xs shrink-0 transition-colors disabled:opacity-50 shadow-xs"
+                className="min-h-[48px] h-12 px-4 py-2.5 rounded-xl bg-[#1E4B9B] hover:bg-[#0D316E] text-white font-extrabold text-xs sm:text-sm shrink-0 transition-colors disabled:opacity-50 shadow-xs"
               >
                 {isSendingOtp
                   ? 'A enviar...'
@@ -1287,9 +1287,9 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
           </div>
 
           {/* 6-Digit SMS Code Boxes — displayed ONLY after Firebase initiates SMS (otpConfirmation !== null) */}
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {otpConfirmation && !isPhoneActuallyVerified && (
-              <div className="space-y-1.5 bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <div className="space-y-2 bg-slate-50 border border-slate-200 rounded-xl p-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-1">
                   <span className="text-xs font-extrabold text-[#0D316E]">Código SMS</span>
                   <span className="text-[11px] text-slate-500">
@@ -1297,8 +1297,8 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="grid grid-cols-6 gap-1.5 flex-1 max-w-xs">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                  <div className="grid grid-cols-6 gap-2 w-full sm:flex-1 max-w-xs">
                     {otpDigits.map((digit, i) => (
                       <input
                         key={i}
@@ -1313,7 +1313,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                         onChange={(e) => handleOtpDigitChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
                         aria-label={`Dígito ${i + 1} do código SMS`}
-                        className="w-full h-10 text-center font-extrabold text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                        className="w-full min-h-[48px] h-12 text-center font-extrabold text-base bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
                       />
                     ))}
                   </div>
@@ -1322,7 +1322,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                     type="button"
                     disabled={isVerifyingOtp}
                     onClick={handleConfirmOtpDigits}
-                    className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 disabled:opacity-50"
+                    className="min-h-[48px] h-12 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shrink-0 disabled:opacity-50"
                   >
                     {isVerifyingOtp ? 'A validar...' : 'Confirmar'}
                   </button>
@@ -1378,9 +1378,9 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
           </div>
 
           {/* Optional WhatsApp & Email */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 WhatsApp (Chat Direto)
               </label>
               <input
@@ -1388,12 +1388,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
                 placeholder="Ex: +258 84 123 4567"
-                className="w-full min-h-[38px] px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Email (Opcional)
               </label>
               <input
@@ -1401,10 +1401,10 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Ex: profissional@email.com"
-                className="w-full min-h-[38px] px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               />
               {isEmailActuallyVerified && (
-                <span className="text-[10px] text-emerald-700 font-semibold block mt-0.5">
+                <span className="text-[10px] text-emerald-700 font-semibold block mt-1">
                   ✓ Email autenticado via Google
                 </span>
               )}
@@ -1428,7 +1428,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
         {/* ================================================================= */}
         {/* SECTION 3: LOCALIZAÇÃO (MATCHING REFERENCE PRINT)                 */}
         {/* ================================================================= */}
-        <section className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-xs space-y-3.5">
+        <section className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
             <span className="w-6 h-6 rounded-full bg-[#EA580C] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs">
               3
@@ -1444,7 +1444,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
               type="button"
               disabled={isLocatingGps}
               onClick={handleRequestGps}
-              className="w-full min-h-[42px] py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all"
+              className="w-full min-h-[48px] h-12 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all"
             >
               <LocateFixed className="w-4 h-4" />
               <span>
@@ -1461,15 +1461,15 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
           </div>
 
           {/* 2-Column Dependent Province & District Selectors */}
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Província <span className="text-red-500">*</span>
               </label>
               <select
                 value={province}
                 onChange={(e) => setProvince(e.target.value)}
-                className="w-full min-h-[40px] px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               >
                 {provinces.map((prov) => (
                   <option key={prov} value={prov}>
@@ -1480,7 +1480,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Distrito <span className="text-red-500">*</span>
               </label>
               <select
@@ -1493,7 +1493,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                   const neighs = getNeighborhoodsByDistrict(province, nextDist);
                   if (neighs.length > 0) setNeighborhood(neighs[0]);
                 }}
-                className="w-full min-h-[40px] px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               >
                 {availableDistricts.map((dist) => (
                   <option key={dist} value={dist}>
@@ -1505,9 +1505,9 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
           </div>
 
           {/* 2-Column Locality & Neighborhood */}
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Localidade
               </label>
               <input
@@ -1516,7 +1516,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                 value={locality}
                 onChange={(e) => setLocality(e.target.value)}
                 placeholder="Selecione ou digite..."
-                className="w-full min-h-[40px] px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               />
               <datalist id="moz-localities-list">
                 {availableLocalities.map((loc) => (
@@ -1526,7 +1526,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Bairro <span className="text-red-500">*</span>
               </label>
               <input
@@ -1535,7 +1535,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                 value={neighborhood}
                 onChange={(e) => setNeighborhood(e.target.value)}
                 placeholder="Selecione ou digite..."
-                className="w-full min-h-[40px] px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               />
               <datalist id="moz-neighborhoods-list">
                 {availableNeighborhoods.map((n) => (
@@ -1546,7 +1546,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+            <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
               Rua / Avenida
             </label>
             <input
@@ -1554,12 +1554,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
               value={streetOrReference}
               onChange={(e) => setStreetOrReference(e.target.value)}
               placeholder="Ex: Av. das Indústrias, 123"
-              className="w-full min-h-[40px] px-3 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+              className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-[#0D316E] mb-1 flex items-center gap-1">
+            <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5 flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-red-600 shrink-0" />
               <span>Paragem e referências próximas</span>
             </label>
@@ -1568,20 +1568,20 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
               value={nearestStop}
               onChange={(e) => setNearestStop(e.target.value)}
               placeholder="Ex: Perto do Mercado da Matola, perto da Farmácia"
-              className="w-full min-h-[40px] px-3 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+              className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
             />
           </div>
 
           {/* Service Coverage Area & Delivery Mode */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Área de Cobertura
               </label>
               <select
                 value={coverageAreaType}
                 onChange={(e) => setCoverageAreaType(e.target.value as CoverageAreaType)}
-                className="w-full min-h-[38px] px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               >
                 <option value="neighborhood">Apenas no Meu Bairro</option>
                 <option value="district">Todo o Distrito ({district})</option>
@@ -1591,13 +1591,13 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Modalidade de Atendimento
               </label>
               <select
                 value={deliveryMode}
                 onChange={(e) => setDeliveryMode(e.target.value as DeliveryMode)}
-                className="w-full min-h-[38px] px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               >
                 <option value="both">No Local e ao Domicílio</option>
                 <option value="customer_location">Ao Domicílio do Cliente</option>
@@ -1609,7 +1609,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
 
           {coverageAreaType === 'selected_locations' && (
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Zonas / Bairros Abrangidos
               </label>
               <input
@@ -1617,7 +1617,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                 value={coverageLocations}
                 onChange={(e) => setCoverageLocations(e.target.value)}
                 placeholder={`Ex: ${neighborhood || 'Bairro'}, ${district} e arredores`}
-                className="w-full min-h-[38px] px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#EA580C]"
+                className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#EA580C]"
               />
             </div>
           )}
@@ -1626,7 +1626,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
         {/* ================================================================= */}
         {/* SECTION 4: ESTADO DOS SERVIÇOS E HORÁRIO (MATCHING REFERENCE)     */}
         {/* ================================================================= */}
-        <section className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-xs space-y-3.5">
+        <section className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
             <span className="w-6 h-6 rounded-full bg-[#EA580C] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs">
               4
@@ -1644,7 +1644,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
               className="text-center focus:outline-none"
             >
               <div
-                className={`min-h-[40px] rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all ${
+                className={`min-h-[44px] rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all ${
                   operationalState === 'on'
                     ? 'bg-emerald-600 text-white ring-3 ring-emerald-200 shadow-xs'
                     : 'bg-emerald-600/80 text-white opacity-60 hover:opacity-90'
@@ -1664,7 +1664,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
               className="text-center focus:outline-none"
             >
               <div
-                className={`min-h-[40px] rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all ${
+                className={`min-h-[44px] rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all ${
                   operationalState === 'off'
                     ? 'bg-slate-600 text-white ring-3 ring-slate-300 shadow-xs'
                     : 'bg-slate-400 text-white opacity-75 hover:opacity-100'
@@ -1684,7 +1684,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
               className="text-center focus:outline-none"
             >
               <div
-                className={`min-h-[40px] rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all ${
+                className={`min-h-[44px] rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all ${
                   operationalState === 'stop'
                     ? 'bg-red-600 text-white ring-3 ring-red-200 shadow-xs'
                     : 'bg-red-600/85 text-white opacity-65 hover:opacity-95'
@@ -1699,31 +1699,31 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Hora de Abertura
               </label>
               <input
                 type="time"
                 value={openingTime}
                 onChange={(e) => setOpeningTime(e.target.value)}
-                className="w-full min-h-[38px] px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
               />
             </div>
             <div>
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Hora de Fecho
               </label>
               <input
                 type="time"
                 value={closingTime}
                 onChange={(e) => setClosingTime(e.target.value)}
-                className="w-full min-h-[38px] px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
               />
             </div>
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-xs font-extrabold text-[#0D316E] mb-1">
+              <label className="block text-xs font-extrabold text-[#0D316E] mb-1.5">
                 Resumo de Horário
               </label>
               <input
@@ -1731,7 +1731,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                 value={workingDaysSummary}
                 onChange={(e) => setWorkingDaysSummary(e.target.value)}
                 placeholder="Seg–Sáb: 07:30 – 17:30"
-                className="w-full min-h-[38px] px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
               />
             </div>
           </div>
@@ -1751,11 +1751,11 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             </button>
 
             {showDetailedSchedule && (
-              <div className="mt-2.5 space-y-2 border border-slate-200 rounded-xl p-3 bg-slate-50">
+              <div className="mt-2.5 space-y-2 border border-slate-200 rounded-xl p-3.5 bg-slate-50">
                 {schedules.map((sched, idx) => (
                   <div
                     key={sched.dayOfWeek}
-                    className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center py-1.5 border-b border-slate-200/70 last:border-0"
+                    className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center py-2 border-b border-slate-200/70 last:border-0"
                   >
                     <label className="sm:col-span-4 flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer">
                       <input
@@ -1772,7 +1772,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                     </label>
                     {sched.isOpen ? (
                       <>
-                        <div className="sm:col-span-3 flex items-center gap-1">
+                        <div className="sm:col-span-3 flex items-center gap-1.5">
                           <span className="text-[11px] text-slate-500">Das</span>
                           <input
                             type="time"
@@ -1782,10 +1782,10 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                               updated[idx] = { ...sched, openingTime: e.target.value };
                               setSchedules(updated);
                             }}
-                            className="px-2 py-1 text-xs bg-white border border-slate-300 rounded"
+                            className="min-h-[42px] px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
                           />
                         </div>
-                        <div className="sm:col-span-3 flex items-center gap-1">
+                        <div className="sm:col-span-3 flex items-center gap-1.5">
                           <span className="text-[11px] text-slate-500">às</span>
                           <input
                             type="time"
@@ -1795,7 +1795,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                               updated[idx] = { ...sched, closingTime: e.target.value };
                               setSchedules(updated);
                             }}
-                            className="px-2 py-1 text-xs bg-white border border-slate-300 rounded"
+                            className="min-h-[42px] px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
                           />
                         </div>
                         <div className="sm:col-span-2 text-right">
@@ -1819,7 +1819,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
         {/* ================================================================= */}
         {/* SECTION 5: FOTOS, DOCUMENTOS E SERVIÇOS (MATCHING REFERENCE)      */}
         {/* ================================================================= */}
-        <section className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-xs space-y-4">
+        <section className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
             <span className="w-6 h-6 rounded-full bg-[#EA580C] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs">
               5
@@ -1830,8 +1830,8 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
           </div>
 
           {/* 3 Compact Horizontal Upload Tiles matching reference print */}
-          <div className="grid grid-cols-3 gap-2">
-            <label className="p-2.5 rounded-xl border border-slate-300 bg-[#F8FAFC] hover:bg-blue-50 flex flex-col items-center text-center gap-1 cursor-pointer transition-colors">
+          <div className="grid grid-cols-3 gap-2.5">
+            <label className="p-3 rounded-xl border border-slate-300 bg-[#F8FAFC] hover:bg-blue-50 flex flex-col items-center text-center gap-1 cursor-pointer transition-colors">
               <ImageIcon className="w-6 h-6 text-[#1E4B9B]" />
               <span className="text-[11px] font-extrabold text-[#0D316E] leading-tight">
                 Fotos de trabalho
@@ -1847,7 +1847,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
               />
             </label>
 
-            <label className="p-2.5 rounded-xl border border-slate-300 bg-[#F8FAFC] hover:bg-blue-50 flex flex-col items-center text-center gap-1 cursor-pointer transition-colors">
+            <label className="p-3 rounded-xl border border-slate-300 bg-[#F8FAFC] hover:bg-blue-50 flex flex-col items-center text-center gap-1 cursor-pointer transition-colors">
               <ShieldCheck className="w-6 h-6 text-[#1E4B9B]" />
               <span className="text-[11px] font-extrabold text-[#0D316E] leading-tight">
                 Certificado / Alvará
@@ -1863,7 +1863,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
               />
             </label>
 
-            <label className="p-2.5 rounded-xl border border-slate-300 bg-[#F8FAFC] hover:bg-blue-50 flex flex-col items-center text-center gap-1 cursor-pointer transition-colors">
+            <label className="p-3 rounded-xl border border-slate-300 bg-[#F8FAFC] hover:bg-blue-50 flex flex-col items-center text-center gap-1 cursor-pointer transition-colors">
               <FileText className="w-6 h-6 text-[#1E4B9B]" />
               <span className="text-[11px] font-extrabold text-[#0D316E] leading-tight">
                 NUIT (Opcional)
@@ -1881,7 +1881,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
           </div>
 
           {mediaItems.length > 0 && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
               {mediaItems.map((m, idx) => (
                 <div
                   key={m.id || idx}
@@ -1909,7 +1909,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
           )}
 
           {/* Individual Services Management */}
-          <div className="pt-2 border-t border-slate-200 space-y-3">
+          <div className="pt-2 border-t border-slate-200 space-y-3.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Wrench className="w-4 h-4 text-[#EA580C]" />
@@ -1920,18 +1920,18 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
               <button
                 type="button"
                 onClick={handleAddServiceRow}
-                className="px-2.5 py-1.5 rounded-lg bg-[#0D316E] hover:bg-[#092452] text-white text-xs font-bold flex items-center gap-1 transition-colors"
+                className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#0D316E] hover:bg-[#092452] text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Adicionar Serviço</span>
               </button>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {services.map((srv, idx) => (
                 <div
                   key={srv.id || idx}
-                  className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5"
+                  className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-extrabold text-[#0D316E]">
@@ -1948,7 +1948,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                                 : 'available',
                           })
                         }
-                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold transition-colors ${
+                        className={`px-3 py-1 rounded-full text-[11px] font-extrabold transition-colors ${
                           srv.availabilityStatus === 'available'
                             ? 'bg-emerald-600 text-white'
                             : 'bg-slate-400 text-white'
@@ -1969,9 +1969,9 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
                         Nome do Serviço <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1981,12 +1981,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                           handleUpdateServiceRow(idx, { serviceName: e.target.value })
                         }
                         placeholder="Ex: Consultas Gerais / Revisão Auto"
-                        className="w-full min-h-[38px] px-2.5 py-1 text-xs bg-white border border-slate-300 rounded-lg"
+                        className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
                         Preço em MT (0 = Sob Consulta)
                       </label>
                       <input
@@ -2001,14 +2001,14 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                           });
                         }}
                         placeholder="Ex: 1500"
-                        className="w-full min-h-[38px] px-2.5 py-1 text-xs bg-white border border-slate-300 rounded-lg font-mono"
+                        className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl font-mono"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
                         Descrição / Detalhe
                       </label>
                       <input
@@ -2018,12 +2018,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                           handleUpdateServiceRow(idx, { description: e.target.value })
                         }
                         placeholder="Ex: Atendimento a adultos e crianças"
-                        className="w-full min-h-[38px] px-2.5 py-1 text-xs bg-white border border-slate-300 rounded-lg"
+                        className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
                         Modalidade de Entrega
                       </label>
                       <select
@@ -2033,7 +2033,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                             deliveryMethod: e.target.value as ServiceDeliveryMethod,
                           })
                         }
-                        className="w-full min-h-[38px] px-2.5 py-1 text-xs bg-white border border-slate-300 rounded-lg"
+                        className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl"
                       >
                         <option value="both">No Local e ao Domicílio</option>
                         <option value="customer_location">Ao Domicílio do Cliente</option>

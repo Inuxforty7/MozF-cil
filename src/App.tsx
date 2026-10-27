@@ -1932,9 +1932,9 @@ export default function App() {
                 </div>
 
                 {/* Primary Search & Location Bar */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                   <div className="md:col-span-5 relative">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={filters.query}
@@ -1942,7 +1942,7 @@ export default function App() {
                         setFilters((prev) => ({ ...prev, query: e.target.value }))
                       }
                       placeholder="Pesquisar nome, profissão, serviço, bairro (ex: Mecânico Matola)..."
-                      className="w-full min-h-[44px] pl-10 pr-3 py-2 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                      className="w-full min-h-[48px] h-12 pl-10 pr-3.5 py-2.5 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                     />
                   </div>
 
@@ -1952,7 +1952,7 @@ export default function App() {
                       onChange={(e) =>
                         setFilters((prev) => ({ ...prev, categoryId: e.target.value }))
                       }
-                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                      className="w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                     >
                       <option value="">Todas as Profissões ({approvedPublicProfessions.length})</option>
                       {approvedPublicProfessions.map((cat) => (
@@ -1974,7 +1974,7 @@ export default function App() {
                           neighborhood: '',
                         }))
                       }
-                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                      className="w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                     >
                       <option value="">Toda Moçambique</option>
                       {provinces.map((p) => (
@@ -1989,7 +1989,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setShowAdvancedFilters((prev) => !prev)}
-                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                      className="w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors"
                     >
                       <Filter className="w-4 h-4" />
                       <span>Mais Filtros</span>
@@ -1999,9 +1999,9 @@ export default function App() {
 
                 {/* Expandable Multi-Filter Row */}
                 {showAdvancedFilters && (
-                  <div className="pt-3 border-t border-white/15 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-slate-900">
+                  <div className="pt-3.5 border-t border-white/15 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-slate-900">
                     <div>
-                      <label className="block text-[11px] font-semibold text-blue-200 mb-1">
+                      <label className="block text-[11px] font-semibold text-blue-200 mb-1.5">
                         Distrito
                       </label>
                       <select
@@ -2014,7 +2014,7 @@ export default function App() {
                           }))
                         }
                         disabled={!filters.province}
-                        className="w-full min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white text-xs disabled:opacity-60"
+                        className="w-full min-h-[46px] px-3 py-2 rounded-xl bg-white text-xs sm:text-sm disabled:opacity-60"
                       >
                         <option value="">
                           {filters.province ? 'Todos os Distritos' : 'Selecione a Província'}
@@ -2028,7 +2028,7 @@ export default function App() {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-blue-200 mb-1">
+                      <label className="block text-[11px] font-semibold text-blue-200 mb-1.5">
                         Bairro
                       </label>
                       <select
@@ -2037,7 +2037,7 @@ export default function App() {
                           setFilters((prev) => ({ ...prev, neighborhood: e.target.value }))
                         }
                         disabled={!filters.district}
-                        className="w-full min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white text-xs disabled:opacity-60"
+                        className="w-full min-h-[46px] px-3 py-2 rounded-xl bg-white text-xs sm:text-sm disabled:opacity-60"
                       >
                         <option value="">
                           {filters.district ? 'Todos os Bairros' : 'Selecione o Distrito'}
@@ -2051,7 +2051,7 @@ export default function App() {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-blue-200 mb-1">
+                      <label className="block text-[11px] font-semibold text-blue-200 mb-1.5">
                         Especialidade
                       </label>
                       <select
@@ -2059,7 +2059,7 @@ export default function App() {
                         onChange={(e) =>
                           setFilters((prev) => ({ ...prev, specialtyId: e.target.value }))
                         }
-                        className="w-full min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white text-xs"
+                        className="w-full min-h-[46px] px-3 py-2 rounded-xl bg-white text-xs sm:text-sm"
                       >
                         <option value="">Todas as Especialidades</option>
                         {approvedPublicSpecialties.map((s) => (
@@ -2071,7 +2071,7 @@ export default function App() {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-blue-200 mb-1">
+                      <label className="block text-[11px] font-semibold text-blue-200 mb-1.5">
                         Tipo de Prestador
                       </label>
                       <select
@@ -2082,7 +2082,7 @@ export default function App() {
                             profileType: e.target.value as ProfileType | 'all',
                           }))
                         }
-                        className="w-full min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white text-xs"
+                        className="w-full min-h-[46px] px-3 py-2 rounded-xl bg-white text-xs sm:text-sm"
                       >
                         <option value="all">Todos os Tipos</option>
                         <option value="independent">Profissional Independente</option>
@@ -2092,7 +2092,7 @@ export default function App() {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-blue-200 mb-1">
+                      <label className="block text-[11px] font-semibold text-blue-200 mb-1.5">
                         Área de Cobertura
                       </label>
                       <select
@@ -2103,7 +2103,7 @@ export default function App() {
                             coverageAreaType: e.target.value as CoverageAreaType | 'all',
                           }))
                         }
-                        className="w-full min-h-[40px] px-2.5 py-1.5 rounded-lg bg-white text-xs"
+                        className="w-full min-h-[46px] px-3 py-2 rounded-xl bg-white text-xs sm:text-sm"
                       >
                         <option value="all">Qualquer Cobertura</option>
                         <option value="neighborhood">Bairro</option>

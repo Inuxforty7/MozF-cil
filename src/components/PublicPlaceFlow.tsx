@@ -478,15 +478,15 @@ export const PublicPlaceInstructionsScreen: React.FC<PublicPlaceInstructionsScre
         </div>
 
         {/* Search & Filters */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Procurar escola, hospital, bairro, paragem..."
-              className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-300 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+              className="w-full min-h-[48px] h-12 pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
             />
           </div>
           <div>
@@ -494,7 +494,7 @@ export const PublicPlaceInstructionsScreen: React.FC<PublicPlaceInstructionsScre
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value as PublicPlaceCategory | '')}
               aria-label="Filtrar por categoria"
-              className="w-full h-10 px-3 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+              className="w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-[#F97316]"
             >
               <option value="">Todas as Categorias</option>
               {ORDERED_PUBLIC_INSTITUTION_CATEGORIES.map((cat) => (
@@ -509,7 +509,7 @@ export const PublicPlaceInstructionsScreen: React.FC<PublicPlaceInstructionsScre
               value={selectedProvince}
               onChange={(e) => setSelectedProvince(e.target.value)}
               aria-label="Filtrar por província"
-              className="w-full h-10 px-3 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+              className="w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-[#F97316]"
             >
               <option value="">Todas as Províncias</option>
               {provinces.map((prov) => (
@@ -1113,9 +1113,9 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="px-4 sm:px-5 pt-4 pb-5 space-y-3.5">
+          <form onSubmit={handleSubmit} className="px-4 sm:px-6 pt-5 pb-6 space-y-5">
             {/* Form Heading Block matching screenshot */}
-            <div className="space-y-0.5 pb-1">
+            <div className="space-y-1 pb-1">
               <h1 className="text-[21px] sm:text-[25px] font-black text-[#091E42] tracking-tight leading-tight">
                 Cadastro Formulário Editável
               </h1>
@@ -1126,7 +1126,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
             </div>
 
             {/* SECTION 1 — Denominação */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center gap-2.5">
                 <span className="w-7 h-7 rounded-full bg-gradient-to-b from-[#FF8524] to-[#EA580C] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center shadow-2xs shrink-0">
                   1
@@ -1147,13 +1147,13 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                   value={placeName}
                   onChange={(e) => setPlaceName(e.target.value)}
                   placeholder="Digite a denominação"
-                  className="w-full h-10 sm:h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
+                  className="w-full min-h-[48px] h-12 px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm sm:text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
                 />
               </div>
             </div>
 
             {/* SECTION 2 — Categoria */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center gap-2.5">
                 <span className="w-7 h-7 rounded-full bg-gradient-to-b from-[#FF8524] to-[#EA580C] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center shadow-2xs shrink-0">
                   2
@@ -1171,7 +1171,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                   required
                   value={placeCategory}
                   onChange={(e) => setPlaceCategory(e.target.value as PublicPlaceCategory | '')}
-                  className={`w-full h-10 sm:h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent ${
+                  className={`w-full min-h-[48px] h-12 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm sm:text-[15px] focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent ${
                     placeCategory ? 'text-slate-900 font-semibold' : 'text-slate-500'
                   }`}
                 >
@@ -1186,7 +1186,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
             </div>
 
             {/* SECTION 3 — GPS */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-full bg-gradient-to-b from-[#FF8524] to-[#EA580C] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center shadow-2xs shrink-0">
@@ -1209,8 +1209,8 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                 </button>
               </div>
 
-              <div className="pl-0 min-[360px]:pl-9 space-y-2">
-                <div className="flex flex-col min-[380px]:flex-row items-stretch min-[380px]:items-center gap-2">
+              <div className="pl-0 min-[360px]:pl-9 space-y-2.5">
+                <div className="flex flex-col min-[380px]:flex-row items-stretch min-[380px]:items-center gap-2.5">
                   <input
                     id="public-place-gps-display"
                     type="text"
@@ -1218,14 +1218,14 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                     value={gpsDisplayText}
                     onClick={() => setShowGpsAdjustPad(true)}
                     placeholder="Localização GPS — Capturar..."
-                    className="flex-1 min-w-0 h-10 sm:h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C]"
+                    className="w-full min-[380px]:flex-1 min-w-0 min-h-[48px] h-12 px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C]"
                   />
 
                   <button
                     type="button"
                     onClick={handleAutomaticGps}
                     disabled={isCapturingGps}
-                    className="h-10 sm:h-11 px-4 rounded-xl bg-gradient-to-b from-[#FF8524] to-[#EA580C] hover:from-[#F97316] hover:to-[#C2410C] text-white font-extrabold text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-[0.99] disabled:opacity-60 shrink-0"
+                    className="min-h-[48px] h-12 px-4 rounded-xl bg-gradient-to-b from-[#FF8524] to-[#EA580C] hover:from-[#F97316] hover:to-[#C2410C] text-white font-extrabold text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-[0.99] disabled:opacity-60 shrink-0"
                   >
                     <LocateFixed className="w-4 h-4 text-white stroke-[2.2]" />
                     <span>{isCapturingGps ? 'A capturar...' : 'Automático'}</span>
@@ -1233,19 +1233,19 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                 </div>
 
                 {gpsFeedback && (
-                  <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] sm:text-xs font-semibold text-emerald-800">
+                  <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
                     {gpsFeedback}
                   </div>
                 )}
 
                 {gpsWarning && (
-                  <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] sm:text-xs font-semibold text-amber-900">
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-900">
                     {gpsWarning}
                   </div>
                 )}
 
                 {showGpsAdjustPad && (
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
                     <div className="flex flex-wrap items-center justify-between gap-1 text-[11px]">
                       <span className="font-bold text-[#091E42]">
                         Ajuste fino do marcador (4 a 5m da entrada principal • máx. 8m):
@@ -1257,12 +1257,12 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                       )}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-1.5 text-center">
+                    <div className="grid grid-cols-3 gap-2 text-center">
                       <div />
                       <button
                         type="button"
                         onClick={() => nudgeGpsMeters(1, 0)}
-                        className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-extrabold text-[#091E42]"
+                        className="py-2 px-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-extrabold text-[#091E42]"
                       >
                         ▲ Norte (+1m)
                       </button>
@@ -1270,18 +1270,18 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                       <button
                         type="button"
                         onClick={() => nudgeGpsMeters(0, -1)}
-                        className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-extrabold text-[#091E42]"
+                        className="py-2 px-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-extrabold text-[#091E42]"
                       >
                         ◀ Oeste (+1m)
                       </button>
-                      <div className="py-1.5 px-1 rounded-lg bg-orange-50 border border-orange-200 text-[10px] font-extrabold text-[#EA580C] flex items-center justify-center gap-1">
+                      <div className="py-2 px-1 rounded-lg bg-orange-50 border border-orange-200 text-[10px] font-extrabold text-[#EA580C] flex items-center justify-center gap-1">
                         <MapPin className="w-3 h-3" />
                         <span>4–5m</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => nudgeGpsMeters(0, 1)}
-                        className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-extrabold text-[#091E42]"
+                        className="py-2 px-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-extrabold text-[#091E42]"
                       >
                         Este (+1m) ▶
                       </button>
@@ -1289,18 +1289,18 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                       <button
                         type="button"
                         onClick={() => nudgeGpsMeters(-1, 0)}
-                        className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-extrabold text-[#091E42]"
+                        className="py-2 px-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-extrabold text-[#091E42]"
                       >
                         ▼ Sul (+1m)
                       </button>
                       <div />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="grid grid-cols-2 gap-3 pt-1">
                       <div>
                         <label
                           htmlFor="public-place-lat"
-                          className="block text-[10px] font-bold text-slate-600"
+                          className="block text-[11px] font-bold text-slate-600 mb-1"
                         >
                           Latitude
                         </label>
@@ -1313,13 +1313,13 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                             setLatitude(Number(e.target.value) || 0);
                             setHasGps(true);
                           }}
-                          className="w-full h-8 px-2 rounded-lg border border-slate-300 bg-white text-xs font-mono text-slate-800"
+                          className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-mono text-slate-800"
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="public-place-lng"
-                          className="block text-[10px] font-bold text-slate-600"
+                          className="block text-[11px] font-bold text-slate-600 mb-1"
                         >
                           Longitude
                         </label>
@@ -1332,7 +1332,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                             setLongitude(Number(e.target.value) || 0);
                             setHasGps(true);
                           }}
-                          className="w-full h-8 px-2 rounded-lg border border-slate-300 bg-white text-xs font-mono text-slate-800"
+                          className="w-full min-h-[44px] h-11 px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-mono text-slate-800"
                         />
                       </div>
                     </div>
@@ -1342,7 +1342,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
             </div>
 
             {/* SECTION 4 — Província • Distrito • Localidade • Bairro */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center gap-2.5">
                 <span className="w-7 h-7 rounded-full bg-gradient-to-b from-[#FF8524] to-[#EA580C] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center shadow-2xs shrink-0">
                   4
@@ -1352,8 +1352,8 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                 </span>
               </div>
 
-              <div className="pl-0 min-[360px]:pl-9 space-y-2">
-                <div className="grid grid-cols-1 min-[340px]:grid-cols-2 gap-2.5">
+              <div className="pl-0 min-[360px]:pl-9 space-y-2.5">
+                <div className="grid grid-cols-1 min-[340px]:grid-cols-2 gap-3">
                   {/* Província */}
                   <div>
                     <select
@@ -1362,7 +1362,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                       required
                       value={province}
                       onChange={(e) => handleProvinceChange(e.target.value)}
-                      className={`w-full h-10 sm:h-11 px-3 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent ${
+                      className={`w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent ${
                         province ? 'text-slate-900 font-semibold' : 'text-slate-500'
                       }`}
                     >
@@ -1384,7 +1384,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                       disabled={!province}
                       value={district}
                       onChange={(e) => handleDistrictChange(e.target.value)}
-                      className={`w-full h-10 sm:h-11 px-3 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm disabled:bg-slate-50 disabled:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent ${
+                      className={`w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm disabled:bg-slate-50 disabled:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent ${
                         district ? 'text-slate-900 font-semibold' : 'text-slate-500'
                       }`}
                     >
@@ -1413,7 +1413,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                       value={locality}
                       onChange={(e) => setLocality(e.target.value)}
                       placeholder="Localidade"
-                      className="w-full h-10 sm:h-11 px-3 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
+                      className="w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
                     />
                   </div>
 
@@ -1428,7 +1428,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                       value={neighborhood}
                       onChange={(e) => setNeighborhood(e.target.value)}
                       placeholder="Bairro"
-                      className="w-full h-10 sm:h-11 px-3 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
+                      className="w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -1442,12 +1442,12 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                     value={customDistrict}
                     onChange={(e) => setCustomDistrict(e.target.value)}
                     placeholder="Digite o nome do distrito"
-                    className="w-full h-10 px-3.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C]"
+                    className="w-full min-h-[48px] h-12 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C]"
                   />
                 )}
 
                 {suggestedNeighborhoods.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                     <span className="text-[11px] font-semibold text-slate-500">Sugestões:</span>
                     {suggestedNeighborhoods.slice(0, 6).map((nb) => (
                       <button
@@ -1457,7 +1457,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                           setNeighborhood(nb);
                           if (!locality) setLocality(nb);
                         }}
-                        className={`px-2 py-0.5 rounded-lg text-[11px] font-bold border transition-colors ${
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-colors ${
                           neighborhood === nb
                             ? 'bg-[#091E42] text-white border-[#091E42]'
                             : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
@@ -1472,7 +1472,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
             </div>
 
             {/* SECTION 5 — Rua / Avenida */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-full bg-gradient-to-b from-[#FF8524] to-[#EA580C] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center shadow-2xs shrink-0">
@@ -1504,13 +1504,13 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                   value={streetOrAvenue}
                   onChange={(e) => setStreetOrAvenue(e.target.value)}
                   placeholder="Digite a rua ou avenida"
-                  className="w-full h-10 sm:h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
+                  className="w-full min-h-[48px] h-12 px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm sm:text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
                 />
               </div>
             </div>
 
             {/* SECTION 6 — Pontos de referência */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center gap-2.5">
                 <span className="w-7 h-7 rounded-full bg-gradient-to-b from-[#FF8524] to-[#EA580C] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center shadow-2xs shrink-0">
                   6
@@ -1527,18 +1527,18 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                 <textarea
                   id="public-place-references"
                   required
-                  rows={2}
+                  rows={3}
                   maxLength={500}
                   value={referencePointsInput}
                   onChange={(e) => setReferencePointsInput(e.target.value)}
                   placeholder="Digite a paragem de chapa e outros pontos ex: Paragem Shoprite ao lado da Farmácia etc"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 leading-snug resize-y focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
+                  className="w-full min-h-[88px] px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
                 />
               </div>
             </div>
 
             {/* SECTION 7 — Contactos Secretaria */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center gap-2.5">
                 <span className="w-7 h-7 rounded-full bg-gradient-to-b from-[#FF8524] to-[#EA580C] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center shadow-2xs shrink-0">
                   7
@@ -1559,13 +1559,13 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                   value={secretaryPhone}
                   onChange={(e) => setSecretaryPhone(e.target.value)}
                   placeholder="Digite o contacto da secretaria"
-                  className="w-full h-10 sm:h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
+                  className="w-full min-h-[48px] h-12 px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm sm:text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#EA580C] focus:border-transparent"
                 />
               </div>
             </div>
 
             {/* SECTION 8 — Existência de serviços */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center gap-2.5">
                 <span className="w-7 h-7 rounded-full bg-gradient-to-b from-[#FF8524] to-[#EA580C] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center shadow-2xs shrink-0">
                   8
@@ -1583,7 +1583,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                     aria-pressed={operationalState === 'on'}
                     title="ON: Está a funcionar"
                     onClick={() => setOperationalState('on')}
-                    className={`h-11 rounded-xl font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-all ${
+                    className={`min-h-[48px] h-12 rounded-xl font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-all ${
                       operationalState === 'on'
                         ? 'bg-gradient-to-b from-[#29B354] to-[#1E9643] border border-[#198239] text-white shadow-xs'
                         : 'bg-[#F3F4F6] border border-slate-300 text-slate-600 hover:bg-slate-200/70'
@@ -1603,7 +1603,7 @@ export const PublicPlaceRegistrationScreen: React.FC<PublicPlaceRegistrationScre
                     aria-pressed={operationalState === 'off'}
                     title="OFF: Instituição encerrada"
                     onClick={() => setOperationalState('off')}
-                    className={`h-11 rounded-xl font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-all ${
+                    className={`min-h-[48px] h-12 rounded-xl font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-all ${
                       operationalState === 'off'
                         ? 'bg-slate-700 border border-slate-800 text-white shadow-xs'
                         : 'bg-[#F3F4F6] border border-slate-300 text-slate-600 hover:bg-slate-200/70'

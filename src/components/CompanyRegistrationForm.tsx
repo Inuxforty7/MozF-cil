@@ -564,9 +564,9 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Nome Comercial / Nome Fantasia *
                 </label>
                 <input
@@ -574,12 +574,12 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={tradeName}
                   onChange={(e) => setTradeName(e.target.value)}
                   placeholder="Ex: MozConstruções Lda"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Denominação Social / Razão Social *
                 </label>
                 <input
@@ -587,12 +587,12 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={legalName}
                   onChange={(e) => setLegalName(e.target.value)}
                   placeholder="Ex: Sociedade Moçambicana de Construções, Lda"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   NUIT Moçambicano (9 dígitos) *
                 </label>
                 <input
@@ -601,18 +601,18 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   onChange={(e) => setNuit(e.target.value.replace(/\D/g, '').slice(0, 9))}
                   placeholder="Ex: 400123456"
                   maxLength={9}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden font-mono"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden font-mono"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Tipo de Entidade *
                 </label>
                 <select
                   value={entityType}
                   onChange={(e) => setEntityType(e.target.value as CompanyEntityType)}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 >
                   <option value="private_company">Empresa Privada (Sociedade, Lda, SA)</option>
                   <option value="public_institution">Instituição Pública (Ministério, Direcção)</option>
@@ -623,7 +623,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Ano de Fundação / Início de Actividades
                 </label>
                 <input
@@ -633,20 +633,20 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   placeholder="Ex: 2018"
                   min={1900}
                   max={2030}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Categoria Empresarial (Isolada) *
                 </label>
                 {!isProposingCategory ? (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <select
                       value={selectedCategoryId}
                       onChange={(e) => setSelectedCategoryId(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                      className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                     >
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -663,26 +663,26 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <input
                       type="text"
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
                       placeholder="Nome da nova categoria empresarial..."
-                      className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                      className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                     />
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={handleCreateCategoryProposal}
-                        className="px-3 py-1 bg-[#0D316E] text-white rounded-lg text-xs font-bold"
+                        className="min-h-[40px] px-3.5 py-1.5 bg-[#0D316E] text-white rounded-xl text-xs font-bold"
                       >
                         Confirmar
                       </button>
                       <button
                         type="button"
                         onClick={() => setIsProposingCategory(false)}
-                        className="px-3 py-1 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold"
+                        className="min-h-[40px] px-3.5 py-1.5 bg-slate-200 text-slate-700 rounded-xl text-xs font-bold"
                       >
                         Cancelar
                       </button>
@@ -693,7 +693,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
             </div>
 
             <div className="text-xs">
-              <label className="block font-bold text-slate-700 mb-1">
+              <label className="block font-bold text-slate-700 mb-1.5">
                 Descrição Institucional / Missão da Empresa
               </label>
               <textarea
@@ -701,7 +701,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Descreva as actividades principais, serviços e diferenciais da empresa..."
                 rows={3}
-                className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                className="w-full min-h-[96px] p-3.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
               />
             </div>
           </div>
@@ -720,9 +720,9 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Nome do Representante / Administrador *
                 </label>
                 <input
@@ -730,12 +730,12 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={responsibleName}
                   onChange={(e) => setResponsibleName(e.target.value)}
                   placeholder="Ex: Carlos Matsinhe"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Cargo / Função do Responsável
                 </label>
                 <input
@@ -743,12 +743,12 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={responsibleRole}
                   onChange={(e) => setResponsibleRole(e.target.value)}
                   placeholder="Ex: Diretor Geral / Gerente"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Telefone Principal (Moçambique +258) *
                 </label>
                 <input
@@ -756,12 +756,12 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Ex: 841234567 ou +258 84 123 4567"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden font-mono"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden font-mono"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   WhatsApp Oficial da Empresa
                 </label>
                 <input
@@ -769,12 +769,12 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value)}
                   placeholder="Ex: 841234567 (opcional, usa o telefone se vazio)"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden font-mono"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden font-mono"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   E-mail Oficial / Atendimento
                 </label>
                 <input
@@ -782,12 +782,12 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="contacto@empresa.co.mz"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Website / Página Web
                 </label>
                 <input
@@ -795,7 +795,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
                   placeholder="https://www.empresa.co.mz"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
             </div>
@@ -815,15 +815,15 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Província *
                 </label>
                 <select
                   value={province}
                   onChange={(e) => setProvince(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 >
                   {provinces.map((p) => (
                     <option key={p} value={p}>
@@ -834,13 +834,13 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Distrito / Município *
                 </label>
                 <select
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 >
                   {districts.map((d) => (
                     <option key={d} value={d}>
@@ -851,7 +851,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Bairro *
                 </label>
                 <input
@@ -859,12 +859,12 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={neighborhood}
                   onChange={(e) => setNeighborhood(e.target.value)}
                   placeholder="Ex: Central / Polana Cimento / Matola C"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Endereço / Rua / Av. e Número
                 </label>
                 <input
@@ -872,12 +872,12 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={streetOrReference}
                   onChange={(e) => setStreetOrReference(e.target.value)}
                   placeholder="Ex: Av. 24 de Julho, Edifício Maputo Plaza, 3º andar"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Paragem de Transporte mais próxima
                 </label>
                 <input
@@ -885,14 +885,14 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={nearestStop}
                   onChange={(e) => setNearestStop(e.target.value)}
                   placeholder="Ex: Paragem Museu / Paragem Prédio Vermelho"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
             </div>
 
             {/* GPS capture block */}
-            <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 space-y-2 text-xs">
-              <div className="flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between gap-2">
                 <span className="font-extrabold text-[#0D316E]">
                   Coordenadas GPS (Opcional para Mapa Interativo)
                 </span>
@@ -900,14 +900,14 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   type="button"
                   disabled={isLocating}
                   onClick={handleCaptureGps}
-                  className="px-3 py-1.5 rounded-lg bg-[#0D316E] hover:bg-[#092452] text-white font-bold inline-flex items-center gap-1.5 transition-colors"
+                  className="min-h-[42px] px-3.5 py-2 rounded-xl bg-[#0D316E] hover:bg-[#092452] text-white font-bold inline-flex items-center gap-1.5 transition-colors"
                 >
                   <LocateFixed className="w-3.5 h-3.5" />
                   <span>{isLocating ? 'A localizar...' : 'Capturar GPS Atual'}</span>
                 </button>
               </div>
               {gpsError && <p className="text-red-600">{gpsError}</p>}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
                   type="text"
                   value={latitude}
@@ -916,7 +916,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                     setHasGps(Boolean(e.target.value && longitude));
                   }}
                   placeholder="Latitude (ex: -25.9692)"
-                  className="p-2 rounded-lg border border-slate-300 bg-white font-mono"
+                  className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white font-mono"
                 />
                 <input
                   type="text"
@@ -926,7 +926,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                     setHasGps(Boolean(e.target.value && latitude));
                   }}
                   placeholder="Longitude (ex: 32.5732)"
-                  className="p-2 rounded-lg border border-slate-300 bg-white font-mono"
+                  className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white font-mono"
                 />
               </div>
             </div>
@@ -946,9 +946,9 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Logótipo da Empresa (URL / Imagem)
                 </label>
                 <input
@@ -956,12 +956,12 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={logoUrl}
                   onChange={(e) => setLogoUrl(e.target.value)}
                   placeholder="https://.../logo.png"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 mb-1.5">
                   Vídeo de Apresentação / Institucional (URL YouTube ou Direto)
                 </label>
                 <input
@@ -969,37 +969,37 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
                   placeholder="https://www.youtube.com/watch?v=... ou .mp4"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0D316E] focus:outline-hidden"
                 />
               </div>
             </div>
 
             {/* Photos Sub-section */}
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
               <span className="font-extrabold text-[#0D316E] block">
                 Galeria de Fotos da Entidade / Instalações
               </span>
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-col sm:flex-row gap-2.5">
                 <input
                   type="text"
                   value={tempPhotoUrl}
                   onChange={(e) => setTempPhotoUrl(e.target.value)}
                   placeholder="URL da foto (ex: https://.../foto.jpg)"
-                  className="flex-1 p-2 rounded-lg border border-slate-300 bg-white"
+                  className="w-full sm:flex-1 min-h-[48px] h-12 px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white"
                 />
                 <input
                   type="text"
                   value={tempPhotoCaption}
                   onChange={(e) => setTempPhotoCaption(e.target.value)}
                   placeholder="Legenda (ex: Sala de Atendimento)"
-                  className="sm:w-48 p-2 rounded-lg border border-slate-300 bg-white"
+                  className="w-full sm:w-52 min-h-[48px] h-12 px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white"
                 />
                 <button
                   type="button"
                   onClick={handleAddPhoto}
-                  className="px-3 py-2 bg-[#0D316E] hover:bg-[#092452] text-white rounded-lg font-bold shrink-0 flex items-center justify-center gap-1"
+                  className="min-h-[48px] h-12 px-4 py-2.5 bg-[#0D316E] hover:bg-[#092452] text-white rounded-xl font-bold shrink-0 flex items-center justify-center gap-1.5"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   <span>Adicionar Foto</span>
                 </button>
               </div>
@@ -1023,7 +1023,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
             </div>
 
             {/* Protected Verification Documents Sub-section */}
-            <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200 space-y-3 text-xs">
+            <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200 space-y-3 text-xs">
               <div className="flex items-center gap-1.5 text-amber-950 font-extrabold">
                 <Lock className="w-4 h-4 text-amber-600" />
                 <span>Documentos de Conformidade e Alvará (Armazenamento Privado)</span>
@@ -1032,11 +1032,11 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                 Estes ficheiros são protegidos por regras de segurança do Firestore (não são públicos).
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <select
                   value={tempDocType}
                   onChange={(e) => setTempDocType(e.target.value as CompanyDocType)}
-                  className="p-2 rounded-lg border border-slate-300 bg-white"
+                  className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white"
                 >
                   <option value="alvara">Alvará Comercial / Licença</option>
                   <option value="br_publication">Publicação no Boletim da República (BR)</option>
@@ -1050,23 +1050,23 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   value={tempDocTitle}
                   onChange={(e) => setTempDocTitle(e.target.value)}
                   placeholder="Título (ex: Alvará 2024)"
-                  className="p-2 rounded-lg border border-slate-300 bg-white"
+                  className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white"
                 />
                 <input
                   type="text"
                   value={tempDocRef}
                   onChange={(e) => setTempDocRef(e.target.value)}
                   placeholder="URL / Referência do ficheiro"
-                  className="p-2 rounded-lg border border-slate-300 bg-white"
+                  className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={handleAddDocument}
-                className="px-3 py-1.5 bg-[#EA580C] hover:bg-[#C2410C] text-white rounded-lg font-bold inline-flex items-center gap-1"
+                className="min-h-[44px] px-4 py-2 bg-[#EA580C] hover:bg-[#C2410C] text-white rounded-xl font-bold inline-flex items-center gap-1.5"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
                 <span>Anexar Documento Privado</span>
               </button>
 
@@ -1075,7 +1075,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                   {documentsList.map((doc, idx) => (
                     <div
                       key={idx}
-                      className="p-2 rounded-lg bg-white border border-slate-200 flex items-center justify-between"
+                      className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-[#0D316E]" />
@@ -1111,7 +1111,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
             </div>
 
             {/* Operating State Selector */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="font-bold text-slate-700">Estado Operacional Inicial:</span>
               <div className="flex items-center gap-2">
                 {(['on', 'off', 'stop'] as const).map((st) => (
@@ -1119,7 +1119,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                     key={st}
                     type="button"
                     onClick={() => setOperationalState(st)}
-                    className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition-colors ${
+                    className={`min-h-[38px] px-3.5 py-1.5 rounded-lg text-xs font-black uppercase transition-colors ${
                       operationalState === st
                         ? 'bg-[#0D316E] text-white shadow-xs'
                         : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
@@ -1136,7 +1136,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
               <span className="font-extrabold text-[#0D316E] block">Horário Semanal:</span>
               <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white">
                 {schedules.map((sch, idx) => (
-                  <div key={sch.dayOfWeek} className="p-2.5 flex items-center justify-between gap-2">
+                  <div key={sch.dayOfWeek} className="p-3 flex items-center justify-between gap-2">
                     <label className="flex items-center gap-2 cursor-pointer w-36">
                       <input
                         type="checkbox"
@@ -1152,7 +1152,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                     </label>
 
                     {sch.isOpen ? (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <input
                           type="time"
                           value={sch.openingTime}
@@ -1161,7 +1161,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                             updated[idx] = { ...sch, openingTime: e.target.value };
                             setSchedules(updated);
                           }}
-                          className="p-1 rounded border border-slate-300 font-mono text-xs"
+                          className="min-h-[42px] px-2.5 py-1.5 rounded-lg border border-slate-300 font-mono text-xs"
                         />
                         <span className="text-slate-400">até</span>
                         <input
@@ -1172,7 +1172,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                             updated[idx] = { ...sch, closingTime: e.target.value };
                             setSchedules(updated);
                           }}
-                          className="p-1 rounded border border-slate-300 font-mono text-xs"
+                          className="min-h-[42px] px-2.5 py-1.5 rounded-lg border border-slate-300 font-mono text-xs"
                         />
                       </div>
                     ) : (
@@ -1184,40 +1184,40 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
             </div>
 
             {/* Services / Departments list */}
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
               <span className="font-extrabold text-[#0D316E] block">
                 Departamentos / Serviços Oferecidos ({servicesList.length})
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <input
                   type="text"
                   value={tempServiceName}
                   onChange={(e) => setTempServiceName(e.target.value)}
                   placeholder="Nome do serviço / balcão"
-                  className="p-2 rounded-lg border border-slate-300 bg-white"
+                  className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white"
                 />
                 <input
                   type="text"
                   value={tempServiceDesc}
                   onChange={(e) => setTempServiceDesc(e.target.value)}
                   placeholder="Descrição resumida"
-                  className="p-2 rounded-lg border border-slate-300 bg-white"
+                  className="w-full min-h-[48px] h-12 px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white"
                 />
-                <div className="flex gap-1.5">
+                <div className="flex gap-2">
                   <input
                     type="number"
                     value={tempServicePrice}
                     onChange={(e) => setTempServicePrice(e.target.value)}
                     placeholder="Preço (MT)"
-                    className="w-24 p-2 rounded-lg border border-slate-300 bg-white"
+                    className="w-28 min-h-[48px] h-12 px-3 py-2.5 text-sm rounded-xl border border-slate-300 bg-white"
                   />
                   <button
                     type="button"
                     onClick={handleAddService}
-                    className="flex-1 px-3 py-2 bg-[#0D316E] hover:bg-[#092452] text-white rounded-lg font-bold flex items-center justify-center gap-1"
+                    className="flex-1 min-h-[48px] h-12 px-3.5 py-2.5 bg-[#0D316E] hover:bg-[#092452] text-white rounded-xl font-bold flex items-center justify-center gap-1"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-4 h-4" />
                     <span>Adicionar</span>
                   </button>
                 </div>
