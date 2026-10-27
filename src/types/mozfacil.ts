@@ -55,6 +55,8 @@ export type CompanyVerificationStatus = 'pending' | 'verified' | 'rejected';
 export type AuditOperation =
   | 'utente_registered'
   | 'consultation_debit'
+  | 'credit_package_activated'
+  | 'referral_reward_credited'
   | 'profile_created'
   | 'profile_updated'
   | 'profile_status_changed'
@@ -76,27 +78,24 @@ export type AuditOperation =
   | 'public_place_updated';
 
 export type PublicPlaceCategory =
-  | 'market'
-  | 'bus_stop'
-  | 'public_institution'
-  | 'school_education'
-  | 'health_center'
-  | 'police_safety'
-  | 'public_square'
-  | 'other_landmark';
+  | 'escola_publica'
+  | 'hospital_centro_saude'
+  | 'tribunal_procuradoria'
+  | 'reparticao_direccao'
+  | 'posto_administrativo_municipio';
+
+export type PublicPlaceOperationalState = 'on' | 'off';
 
 export type PublicPlacePublicationStatus = 'published' | 'pending_review' | 'suspended';
 
 export const PUBLIC_PLACE_CATEGORY_LABELS: Record<PublicPlaceCategory, string> = {
-  market: 'Mercado / Feira',
-  bus_stop: 'Paragem / Terminal de Transporte',
-  public_institution: 'Instituição Pública / Serviço do Estado',
-  school_education: 'Escola / Universidade / Ensino',
-  health_center: 'Hospital / Centro de Saúde',
-  police_safety: 'Esquadra / Posto Policial',
-  public_square: 'Praça / Jardim / Espaço Comunitário',
-  other_landmark: 'Outro Ponto de Referência Local',
+  escola_publica: 'Escola Pública',
+  hospital_centro_saude: 'Hospital Público / Centro de Saúde',
+  tribunal_procuradoria: 'Tribunal / Procuradoria',
+  reparticao_direccao: 'Repartição Pública / Direcção',
+  posto_administrativo_municipio: 'Posto Administrativo / Município',
 };
+
 
 // Validation constants synchronized with firebase-blueprint.json & firestore.rules
 export const VALIDATION_LIMITS = {
@@ -138,20 +137,78 @@ export const VALIDATION_LIMITS = {
   MEDIA_STORAGE_REF_MAX: 300000,
   SCHEDULE_NOTES_MAX: 200,
   AUDIT_DETAILS_MAX: 1000,
-  INITIAL_PACKAGE_CREDITS: 100,
+  INITIAL_PACKAGE_CREDITS: 0,
   CREDITS_PER_CONSULTATION: 1,
+  DIRECT_CONTACT_CREDITS: 50,
 } as const;
+
+export type CreditPackageId = 'pack_1' | 'pack_5' | 'pack_30' | 'pack_100';
+
+export interface CreditPackageOption {
+  id: CreditPackageId;
+  credits: 1 | 5 | 30 | 100;
+  priceMzn: 1 | 5 | 30 | 100;
+  creditsLabel: string;
+  durationLabel: string;
+  durationHours: number;
+  badge?: string;
+  benefitText: string;
+}
+
+export const CREDIT_PACKAGES: readonly CreditPackageOption[] = [
+  {
+    id: 'pack_1',
+    credits: 1,
+    priceMzn: 1,
+    creditsLabel: '1 crédito',
+    durationLabel: '2 horas',
+    durationHours: 2,
+    badge: 'Teste Rápido',
+    benefitText: 'Acesso imediato por 2 horas (1 MT)',
+  },
+  {
+    id: 'pack_5',
+    credits: 5,
+    priceMzn: 5,
+    creditsLabel: '5 créditos',
+    durationLabel: '24 horas',
+    durationHours: 24,
+    badge: 'Dia Completo',
+    benefitText: '24 horas de consultas por apenas 5 MT',
+  },
+  {
+    id: 'pack_30',
+    credits: 30,
+    priceMzn: 30,
+    creditsLabel: '30 créditos',
+    durationLabel: '7 dias',
+    durationHours: 168,
+    badge: 'Mais Popular',
+    benefitText: '7 dias de acesso contínuo (~4,2 MT/dia)',
+  },
+  {
+    id: 'pack_100',
+    credits: 100,
+    priceMzn: 100,
+    creditsLabel: '100 créditos',
+    durationLabel: '30 dias',
+    durationHours: 720,
+    badge: 'Melhor Valor · Poupe +65%',
+    benefitText: '30 dias completos por apenas 3,3 MT/dia',
+  },
+] as const;
 
 /**
  * Centralized pricing configuration for the MozFácil credit system.
- * Keeps business values (costs, currency, initial allocations) defined in one
+ * Keeps business values (costs, currency, initial allocations, packages) defined in one
  * typed authority for consistent presentation and maintenance.
  * Note: Database rules and server-side atomic transactions remain the authority for execution.
  */
 export const PRICING_CONFIG = {
   CREDITS_PER_CONSULTATION: 1,
   METICAIS_PER_CREDIT: 1,
-  INITIAL_WELCOME_CREDITS: 100,
+  INITIAL_WELCOME_CREDITS: 0,
+  DIRECT_CONTACT_CREDITS: 50,
   CURRENCY: 'MT',
   CURRENCY_CODE: 'MZN',
   REGISTRATION_FEE_PROFESSIONAL: 0,
@@ -165,7 +222,12 @@ export function getConsultationCreditCostFormatted(): string {
   return `${PRICING_CONFIG.CREDITS_PER_CONSULTATION} crédito (${PRICING_CONFIG.CREDITS_PER_CONSULTATION * PRICING_CONFIG.METICAIS_PER_CREDIT} ${PRICING_CONFIG.CURRENCY})`;
 }
 
-/** Returns the standard user-facing representation of welcome credits, e.g. "100 créditos (100 MT)" */
+/** Returns the standard user-facing representation of emergency direct contact cost, e.g. "50 créditos = 50 MT" */
+export function getDirectContactCostFormatted(): string {
+  return `${PRICING_CONFIG.DIRECT_CONTACT_CREDITS} créditos = ${PRICING_CONFIG.DIRECT_CONTACT_CREDITS * PRICING_CONFIG.METICAIS_PER_CREDIT} ${PRICING_CONFIG.CURRENCY}`;
+}
+
+/** Returns the standard user-facing representation of welcome credits, e.g. "0 créditos (0 MT)" */
 export function getInitialWelcomeCreditsFormatted(): string {
   return `${PRICING_CONFIG.INITIAL_WELCOME_CREDITS} créditos (${PRICING_CONFIG.INITIAL_WELCOME_CREDITS * PRICING_CONFIG.METICAIS_PER_CREDIT} ${PRICING_CONFIG.CURRENCY})`;
 }
@@ -174,6 +236,17 @@ export function getInitialWelcomeCreditsFormatted(): string {
 export function formatUserCreditBalance(credits: number): string {
   const safeCredits = typeof credits === 'number' && !isNaN(credits) ? credits : 0;
   return `${safeCredits} ${safeCredits === 1 ? 'crédito' : 'créditos'} (${safeCredits * PRICING_CONFIG.METICAIS_PER_CREDIT} ${PRICING_CONFIG.CURRENCY})`;
+}
+
+/** Generates the personal referral link for Indique e Ganhe */
+export function buildUserReferralLink(userId?: string | null): string {
+  const baseOrigin =
+    typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : 'https://moz-facil.vercel.app';
+  if (!userId) return baseOrigin;
+  const code = userId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10).toUpperCase();
+  return `${baseOrigin}/?convite=${code}`;
 }
 
 export interface MozUser {
@@ -498,14 +571,25 @@ export interface PublicPlace {
   placeName: string;
   normalizedPlaceName: string;
   placeCategory: PublicPlaceCategory;
+  hasGps: boolean;
+  latitude: number;
+  longitude: number;
+  gpsAccuracyMeters: number;
   province: string;
   district: string;
-  neighborhood: string;
   locality: string;
+  neighborhood: string;
+  streetOrAvenue: string;
+  nearestChapaStop: string;
+  nearbyInstitutions: string;
   referenceDescription: string;
+  secretaryPhone: string;
+  operationalState: PublicPlaceOperationalState;
+  photoUrl: string;
   contributorId: string;
   publicationStatus: PublicPlacePublicationStatus;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
+
 

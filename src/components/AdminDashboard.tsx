@@ -13,6 +13,7 @@ import {
   Eye,
   Plus,
   Building2,
+  Landmark,
 } from 'lucide-react';
 import {
   AuditLog,
@@ -20,8 +21,13 @@ import {
   CompanyCategory,
   CompanyProfile,
   OperationalState,
+  PUBLIC_PLACE_CATEGORY_LABELS,
   ProfessionalCategory,
   ProfessionalProfile,
+  PublicPlace,
+  PublicPlaceCategory,
+  PublicPlaceOperationalState,
+  PublicPlacePublicationStatus,
   PublicationStatus,
 } from '../types/mozfacil';
 import {
@@ -31,6 +37,7 @@ import {
   adminMergeCategories,
   adminSetCompanyPublicationStatus,
   adminSetProfilePublicationStatus,
+  adminUpdatePublicPlace,
   adminVerifyCompany,
   adminVerifyProfessionalContact,
   proposeOrSelectCategory,
@@ -41,6 +48,7 @@ interface AdminDashboardProps {
   categories: ProfessionalCategory[];
   companies?: CompanyProfile[];
   companyCategories?: CompanyCategory[];
+  publicPlaces?: PublicPlace[];
   auditLogs: AuditLog[];
   adminId: string;
   adminName: string;
@@ -84,6 +92,8 @@ const AUDIT_OPERATION_LABELS: Record<string, string> = {
   utente_registered: 'Cadastro de Utente Guardado',
   consultation_debit: 'Consulta Direta Realizada (-1 Crédito)',
   consultation_debited: 'Consulta Direta Realizada (-1 Crédito)',
+  public_place_created: 'Instituição Pública Registada pela Comunidade',
+  public_place_updated: 'Instituição Pública Corrigida pela Administração',
 };
 
 const TARGET_COLLECTION_LABELS: Record<string, string> = {
@@ -91,6 +101,7 @@ const TARGET_COLLECTION_LABELS: Record<string, string> = {
   professional_categories: 'Categoria',
   users: 'Conta de Utilizador',
   user_consultations: 'Consulta de Perfil',
+  public_places: 'Instituição Pública',
 };
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -98,6 +109,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   categories,
   companies = [],
   companyCategories = [],
+  publicPlaces = [],
   auditLogs,
   adminId,
   adminName,
@@ -105,8 +117,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onInspectCompany,
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'profiles' | 'companies' | 'categories' | 'custom_fields' | 'audit_logs'
+    'profiles' | 'companies' | 'public_places' | 'categories' | 'custom_fields' | 'audit_logs'
   >('profiles');
+
+  // Public Institutions tab state
+  const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
+  const [placeForm, setPlaceForm] = useState<{
+    placeName: string;
+    placeCategory: PublicPlaceCategory;
+    province: string;
+    district: string;
+    locality: string;
+    neighborhood: string;
+    streetOrAvenue: string;
+    nearestChapaStop: string;
+    nearbyInstitutions: string;
+    referenceDescription: string;
+    secretaryPhone: string;
+    operationalState: PublicPlaceOperationalState;
+    latitude: number;
+    longitude: number;
+    hasGps: boolean;
+    gpsAccuracyMeters: number;
+    photoUrl: string;
+    publicationStatus: PublicPlacePublicationStatus;
+  } | null>(null);
+  const [busyPlaceId, setBusyPlaceId] = useState<string | null>(null);
 
   // Companies tab state
   const [companyStatusFilter, setCompanyStatusFilter] = useState<PublicationStatus | 'all'>('all');
@@ -476,6 +512,70 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  const handleStartEditPublicPlace = (place: PublicPlace) => {
+    setEditingPlaceId(place.id);
+    setPlaceForm({
+      placeName: place.placeName,
+      placeCategory: place.placeCategory,
+      province: place.province,
+      district: place.district,
+      locality: place.locality || place.neighborhood,
+      neighborhood: place.neighborhood,
+      streetOrAvenue: place.streetOrAvenue || 'Rua sem nome',
+      nearestChapaStop: place.nearestChapaStop || '',
+      nearbyInstitutions: place.nearbyInstitutions || '',
+      referenceDescription: place.referenceDescription || '',
+      secretaryPhone: place.secretaryPhone || '',
+      operationalState: place.operationalState || 'on',
+      latitude: place.latitude ?? -25.9692,
+      longitude: place.longitude ?? 32.5732,
+      hasGps: Boolean(place.hasGps),
+      gpsAccuracyMeters: place.gpsAccuracyMeters ?? 0,
+      photoUrl: place.photoUrl || '',
+      publicationStatus: place.publicationStatus,
+    });
+  };
+
+  const handleSavePublicPlace = async (placeId: string) => {
+    if (!placeForm) return;
+    setBusyPlaceId(placeId);
+    setCatFeedback(null);
+    try {
+      await adminUpdatePublicPlace({
+        placeId,
+        placeName: placeForm.placeName,
+        placeCategory: placeForm.placeCategory,
+        hasGps: placeForm.hasGps,
+        latitude: placeForm.latitude,
+        longitude: placeForm.longitude,
+        gpsAccuracyMeters: placeForm.gpsAccuracyMeters,
+        province: placeForm.province,
+        district: placeForm.district,
+        locality: placeForm.locality,
+        neighborhood: placeForm.neighborhood,
+        streetOrAvenue: placeForm.streetOrAvenue,
+        nearestChapaStop: placeForm.nearestChapaStop,
+        nearbyInstitutions: placeForm.nearbyInstitutions,
+        referenceDescription: placeForm.referenceDescription,
+        secretaryPhone: placeForm.secretaryPhone,
+        operationalState: placeForm.operationalState,
+        photoUrl: placeForm.photoUrl,
+        publicationStatus: placeForm.publicationStatus,
+        adminId,
+        adminName,
+      });
+      setEditingPlaceId(null);
+      setPlaceForm(null);
+      setCatFeedback(`Instituição pública "${placeForm.placeName}" atualizada com sucesso.`);
+    } catch (err) {
+      setCatFeedback(
+        err instanceof Error ? err.message : 'Erro ao atualizar a instituição pública.'
+      );
+    } finally {
+      setBusyPlaceId(null);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
       {/* Header */}
@@ -518,6 +618,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             >
               <Building2 className="w-3.5 h-3.5" />
               <span>Empresas ({companies.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('public_places')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 ${
+                activeTab === 'public_places'
+                  ? 'bg-[#F97316] text-white'
+                  : 'text-blue-100 hover:text-white'
+              }`}
+            >
+              <Landmark className="w-3.5 h-3.5" />
+              <span>Instituições Públicas ({publicPlaces.length})</span>
             </button>
             <button
               type="button"
@@ -925,6 +1037,404 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               ) : (
                 <div className="p-6 text-center text-xs text-slate-500">
                   Nenhuma empresa encontrada para este filtro.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: GESTÃO E CORREÇÃO DE INSTITUIÇÕES PÚBLICAS                   */}
+        {/* ================================================================= */}
+        {activeTab === 'public_places' && (
+          <div className="space-y-4">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+              Reveja e corrija os dados das Instituições Públicas mapeadas pela comunidade moçambicana (Denominação, Categoria, GPS, Localização, Rua/Avenida, Pontos de Referência, Contactos da Secretaria e Estado ON/OFF).
+            </div>
+
+            <div className="divide-y divide-slate-200 border border-slate-200 rounded-xl overflow-hidden">
+              {publicPlaces.length > 0 ? (
+                publicPlaces.map((place) => {
+                  const isEditing = editingPlaceId === place.id && placeForm !== null;
+                  return (
+                    <div key={place.id} className="p-4 bg-white space-y-3">
+                      {!isEditing ? (
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                          <div className="space-y-1 flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-extrabold text-sm text-[#0D316E]">
+                                {place.placeName}
+                              </span>
+                              <span className="px-2 py-0.5 rounded-md bg-orange-100 text-[#C2410C] font-bold text-[10px]">
+                                {PUBLIC_PLACE_CATEGORY_LABELS[place.placeCategory] ||
+                                  place.placeCategory}
+                              </span>
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                  place.operationalState === 'off'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-emerald-100 text-emerald-800'
+                                }`}
+                              >
+                                {place.operationalState === 'off' ? 'OFF' : 'ON'}
+                              </span>
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  place.publicationStatus === 'published'
+                                    ? 'bg-blue-50 text-[#0D316E]'
+                                    : 'bg-slate-100 text-slate-700'
+                                }`}
+                              >
+                                {place.publicationStatus}
+                              </span>
+                            </div>
+
+                            <div className="text-xs text-slate-600 space-y-0.5">
+                              <div>
+                                <strong>Localização:</strong> {place.province} · {place.district} ·{' '}
+                                {place.locality} · {place.neighborhood} ({place.streetOrAvenue})
+                              </div>
+                              <div>
+                                <strong>Referências:</strong> Paragem {place.nearestChapaStop} ·{' '}
+                                Próximo de: {place.nearbyInstitutions}
+                                {place.referenceDescription
+                                  ? ` (${place.referenceDescription})`
+                                  : ''}
+                              </div>
+                              <div>
+                                <strong>Secretaria:</strong>{' '}
+                                {place.secretaryPhone || 'Em branco'} · <strong>GPS:</strong>{' '}
+                                {place.hasGps
+                                  ? `${place.latitude}, ${place.longitude} (${place.gpsAccuracyMeters}m)`
+                                  : 'Não capturado'}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleStartEditPublicPlace(place)}
+                              className="px-3 py-1.5 rounded-lg bg-[#0D316E] hover:bg-[#092452] text-white text-xs font-bold"
+                            >
+                              Editar / Corrigir Dados
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <div>
+                              <label className="block text-[11px] font-bold text-[#0D316E] mb-0.5">
+                                1. Denominação
+                              </label>
+                              <input
+                                type="text"
+                                value={placeForm.placeName}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev ? { ...prev, placeName: e.target.value } : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-[#0D316E] mb-0.5">
+                                2. Categoria
+                              </label>
+                              <select
+                                value={placeForm.placeCategory}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev
+                                      ? {
+                                          ...prev,
+                                          placeCategory: e.target.value as PublicPlaceCategory,
+                                        }
+                                      : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              >
+                                {(
+                                  Object.entries(PUBLIC_PLACE_CATEGORY_LABELS) as [
+                                    PublicPlaceCategory,
+                                    string,
+                                  ][]
+                                ).map(([k, label]) => (
+                                  <option key={k} value={k}>
+                                    {label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-[#0D316E] mb-0.5">
+                                8. Estado do Serviço / Publicação
+                              </label>
+                              <div className="flex gap-1.5">
+                                <select
+                                  value={placeForm.operationalState}
+                                  onChange={(e) =>
+                                    setPlaceForm((prev) =>
+                                      prev
+                                        ? {
+                                            ...prev,
+                                            operationalState: e.target
+                                              .value as PublicPlaceOperationalState,
+                                          }
+                                        : null
+                                    )
+                                  }
+                                  className="flex-1 px-2 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                                >
+                                  <option value="on">ON (A funcionar)</option>
+                                  <option value="off">OFF (Encerrada)</option>
+                                </select>
+                                <select
+                                  value={placeForm.publicationStatus}
+                                  onChange={(e) =>
+                                    setPlaceForm((prev) =>
+                                      prev
+                                        ? {
+                                            ...prev,
+                                            publicationStatus: e.target
+                                              .value as PublicPlacePublicationStatus,
+                                          }
+                                        : null
+                                    )
+                                  }
+                                  className="flex-1 px-2 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                                >
+                                  <option value="published">Publicada</option>
+                                  <option value="pending_review">Em Revisão</option>
+                                  <option value="suspended">Suspensa</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                Província
+                              </label>
+                              <input
+                                type="text"
+                                value={placeForm.province}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev ? { ...prev, province: e.target.value } : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                Distrito
+                              </label>
+                              <input
+                                type="text"
+                                value={placeForm.district}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev ? { ...prev, district: e.target.value } : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                Localidade
+                              </label>
+                              <input
+                                type="text"
+                                value={placeForm.locality}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev ? { ...prev, locality: e.target.value } : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                Bairro
+                              </label>
+                              <input
+                                type="text"
+                                value={placeForm.neighborhood}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev ? { ...prev, neighborhood: e.target.value } : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                5. Rua / Avenida
+                              </label>
+                              <input
+                                type="text"
+                                value={placeForm.streetOrAvenue}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev ? { ...prev, streetOrAvenue: e.target.value } : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                6. Paragem de Chapa
+                              </label>
+                              <input
+                                type="text"
+                                value={placeForm.nearestChapaStop}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev ? { ...prev, nearestChapaStop: e.target.value } : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                6. Instituições Próximas
+                              </label>
+                              <input
+                                type="text"
+                                value={placeForm.nearbyInstitutions}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev ? { ...prev, nearbyInstitutions: e.target.value } : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                7. Contactos da Secretaria
+                              </label>
+                              <input
+                                type="text"
+                                value={placeForm.secretaryPhone}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev ? { ...prev, secretaryPhone: e.target.value } : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                3. Latitude
+                              </label>
+                              <input
+                                type="number"
+                                step="0.000001"
+                                value={placeForm.latitude}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev
+                                      ? {
+                                          ...prev,
+                                          latitude: Number(e.target.value) || 0,
+                                          hasGps: true,
+                                        }
+                                      : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg font-mono"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                3. Longitude
+                              </label>
+                              <input
+                                type="number"
+                                step="0.000001"
+                                value={placeForm.longitude}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev
+                                      ? {
+                                          ...prev,
+                                          longitude: Number(e.target.value) || 0,
+                                          hasGps: true,
+                                        }
+                                      : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg font-mono"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                Explicação adicional
+                              </label>
+                              <input
+                                type="text"
+                                value={placeForm.referenceDescription}
+                                onChange={(e) =>
+                                  setPlaceForm((prev) =>
+                                    prev
+                                      ? { ...prev, referenceDescription: e.target.value }
+                                      : null
+                                  )
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-end gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingPlaceId(null);
+                                setPlaceForm(null);
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busyPlaceId === place.id}
+                              onClick={() => handleSavePublicPlace(place.id)}
+                              className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-50"
+                            >
+                              Guardar Correções
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-6 text-center text-xs text-slate-500">
+                  Ainda não existem instituições públicas registadas pela comunidade.
                 </div>
               )}
             </div>

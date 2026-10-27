@@ -36,6 +36,8 @@ import {
   CompanyService,
   CompanyVerificationStatus,
   CoverageAreaType,
+  CREDIT_PACKAGES,
+  CreditPackageId,
   DeliveryMode,
   MediaFileType,
   MozUser,
@@ -45,6 +47,7 @@ import {
   ProfileType,
   PublicPlace,
   PublicPlaceCategory,
+  PublicPlaceOperationalState,
   PublicPlacePublicationStatus,
   PublicationStatus,
   ServiceDeliveryMethod,
@@ -435,6 +438,162 @@ export async function performDirectConsultationDebit(params: {
     });
 
     return result;
+  } catch (error) {
+    if (error instanceof Error && !error.message.includes('permission-denied')) {
+      throw error;
+    }
+    handleFirestoreError(error, OperationType.UPDATE, userPath);
+  }
+}
+
+/**
+ * Atomically activates a selected credit package (1, 5, 30, or 100 credits) for a registered Utente.
+ * Requires the user to have completed registration (`termsAccepted === true`).
+ */
+export async function activateCreditPackage(params: {
+  userId: string;
+  userName: string;
+  packageId: CreditPackageId;
+}): Promise<{
+  newBalance: number;
+  addedCredits: number;
+  durationLabel: string;
+}> {
+  const uid = sanitizeId(params.userId);
+  const userPath = `users/${uid}`;
+  const selectedPack = CREDIT_PACKAGES.find((p) => p.id === params.packageId);
+
+  if (!selectedPack) {
+    throw new Error('Pacote de créditos inválido.');
+  }
+
+  try {
+    const result = await runTransaction(db, async (tx) => {
+      const userRef = doc(db, 'users', uid);
+      const userSnap = await tx.get(userRef);
+
+      if (!userSnap.exists()) {
+        throw new Error('Conclua primeiro o Cadastro do Utente para ativar um pacote de créditos.');
+      }
+
+      const userData = userSnap.data() as MozUser;
+      if (!userData.termsAccepted) {
+        throw new Error(
+          'Aceite os Termos e Condições e guarde o seu Cadastro do Utente antes de ativar um pacote de acesso.'
+        );
+      }
+
+      const currentBalance =
+        typeof userData.creditsBalance === 'number' ? userData.creditsBalance : 0;
+      const nextBalance = currentBalance + selectedPack.credits;
+
+      tx.update(userRef, {
+        creditsBalance: nextBalance,
+        updatedAt: serverTimestamp(),
+      });
+
+      const logId = sanitizeId(`log_pack_${uid}_${Date.now()}`);
+      tx.set(doc(db, 'audit_logs', logId), {
+        id: logId,
+        actorId: uid,
+        actorName: clampStr(
+          params.userName || userData.displayName,
+          VALIDATION_LIMITS.DISPLAY_NAME_MAX,
+          'Utente MozFácil'
+        ),
+        operation: 'credit_package_activated',
+        targetCollection: 'users',
+        targetRecordId: uid,
+        details: clampStr(
+          `Pacote ativado: ${selectedPack.creditsLabel} (${selectedPack.priceMzn} MT · ${selectedPack.durationLabel}). Novo saldo: ${nextBalance} créditos (${nextBalance} MT).`,
+          VALIDATION_LIMITS.AUDIT_DETAILS_MAX,
+          'Pacote de créditos ativado'
+        ),
+        createdAt: serverTimestamp(),
+      });
+
+      return {
+        newBalance: nextBalance,
+        addedCredits: selectedPack.credits,
+        durationLabel: selectedPack.durationLabel,
+      };
+    });
+
+    return result;
+  } catch (error) {
+    if (error instanceof Error && !error.message.includes('permission-denied')) {
+      throw error;
+    }
+    handleFirestoreError(error, OperationType.UPDATE, userPath);
+  }
+}
+
+/**
+ * Atomically debits 50 credits (50 MT) when a registered user with sufficient balance uses Contacto Directo.
+ */
+export async function performEmergencyDirectCallDebit(params: {
+  userId: string;
+  userName: string;
+}): Promise<{
+  remainingCredits: number;
+  consultationsCount: number;
+}> {
+  const uid = sanitizeId(params.userId);
+  const userPath = `users/${uid}`;
+
+  try {
+    return await runTransaction(db, async (tx) => {
+      const userRef = doc(db, 'users', uid);
+      const userSnap = await tx.get(userRef);
+
+      if (!userSnap.exists()) {
+        throw new Error('Registo de utente não encontrado.');
+      }
+
+      const userData = userSnap.data() as MozUser;
+      const currentBalance =
+        typeof userData.creditsBalance === 'number' ? userData.creditsBalance : 0;
+      const currentTotal =
+        typeof userData.consultationsCount === 'number' ? userData.consultationsCount : 0;
+
+      if (!userData.termsAccepted || currentBalance < VALIDATION_LIMITS.DIRECT_CONTACT_CREDITS) {
+        throw new Error('Saldo inferior a 50 créditos para débito automático.');
+      }
+
+      const nextBalance = currentBalance - VALIDATION_LIMITS.DIRECT_CONTACT_CREDITS;
+      const nextTotal = currentTotal + 1;
+
+      tx.update(userRef, {
+        creditsBalance: nextBalance,
+        consultationsCount: nextTotal,
+        updatedAt: serverTimestamp(),
+      });
+
+      const logId = sanitizeId(`log_direct_${uid}_${Date.now()}`);
+      tx.set(doc(db, 'audit_logs', logId), {
+        id: logId,
+        actorId: uid,
+        actorName: clampStr(
+          params.userName || userData.displayName,
+          VALIDATION_LIMITS.DISPLAY_NAME_MAX,
+          'Utente MozFácil'
+        ),
+        operation: 'consultation_debit',
+        targetCollection: 'users',
+        targetRecordId: uid,
+        details: clampStr(
+          `Contacto Directo Emergente: débito de 50 créditos (50 MT). Saldo restante: ${nextBalance} créditos.`,
+          VALIDATION_LIMITS.AUDIT_DETAILS_MAX,
+          'Contacto Directo debitado'
+        ),
+        createdAt: serverTimestamp(),
+      });
+
+      return {
+        remainingCredits: nextBalance,
+        consultationsCount: nextTotal,
+      };
+    });
   } catch (error) {
     if (error instanceof Error && !error.message.includes('permission-denied')) {
       throw error;
@@ -2406,19 +2565,36 @@ export function buildPublicPlaceDeterministicId(
 export interface SubmitPublicPlacePayload {
   placeName: string;
   placeCategory: PublicPlaceCategory;
+  hasGps: boolean;
+  latitude: number;
+  longitude: number;
+  gpsAccuracyMeters: number;
   province: string;
   district: string;
+  locality: string;
   neighborhood: string;
-  locality?: string;
+  streetOrAvenue: string;
+  nearestChapaStop: string;
+  nearbyInstitutions: string;
   referenceDescription?: string;
+  secretaryPhone?: string;
+  operationalState: PublicPlaceOperationalState;
+  photoUrl?: string;
   existingPlaces?: PublicPlace[];
 }
 
 /**
- * Persists a community-contributed public place or local landmark to `/public_places/{placeId}`.
- * - Does not require account creation or GPS coordinates.
- * - Prevents duplicate submissions using normalized place name and location.
- * - Never overwrites existing records.
+ * Persists a community-contributed public institution to `/public_places/{placeId}` following
+ * the 9-section MozFácil Public Institutions mapping flow:
+ * 1. Denominação
+ * 2. Categoria (exact 5 public institution categories)
+ * 3. GPS (with Automático, accuracy in metres, and manual marker adjustment)
+ * 4. Localização (província, distrito, localidade e bairro)
+ * 5. Rua / Avenida (or "Rua sem nome")
+ * 6. Pontos de Referência (paragem de chapa + uma ou duas instituições próximas)
+ * 7. Contactos da Secretaria (optional)
+ * 8. Estado do Serviço (ON / OFF)
+ * 9. Imagem do Local (optional facade photo with visible sign)
  */
 export async function submitPublicPlace(
   payload: SubmitPublicPlacePayload
@@ -2427,22 +2603,57 @@ export async function submitPublicPlace(
   const normalizedName = normalizeCategoryName(cleanName);
   const cleanProvince = clampStr(payload.province, VALIDATION_LIMITS.PROVINCE_MAX, '');
   const cleanDistrict = clampStr(payload.district, VALIDATION_LIMITS.DISTRICT_MAX, '');
-  const cleanNeighborhood = clampStr(payload.neighborhood, VALIDATION_LIMITS.NEIGHBORHOOD_MAX, '');
   const cleanLocality = clampStr(payload.locality, VALIDATION_LIMITS.LOCALITY_MAX, '');
+  const cleanNeighborhood = clampStr(payload.neighborhood, VALIDATION_LIMITS.NEIGHBORHOOD_MAX, '');
+  const cleanStreet = clampStr(payload.streetOrAvenue, 200, '');
+  const cleanChapaStop = clampStr(payload.nearestChapaStop, 150, '');
+  const cleanNearbyInstitutions = clampStr(payload.nearbyInstitutions, 300, '');
   const cleanReference = clampStr(payload.referenceDescription, 500, '');
+  const cleanSecretaryPhone = clampStr(payload.secretaryPhone, VALIDATION_LIMITS.PHONE_MAX, '');
+  const cleanPhotoUrl = clampStr(payload.photoUrl, VALIDATION_LIMITS.PHOTO_URL_MAX, '');
+  const operationalState: PublicPlaceOperationalState =
+    payload.operationalState === 'off' ? 'off' : 'on';
 
   if (cleanName.length < 2 || normalizedName.length < 2) {
-    throw new Error('Por favor, indique o nome do local (mínimo 2 caracteres).');
+    throw new Error('1. Denominação: Indique o nome oficial que está na placa ou carimbo da instituição.');
   }
   if (cleanProvince.length < 2) {
-    throw new Error('Por favor, selecione a província.');
+    throw new Error('4. Localização: Por favor, selecione a província.');
   }
   if (cleanDistrict.length < 2) {
-    throw new Error('Por favor, indique o distrito ou município.');
+    throw new Error('4. Localização: Por favor, indique o distrito.');
+  }
+  if (cleanLocality.length < 1) {
+    throw new Error('4. Localização: Por favor, indique a localidade.');
   }
   if (cleanNeighborhood.length < 1) {
-    throw new Error('Por favor, indique o bairro, localidade ou comunidade.');
+    throw new Error('4. Localização: Por favor, indique o bairro.');
   }
+  if (cleanStreet.length < 2) {
+    throw new Error('5. Rua / Avenida: Indique a rua ou avenida. Se não souber o nome, escreva "Rua sem nome".');
+  }
+  if (cleanChapaStop.length < 1) {
+    throw new Error('6. Pontos de Referência: Escreva o nome da paragem de chapa mais próxima.');
+  }
+  if (cleanNearbyInstitutions.length < 1) {
+    throw new Error('6. Pontos de Referência: Indique uma ou duas instituições próximas.');
+  }
+  if (cleanSecretaryPhone.length > 0 && !/^[0-9+\-\s()]{6,40}$/.test(cleanSecretaryPhone)) {
+    throw new Error('7. Contactos da Secretaria: Indique um número de telefone válido ou deixe em branco.');
+  }
+
+  const safeLat =
+    typeof payload.latitude === 'number' && !isNaN(payload.latitude)
+      ? Math.max(-90, Math.min(90, Number(payload.latitude.toFixed(6))))
+      : -25.9692;
+  const safeLng =
+    typeof payload.longitude === 'number' && !isNaN(payload.longitude)
+      ? Math.max(-180, Math.min(180, Number(payload.longitude.toFixed(6))))
+      : 32.5732;
+  const safeAccuracy =
+    typeof payload.gpsAccuracyMeters === 'number' && !isNaN(payload.gpsAccuracyMeters)
+      ? Math.max(0, Math.min(100000, Math.round(payload.gpsAccuracyMeters * 10) / 10))
+      : 0;
 
   const placeId = buildPublicPlaceDeterministicId(
     cleanName,
@@ -2452,7 +2663,6 @@ export async function submitPublicPlace(
   );
   const placePath = `public_places/${placeId}`;
 
-  // Check against known in-memory places first if provided
   if (payload.existingPlaces && payload.existingPlaces.length > 0) {
     const duplicate = payload.existingPlaces.find(
       (p) =>
@@ -2464,7 +2674,7 @@ export async function submitPublicPlace(
     );
     if (duplicate) {
       throw new Error(
-        `O local "${duplicate.placeName}" já se encontra registado em ${duplicate.neighborhood}, ${duplicate.district} (${duplicate.province}).`
+        `A instituição "${duplicate.placeName}" já se encontra registada em ${duplicate.neighborhood}, ${duplicate.district} (${duplicate.province}).`
       );
     }
   }
@@ -2476,11 +2686,11 @@ export async function submitPublicPlace(
     if (existingSnap.exists()) {
       const existingData = existingSnap.data() as PublicPlace;
       throw new Error(
-        `O local "${existingData.placeName}" já se encontra registado nesta localização.`
+        `A instituição "${existingData.placeName}" já se encontra registada nesta localização.`
       );
     }
   } catch (err) {
-    if (err instanceof Error && err.message.includes('já se encontra registado')) {
+    if (err instanceof Error && err.message.includes('já se encontra registada')) {
       throw err;
     }
   }
@@ -2494,12 +2704,22 @@ export async function submitPublicPlace(
       id: placeId,
       placeName: cleanName,
       normalizedPlaceName: clampStr(normalizedName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, cleanName.toLowerCase()),
-      placeCategory: payload.placeCategory || 'other_landmark',
+      placeCategory: payload.placeCategory,
+      hasGps: Boolean(payload.hasGps),
+      latitude: safeLat,
+      longitude: safeLng,
+      gpsAccuracyMeters: safeAccuracy,
       province: cleanProvince,
       district: cleanDistrict,
-      neighborhood: cleanNeighborhood,
       locality: cleanLocality,
+      neighborhood: cleanNeighborhood,
+      streetOrAvenue: cleanStreet,
+      nearestChapaStop: cleanChapaStop,
+      nearbyInstitutions: cleanNearbyInstitutions,
       referenceDescription: cleanReference,
+      secretaryPhone: cleanSecretaryPhone,
+      operationalState,
+      photoUrl: cleanPhotoUrl,
       contributorId,
       publicationStatus: 'published',
       createdAt: serverTimestamp(),
@@ -2517,7 +2737,7 @@ export async function submitPublicPlace(
           operation: 'public_place_created',
           targetCollection: 'public_places',
           targetRecordId: placeId,
-          details: `Local comunitário registado: "${cleanName}" (${payload.placeCategory}) em ${cleanNeighborhood}, ${cleanDistrict}, ${cleanProvince}.`,
+          details: `Instituição pública registada: "${cleanName}" (${payload.placeCategory}) em ${cleanNeighborhood}, ${cleanDistrict}, ${cleanProvince} [${operationalState.toUpperCase()}].`,
         });
       } catch {
         // Non-blocking audit log for community submission
@@ -2535,19 +2755,30 @@ export interface AdminUpdatePublicPlacePayload {
   placeId: string;
   placeName: string;
   placeCategory: PublicPlaceCategory;
+  hasGps: boolean;
+  latitude: number;
+  longitude: number;
+  gpsAccuracyMeters: number;
   province: string;
   district: string;
-  neighborhood: string;
   locality: string;
+  neighborhood: string;
+  streetOrAvenue: string;
+  nearestChapaStop: string;
+  nearbyInstitutions: string;
   referenceDescription: string;
+  secretaryPhone: string;
+  operationalState: PublicPlaceOperationalState;
+  photoUrl: string;
   publicationStatus: PublicPlacePublicationStatus;
   adminId: string;
   adminName: string;
 }
 
 /**
- * Allows an authorized administrator to review and correct submitted public-place information,
- * including name, category, location fields, reference directions, and publication status.
+ * Allows an authorized administrator to review and correct submitted public institution records,
+ * including denomination, category, GPS coordinates, location fields, street/avenue,
+ * reference points, secretary phone, ON/OFF service state, facade image, and publication status.
  * Persists an immutable audit log record.
  */
 export async function adminUpdatePublicPlace(
@@ -2559,16 +2790,47 @@ export async function adminUpdatePublicPlace(
   const normalizedName = normalizeCategoryName(cleanName);
   const cleanProvince = clampStr(params.province, VALIDATION_LIMITS.PROVINCE_MAX, '');
   const cleanDistrict = clampStr(params.district, VALIDATION_LIMITS.DISTRICT_MAX, '');
-  const cleanNeighborhood = clampStr(params.neighborhood, VALIDATION_LIMITS.NEIGHBORHOOD_MAX, '');
   const cleanLocality = clampStr(params.locality, VALIDATION_LIMITS.LOCALITY_MAX, '');
+  const cleanNeighborhood = clampStr(params.neighborhood, VALIDATION_LIMITS.NEIGHBORHOOD_MAX, '');
+  const cleanStreet = clampStr(params.streetOrAvenue, 200, 'Rua sem nome');
+  const cleanChapaStop = clampStr(params.nearestChapaStop, 150, '');
+  const cleanNearbyInstitutions = clampStr(params.nearbyInstitutions, 300, '');
   const cleanReference = clampStr(params.referenceDescription, 500, '');
+  const cleanSecretaryPhone = clampStr(params.secretaryPhone, VALIDATION_LIMITS.PHONE_MAX, '');
+  const cleanPhotoUrl = clampStr(params.photoUrl, VALIDATION_LIMITS.PHOTO_URL_MAX, '');
+  const operationalState: PublicPlaceOperationalState =
+    params.operationalState === 'off' ? 'off' : 'on';
 
   if (cleanName.length < 2 || normalizedName.length < 2) {
-    throw new Error('O nome do local deve ter pelo menos 2 caracteres.');
+    throw new Error('A denominação da instituição deve ter pelo menos 2 caracteres.');
   }
-  if (cleanProvince.length < 2 || cleanDistrict.length < 2 || cleanNeighborhood.length < 1) {
-    throw new Error('Província, distrito e bairro/localidade são obrigatórios.');
+  if (
+    cleanProvince.length < 2 ||
+    cleanDistrict.length < 2 ||
+    cleanLocality.length < 1 ||
+    cleanNeighborhood.length < 1
+  ) {
+    throw new Error('Província, distrito, localidade e bairro são obrigatórios.');
   }
+  if (cleanStreet.length < 2) {
+    throw new Error('Indique a rua/avenida ou escreva "Rua sem nome".');
+  }
+  if (cleanChapaStop.length < 1 || cleanNearbyInstitutions.length < 1) {
+    throw new Error('A paragem de chapa e as instituições próximas são obrigatórias.');
+  }
+
+  const safeLat =
+    typeof params.latitude === 'number' && !isNaN(params.latitude)
+      ? Math.max(-90, Math.min(90, Number(params.latitude.toFixed(6))))
+      : -25.9692;
+  const safeLng =
+    typeof params.longitude === 'number' && !isNaN(params.longitude)
+      ? Math.max(-180, Math.min(180, Number(params.longitude.toFixed(6))))
+      : 32.5732;
+  const safeAccuracy =
+    typeof params.gpsAccuracyMeters === 'number' && !isNaN(params.gpsAccuracyMeters)
+      ? Math.max(0, Math.min(100000, Math.round(params.gpsAccuracyMeters * 10) / 10))
+      : 0;
 
   try {
     const placeRef = doc(db, 'public_places', placeId);
@@ -2578,11 +2840,21 @@ export async function adminUpdatePublicPlace(
       placeName: cleanName,
       normalizedPlaceName: clampStr(normalizedName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, cleanName.toLowerCase()),
       placeCategory: params.placeCategory,
+      hasGps: Boolean(params.hasGps),
+      latitude: safeLat,
+      longitude: safeLng,
+      gpsAccuracyMeters: safeAccuracy,
       province: cleanProvince,
       district: cleanDistrict,
-      neighborhood: cleanNeighborhood,
       locality: cleanLocality,
+      neighborhood: cleanNeighborhood,
+      streetOrAvenue: cleanStreet,
+      nearestChapaStop: cleanChapaStop,
+      nearbyInstitutions: cleanNearbyInstitutions,
       referenceDescription: cleanReference,
+      secretaryPhone: cleanSecretaryPhone,
+      operationalState,
+      photoUrl: cleanPhotoUrl,
       publicationStatus: params.publicationStatus,
       updatedAt: serverTimestamp(),
     });
@@ -2596,9 +2868,9 @@ export async function adminUpdatePublicPlace(
       targetCollection: 'public_places',
       targetRecordId: placeId,
       details: clampStr(
-        `Local público corrigido pela administração: "${cleanName}" (${params.placeCategory}) — ${cleanNeighborhood}, ${cleanDistrict}, ${cleanProvince} [${params.publicationStatus}].`,
+        `Instituição pública corrigida pela administração: "${cleanName}" (${params.placeCategory}) — ${cleanNeighborhood}, ${cleanDistrict}, ${cleanProvince} [${operationalState.toUpperCase()} / ${params.publicationStatus}].`,
         VALIDATION_LIMITS.AUDIT_DETAILS_MAX,
-        'Local público atualizado'
+        'Instituição pública atualizada'
       ),
       createdAt: serverTimestamp(),
     });
@@ -2608,4 +2880,5 @@ export async function adminUpdatePublicPlace(
     handleFirestoreError(error, OperationType.UPDATE, placePath);
   }
 }
+
 

@@ -15,16 +15,21 @@ import {
 } from '../firebase';
 import {
   MozUser,
-  getConsultationCreditCostFormatted,
+  CREDIT_PACKAGES,
+  CreditPackageId,
+  buildUserReferralLink,
   getInitialWelcomeCreditsFormatted,
-  PRICING_CONFIG,
+  getConsultationCreditCostFormatted,
 } from '../types/mozfacil';
 import {
   getProvinces,
   getDistrictsByProvince,
   getNeighborhoodsByDistrict,
 } from '../data/mozambiqueLocations';
-import { saveUtenteRegistration } from '../services/mozfacilService';
+import {
+  activateCreditPackage,
+  saveUtenteRegistration,
+} from '../services/mozfacilService';
 import {
   CheckCircle2,
   AlertCircle,
@@ -33,6 +38,10 @@ import {
   ShieldCheck,
   Coins,
   ArrowLeft,
+  Gift,
+  Copy,
+  Share2,
+  Sparkles,
 } from 'lucide-react';
 
 interface UtenteRegistrationScreenProps {
@@ -80,6 +89,10 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [selectedPkgId, setSelectedPkgId] = useState<CreditPackageId>('pack_30');
+  const [isActivatingPkg, setIsActivatingPkg] = useState(false);
+  const [pkgFeedback, setPkgFeedback] = useState<string | null>(null);
+  const [referralCopied, setReferralCopied] = useState(false);
 
   // Synchronize state when mozUser / firebaseUser loads or changes
   useEffect(() => {
@@ -466,28 +479,171 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
 
               {/* Compact Credit Section (only real user database state) */}
               {mozUser && (
-                <div className="rounded-2xl bg-[#0D316E] text-white p-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#E85B0D] flex items-center justify-center shrink-0">
-                      <Coins className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-extrabold uppercase tracking-wide text-orange-300">
-                        Saldo de consultas
+                <div className="space-y-3">
+                  <div className="rounded-2xl bg-[#0D316E] text-white p-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-[#E85B0D] flex items-center justify-center shrink-0">
+                        <Coins className="w-5 h-5 text-white" />
                       </div>
-                      <div className="text-[11px] text-blue-200 mt-0.5 tabular-nums">
-                        Consultas efectuadas: {mozUser.consultationsCount}
+                      <div>
+                        <div className="text-xs font-extrabold uppercase tracking-wide text-orange-300">
+                          Saldo de consultas
+                        </div>
+                        <div className="text-[11px] text-blue-200 mt-0.5 tabular-nums">
+                          Consultas efectuadas: {mozUser.consultationsCount}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-xl font-extrabold tabular-nums">
+                        {mozUser.creditsBalance}
+                      </div>
+                      <div className="text-[11px] text-blue-200 font-semibold">
+                        créditos
                       </div>
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-xl font-extrabold tabular-nums">
-                      {mozUser.creditsBalance}
+
+                  {/* Interactive Access Packages for Registered Users */}
+                  {mozUser.termsAccepted && (
+                    <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3.5 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-extrabold text-[#0D316E] flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-[#E85B0D]" />
+                          Pacotes de acesso (1 crédito = 1 MT)
+                        </span>
+                        <span className="text-[11px] font-bold text-[#E85B0D]">
+                          Ativação rápida
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        {CREDIT_PACKAGES.map((pkg) => {
+                          const isSelected = selectedPkgId === pkg.id;
+                          return (
+                            <button
+                              key={pkg.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedPkgId(pkg.id);
+                                setPkgFeedback(null);
+                              }}
+                              className={`rounded-xl px-3 py-2 text-left transition-all border ${
+                                isSelected
+                                  ? 'bg-[#FFF5EC] border-[#E85B0D] ring-1 ring-[#E85B0D]/30'
+                                  : 'bg-white border-slate-200 hover:border-slate-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-xs font-extrabold text-[#0D316E]">
+                                  {pkg.creditsLabel}
+                                </span>
+                                {pkg.badge && (
+                                  <span className="px-1.5 py-0.5 rounded bg-[#E85B0D] text-white text-[9px] font-extrabold uppercase">
+                                    {pkg.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] font-extrabold text-[#E85B0D] mt-0.5">
+                                {pkg.durationLabel} • {pkg.priceMzn} MT
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {pkgFeedback && (
+                        <div className="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>{pkgFeedback}</span>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        disabled={isActivatingPkg}
+                        onClick={async () => {
+                          if (!firebaseUser) return;
+                          setIsActivatingPkg(true);
+                          setPkgFeedback(null);
+                          setFormError(null);
+                          try {
+                            const res = await activateCreditPackage({
+                              userId: firebaseUser.uid,
+                              userName: mozUser.displayName || firebaseUser.displayName || 'Utente',
+                              packageId: selectedPkgId,
+                            });
+                            setPkgFeedback(
+                              `Pacote +${res.addedCredits} créditos (${res.durationLabel}) ativado! Saldo: ${res.newBalance} créditos.`
+                            );
+                          } catch (err) {
+                            setFormError(
+                              err instanceof Error
+                                ? err.message
+                                : 'Não foi possível ativar o pacote.'
+                            );
+                          } finally {
+                            setIsActivatingPkg(false);
+                          }
+                        }}
+                        className="w-full py-2.5 px-3 rounded-xl bg-[#E85B0D] hover:bg-[#d34f07] disabled:opacity-60 text-white font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                      >
+                        <Coins className="w-3.5 h-3.5" />
+                        {isActivatingPkg
+                          ? 'A ativar pacote...'
+                          : `Ativar pacote (${CREDIT_PACKAGES.find((p) => p.id === selectedPkgId)?.creditsLabel})`}
+                      </button>
                     </div>
-                    <div className="text-[11px] text-blue-200 font-semibold">
-                      créditos
+                  )}
+
+                  {/* Indique e Ganhe Personal Link */}
+                  {firebaseUser && (
+                    <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3.5 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-extrabold text-[#0D316E] flex items-center gap-1.5">
+                          <Gift className="w-3.5 h-3.5 text-[#E85B0D]" />
+                          Indique e Ganhe
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-500">
+                          Recompensa na 1.ª consulta paga
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          readOnly
+                          value={buildUserReferralLink(firebaseUser.uid)}
+                          aria-label="Link pessoal Indique e Ganhe"
+                          className="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-[11px] font-mono text-slate-700 truncate"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const link = buildUserReferralLink(firebaseUser.uid);
+                            if (navigator.clipboard?.writeText) {
+                              navigator.clipboard.writeText(link).catch(() => {});
+                            }
+                            setReferralCopied(true);
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-[#0D316E] text-white text-[11px] font-bold flex items-center gap-1 shrink-0"
+                        >
+                          <Copy className="w-3 h-3" />
+                          {referralCopied ? 'Copiado' : 'Copiar'}
+                        </button>
+                        <a
+                          href={`https://wa.me/?text=${encodeURIComponent(
+                            `Conheça a MozFácil — Moçambique na palma da sua mão: ${buildUserReferralLink(firebaseUser.uid)}`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1.5 rounded-lg bg-[#1DA851] text-white text-[11px] font-bold flex items-center gap-1 shrink-0"
+                        >
+                          <Share2 className="w-3 h-3" />
+                          Partilhar
+                        </a>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
@@ -757,13 +913,10 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
 
             <div className="space-y-2.5 text-xs text-slate-700 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
               <p>
-                <strong>1. Créditos de consulta:</strong> Na ativação da conta de utente são atribuídos{' '}
-                <strong>{getInitialWelcomeCreditsFormatted()}</strong> para utilização exclusiva na plataforma. Os créditos não constituem saldo
-                monetário reembolsável.
+                <strong>1. Registo e pacotes de acesso:</strong> O registo na plataforma é gratuito ({getInitialWelcomeCreditsFormatted()} iniciais). O utente registado tem acesso gratuito à Linha do Cliente via WhatsApp e pode ativar pacotes de créditos (1, 5, 30 ou 100 créditos) para utilização exclusiva na plataforma.
               </p>
               <p>
-                <strong>2. Custo por consulta:</strong> Cada consulta de contacto profissional custa{' '}
-                <strong>{getConsultationCreditCostFormatted()}</strong>. Consultas repetidas ao mesmo perfil não são cobradas novamente.
+                <strong>2. Utilização de créditos:</strong> As consultas normais utilizam créditos ({getConsultationCreditCostFormatted()}). Consultas repetidas ao mesmo perfil não são cobradas novamente. No programa Indique e Ganhe, o cadastro não gera recompensa — a recompensa aplica-se quando a pessoa indicada fizer a primeira consulta paga.
               </p>
               <p>
                 <strong>3. Dados do utente:</strong> O utilizador compromete-se a indicar o seu nome e

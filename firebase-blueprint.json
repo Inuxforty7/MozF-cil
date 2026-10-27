@@ -895,7 +895,7 @@
     },
     "PublicPlace": {
       "title": "PublicPlace",
-      "description": "Community-contributed public-interest place or local landmark in Mozambique (e.g., market, bus stop, public institution, reference point).",
+      "description": "Community-contributed public institution in Mozambique mapped via the 9-section MozFácil Public Institutions form.",
       "type": "object",
       "properties": {
         "id": {
@@ -917,15 +917,24 @@
         "placeCategory": {
           "type": "string",
           "enum": [
-            "market",
-            "bus_stop",
-            "public_institution",
-            "school_education",
-            "health_center",
-            "police_safety",
-            "public_square",
-            "other_landmark"
+            "escola_publica",
+            "hospital_centro_saude",
+            "tribunal_procuradoria",
+            "reparticao_direccao",
+            "posto_administrativo_municipio"
           ]
+        },
+        "hasGps": {
+          "type": "boolean"
+        },
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        },
+        "gpsAccuracyMeters": {
+          "type": "number"
         },
         "province": {
           "type": "string",
@@ -937,20 +946,49 @@
           "minLength": 2,
           "maxLength": 80
         },
+        "locality": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
         "neighborhood": {
           "type": "string",
           "minLength": 1,
           "maxLength": 100
         },
-        "locality": {
+        "streetOrAvenue": {
           "type": "string",
-          "minLength": 0,
-          "maxLength": 100
+          "minLength": 2,
+          "maxLength": 200
+        },
+        "nearestChapaStop": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "nearbyInstitutions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
         },
         "referenceDescription": {
           "type": "string",
           "minLength": 0,
           "maxLength": 500
+        },
+        "secretaryPhone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40
+        },
+        "operationalState": {
+          "type": "string",
+          "enum": ["on", "off"]
+        },
+        "photoUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 250000
         },
         "contributorId": {
           "type": "string",
@@ -976,11 +1014,21 @@
         "placeName",
         "normalizedPlaceName",
         "placeCategory",
+        "hasGps",
+        "latitude",
+        "longitude",
+        "gpsAccuracyMeters",
         "province",
         "district",
-        "neighborhood",
         "locality",
+        "neighborhood",
+        "streetOrAvenue",
+        "nearestChapaStop",
+        "nearbyInstitutions",
         "referenceDescription",
+        "secretaryPhone",
+        "operationalState",
+        "photoUrl",
         "contributorId",
         "publicationStatus",
         "createdAt",

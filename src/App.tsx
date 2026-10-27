@@ -77,6 +77,7 @@ import {
   ProfessionalProfile,
   ProfessionalService,
   ProfileType,
+  PublicPlace,
   PublicationStatus,
   SearchFilters,
   formatUserCreditBalance,
@@ -96,9 +97,11 @@ import {
   getModuleByRoutePath,
 } from './data/mozfacilModules';
 import {
+  activateCreditPackage,
   ensureUserDocument,
   ownerSetProfilePublicationStatus,
   performDirectConsultationDebit,
+  performEmergencyDirectCallDebit,
   updateProfileOperationalState,
 } from './services/mozfacilService';
 import { normalizeCategoryName } from './utils/categoryNormalization';
@@ -119,6 +122,10 @@ import {
   MozfacilActionModals,
   SidebarModalType,
 } from './components/HomeAndSidebar';
+import {
+  PublicPlaceInstructionsScreen,
+  PublicPlaceRegistrationScreen,
+} from './components/PublicPlaceFlow';
 
 type AppView =
   | 'home'
@@ -132,7 +139,9 @@ type AppView =
   | 'admin'
   | 'companies_directory'
   | 'company_registration'
-  | 'company_detail';
+  | 'company_detail'
+  | 'public_place_instructions'
+  | 'public_place_registration';
 
 interface NavigationStateSnapshot {
   view: AppView;
@@ -199,6 +208,30 @@ function resolveInitialNavigationFromUrl(): NavigationStateSnapshot {
   if (pathname === '/admin') {
     return { view: 'admin', moduleId: null, profileId: null, editingProfileId: null };
   }
+  if (
+    pathname === '/instituicoes-publicas' ||
+    pathname === '/instituicoes-publicas/instrucoes' ||
+    pathname === '/locais-publicos' ||
+    pathname === '/locais-publicos/instrucoes'
+  ) {
+    return {
+      view: 'public_place_instructions',
+      moduleId: null,
+      profileId: null,
+      editingProfileId: null,
+    };
+  }
+  if (
+    pathname === '/instituicoes-publicas/registar' ||
+    pathname === '/locais-publicos/registar'
+  ) {
+    return {
+      view: 'public_place_registration',
+      moduleId: null,
+      profileId: null,
+      editingProfileId: null,
+    };
+  }
   const matchedModule = getModuleByRoutePath(pathname);
   if (matchedModule) {
     if (matchedModule.id === 'companies_institutions') {
@@ -226,6 +259,10 @@ function resolvePathForNavigation(snap: NavigationStateSnapshot): string {
       return '/empresas/registar';
     case 'company_detail':
       return snap.companyId ? `/empresas/${snap.companyId}` : '/empresas';
+    case 'public_place_instructions':
+      return '/instituicoes-publicas/instrucoes';
+    case 'public_place_registration':
+      return '/instituicoes-publicas/registar';
     case 'module_info': {
       const mod = getModuleById(snap.moduleId);
       return mod ? mod.routePath : '/explore';
@@ -334,6 +371,10 @@ export default function App() {
   const [selectedCompanySchedules, setSelectedCompanySchedules] = useState<CompanySchedule[]>([]);
   const [selectedCompanyMedia, setSelectedCompanyMedia] = useState<CompanyMedia[]>([]);
   const [selectedCompanyDocuments, setSelectedCompanyDocuments] = useState<CompanyDocument[]>([]);
+
+  // Community Public Institutions State
+  const [publishedPublicPlaces, setPublishedPublicPlaces] = useState<PublicPlace[]>([]);
+  const [adminPublicPlaces, setAdminPublicPlaces] = useState<PublicPlace[]>([]);
 
   const [myProfilesFilter, setMyProfilesFilter] = useState<PublicationStatus | 'all'>('all');
   const [consultationNotice, setConsultationNotice] = useState<string | null>(null);
@@ -664,14 +705,37 @@ export default function App() {
       }
     );
 
+    const pubPlacesQuery = query(
+      collection(db, 'public_places'),
+      where('publicationStatus', '==', 'published'),
+      limit(200)
+    );
+    const unsubPubPlaces = onSnapshot(
+      pubPlacesQuery,
+      (snap) => {
+        setPublishedPublicPlaces(snap.docs.map((d) => d.data() as PublicPlace));
+      },
+      (err) => {
+        handleFirestoreError(err, OperationType.LIST, 'public_places');
+      }
+    );
+
     return () => {
       unsubPubProf();
       unsubCat();
       unsubPubSrv();
       unsubComp();
       unsubCompCat();
+      unsubPubPlaces();
     };
   }, []);
+
+  const publicPlaces = useMemo(() => {
+    const map = new Map<string, PublicPlace>();
+    publishedPublicPlaces.forEach((p) => map.set(p.id, p));
+    adminPublicPlaces.forEach((p) => map.set(p.id, p));
+    return Array.from(map.values());
+  }, [publishedPublicPlaces, adminPublicPlaces]);
 
   // Memoized unified companies & categories across public, owner, and admin tiers
   const companies = useMemo(() => {
@@ -1062,12 +1126,21 @@ export default function App() {
       (err) => handleFirestoreError(err, OperationType.LIST, 'audit_logs')
     );
 
+    const unsubAllPublicPlaces = onSnapshot(
+      query(collection(db, 'public_places'), limit(200)),
+      (snap) => {
+        setAdminPublicPlaces(snap.docs.map((d) => d.data() as PublicPlace));
+      },
+      (err) => handleFirestoreError(err, OperationType.LIST, 'public_places')
+    );
+
     return () => {
       unsubAllProf();
       unsubAllCat();
       unsubAllComp();
       unsubAllCompCat();
       unsubLogs();
+      unsubAllPublicPlaces();
     };
   }, [isAuthReady, firebaseUser, isAdmin]);
 
@@ -1743,14 +1816,39 @@ export default function App() {
                 setFilters((prev) => ({ ...prev, query: trimmed }));
                 navigateTo('directory', { moduleId: 'professionals_services' });
               }}
+              isRegisteredUser={Boolean(mozUser && mozUser.termsAccepted)}
+              onOpenCustomerLine={() => setActiveSidebarModal('customer_line')}
               onOpenDirectContact={() => setActiveSidebarModal('direct_contact')}
               onOpenUserInfo={() => setActiveSidebarModal('user_info')}
               onOpenRegisterChoice={() => setActiveSidebarModal('register_choice')}
-              onOpenShareMozfacil={() => setActiveSidebarModal('share_mozfacil')}
+              onOpenShareMozfacil={() => navigateTo('public_place_instructions')}
               onOpenExploreModules={() => navigateTo('explore')}
               onOpenProfessionalsDirectory={() =>
                 navigateTo('directory', { moduleId: 'professionals_services' })
               }
+            />
+          )}
+
+          {/* VIEW 0.1b: PUBLIC INSTITUTIONS INSTRUCTIONS SCREEN */}
+          {activeView === 'public_place_instructions' && (
+            <PublicPlaceInstructionsScreen
+              publicPlaces={publicPlaces}
+              onContinueToForm={() => navigateTo('public_place_registration')}
+              onBackHome={() => navigateTo('home', { moduleId: null })}
+              onOpenShareModal={() => setActiveSidebarModal('share_mozfacil')}
+            />
+          )}
+
+          {/* VIEW 0.1c: PUBLIC INSTITUTIONS REGISTRATION FORM */}
+          {activeView === 'public_place_registration' && (
+            <PublicPlaceRegistrationScreen
+              existingPlaces={publicPlaces}
+              onBackToInstructions={() => navigateTo('public_place_instructions')}
+              onPlaceSubmitted={(newPlace) => {
+                setPublishedPublicPlaces((prev) =>
+                  prev.some((p) => p.id === newPlace.id) ? prev : [newPlace, ...prev]
+                );
+              }}
             />
           )}
 
@@ -2681,6 +2779,7 @@ export default function App() {
               categories={categories}
               companies={companies}
               companyCategories={companyCategories}
+              publicPlaces={publicPlaces}
               auditLogs={auditLogs}
               adminId={firebaseUser.uid}
               adminName={mozUser?.displayName || firebaseUser.email || 'Admin'}
@@ -2774,6 +2873,7 @@ export default function App() {
           recentProfiles={recentProfiles}
           recentSearches={recentSearches}
           mozUser={mozUser}
+          firebaseUserUid={firebaseUser?.uid || null}
           onSelectProfile={(prof) => handleConsultProfile(prof)}
           onToggleFavorite={handleToggleFavorite}
           onApplySearch={(q) => {
@@ -2795,6 +2895,27 @@ export default function App() {
               navigateTo('company_registration', { editingCompanyId: null });
             }
           }}
+          onActivatePackage={async (pkgId) => {
+            if (!firebaseUser || !mozUser) {
+              navigateTo('utente_registration');
+              return;
+            }
+            await activateCreditPackage({
+              userId: firebaseUser.uid,
+              userName: mozUser.displayName || firebaseUser.displayName || 'Utente',
+              packageId: pkgId,
+            });
+          }}
+          onEmergencyDirectCall={async () => {
+            if (firebaseUser && mozUser && mozUser.creditsBalance >= PRICING_CONFIG.DIRECT_CONTACT_CREDITS) {
+              await performEmergencyDirectCallDebit({
+                userId: firebaseUser.uid,
+                userName: mozUser.displayName || firebaseUser.displayName || 'Utente',
+              });
+            }
+            window.location.href = 'tel:+258847664935';
+          }}
+          onSwitchModal={(modal) => setActiveSidebarModal(modal)}
         />
 
         {/* ================================================================= */}

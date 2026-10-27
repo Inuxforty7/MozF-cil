@@ -589,10 +589,12 @@ function runAuditAndLogicTests() {
     typesContent.includes('export const PRICING_CONFIG = {') &&
       typesContent.includes('CREDITS_PER_CONSULTATION: 1') &&
       typesContent.includes('METICAIS_PER_CREDIT: 1') &&
-      typesContent.includes('INITIAL_WELCOME_CREDITS: 100') &&
+      typesContent.includes('INITIAL_WELCOME_CREDITS: 0') &&
+      typesContent.includes('DIRECT_CONTACT_CREDITS: 50') &&
+      typesContent.includes('export const CREDIT_PACKAGES') &&
       typesContent.includes('export function getConsultationCreditCostFormatted') &&
       typesContent.includes('export function formatUserCreditBalance'),
-    'PRICING_CONFIG deve centralizar as regras de preços, créditos e funções de formatação partilhadas'
+    'PRICING_CONFIG deve centralizar as regras de preços, pacotes de créditos e funções de formatação partilhadas'
   );
 
   console.log('\n=== 9. TESTE DO FLUXO REAL DE VERIFICAÇÃO SMS FIREBASE, VALIDAÇÃO +258 E ESTADOS DE CONTACTO ===');
@@ -667,8 +669,106 @@ function runAuditAndLogicTests() {
   assert(rulesContent.includes('match /company_categories/{categoryId}'), 'firestore.rules deve ter regras para company_categories isoladas');
   console.log('✓ Módulo 2 (Empresas e Instituições) e contador de visualizações de vídeo atómico validados.');
 
+  // Verify Public Institutions Instructions Page & 9-Section Registration Flow
+  const publicPlaceFlowContent = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/components/PublicPlaceFlow.tsx'),
+    'utf-8'
+  );
+  const mozfacilTypesContent = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/types/mozfacil.ts'),
+    'utf-8'
+  );
+
+  assert(
+    publicPlaceFlowContent.includes('INSTRUÇÕES DE PREENCHIMENTO — MOZFÁCIL') &&
+      publicPlaceFlowContent.includes('Instituições Públicas') &&
+      publicPlaceFlowContent.includes('Objectivo:') &&
+      publicPlaceFlowContent.includes('Missão solicitada:') &&
+      publicPlaceFlowContent.includes('Segredo:') &&
+      publicPlaceFlowContent.includes('As aves da mesma aplumagem voam juntas.') &&
+      publicPlaceFlowContent.includes('Feito pelo povo moçambicano, para o povo moçambicano.') &&
+      publicPlaceFlowContent.includes('Continuar para o formulário'),
+    'PublicPlaceFlow deve apresentar a página de instruções completa das Instituições Públicas e o botão Continuar para o formulário'
+  );
+
+  // Verify the 5 exact categories
+  assert(
+    mozfacilTypesContent.includes("escola_publica: 'Escola Pública'") &&
+      mozfacilTypesContent.includes("hospital_centro_saude: 'Hospital Público / Centro de Saúde'") &&
+      mozfacilTypesContent.includes("tribunal_procuradoria: 'Tribunal / Procuradoria'") &&
+      mozfacilTypesContent.includes("reparticao_direccao: 'Repartição Pública / Direcção'") &&
+      mozfacilTypesContent.includes("posto_administrativo_municipio: 'Posto Administrativo / Município'"),
+    'mozfacil.ts deve definir exatamente as 5 categorias de Instituições Públicas solicitadas'
+  );
+
+  // Verify all 9 sections in PublicPlaceFlow (both Instructions and Editable Form)
+  for (const sectionTitle of [
+    '1. Denominação',
+    '2. Categoria',
+    '3. GPS',
+    '4. Localização',
+    '5. Rua / Avenida',
+    '6. Pontos de Referência',
+    '7. Contactos da Secretaria',
+    '8. Estado do Serviço',
+    '9. Imagem do Local',
+  ]) {
+    assert(
+      publicPlaceFlowContent.includes(sectionTitle),
+      `PublicPlaceFlow deve conter a secção nas instruções: ${sectionTitle}`
+    );
+  }
+
+  // Verify the UI reference match in PublicPlaceRegistrationScreen
+  for (const requiredFormElement of [
+    'Cadastro Formulário Editável',
+    '9 Secções • Preenchimento automático',
+    'Denominação',
+    'Digite a denominação',
+    'Categoria',
+    'Selecione a categoria',
+    'GPS',
+    'Localização GPS — Capturar...',
+    'Automático',
+    'Província • Distrito • Localidade • Bairro',
+    'Rua / Avenida',
+    'Digite a rua ou avenida',
+    'Pontos de referência',
+    'Digite a paragem de chapa e outros pontos ex: Paragem Shoprite ao lado da Farmácia etc',
+    'Contactos Secretaria',
+    'Digite o contacto da secretaria',
+    'Existência de serviços',
+    'Imagem do local — opcional',
+    'Alterar',
+    'Guardar Formulário',
+  ]) {
+    assert(
+      publicPlaceFlowContent.includes(requiredFormElement),
+      `PublicPlaceRegistrationScreen deve conter o elemento do modelo visual: ${requiredFormElement}`
+    );
+  }
+
+  // Ensure unverified NUIT/Alvará numbers from the screenshot are not hardcoded
+  assert(
+    !publicPlaceFlowContent.includes('401880178') &&
+      !publicPlaceFlowContent.includes('16678/10/01/PS/2025'),
+    'PublicPlaceFlow não deve conter números de NUIT ou Alvará não verificados da captura de ecrã'
+  );
+
+  assert(
+    publicPlaceFlowContent.includes('Guardar Formulário') &&
+      mozfacilServiceContent.includes('submitPublicPlace') &&
+      mozfacilServiceContent.includes('adminUpdatePublicPlace') &&
+      adminDashboardContent.includes('Instituições Públicas') &&
+      rulesContent.includes('match /public_places/{placeId}'),
+    'Fluxo completo de registo e edição administrativa de Instituições Públicas deve estar implementado e protegido nas regras Firestore'
+  );
+  console.log('✓ Página de Instruções e Formulário Editável de 9 Secções das Instituições Públicas validados.');
+
   console.log('✓ Configuração de produção para GitHub, Vercel e Firebase verificada.');
   console.log('\nTODOS OS TESTES PASSARAM COM SUCESSO!');
 }
 
 runAuditAndLogicTests();
+
+
