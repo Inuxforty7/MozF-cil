@@ -43,6 +43,9 @@ import {
   ProfessionalCategory,
   ProfessionalProfile,
   ProfileType,
+  PublicPlace,
+  PublicPlaceCategory,
+  PublicPlacePublicationStatus,
   PublicationStatus,
   ServiceDeliveryMethod,
   VALIDATION_LIMITS,
@@ -122,59 +125,54 @@ export async function ensureUserDocument(firebaseUser: FirebaseUser): Promise<Mo
     const userRef = doc(db, 'users', uid);
 
     try {
-      await runTransaction(db, async (tx) => {
-        const snap = await tx.get(userRef);
-        if (snap.exists()) {
-          const raw = snap.data() as Partial<MozUser>;
-          if (isBootstrappedAdmin && raw.role !== 'admin') {
-            tx.update(userRef, {
+      const snap = await getDoc(userRef);
+      if (snap.exists()) {
+        const raw = snap.data() as Partial<MozUser>;
+        if (isBootstrappedAdmin && raw.role !== 'admin') {
+          try {
+            await updateDoc(userRef, {
               role: 'admin',
               updatedAt: serverTimestamp(),
             });
+            raw.role = 'admin';
+          } catch {
+            // Proceed if offline
           }
-          return;
         }
-
-        const newUser = {
-          id: uid,
-          displayName: clampStr(
-            firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-            VALIDATION_LIMITS.DISPLAY_NAME_MAX,
-            'Utente MozFácil'
-          ),
-          email: clampStr(firebaseUser.email, VALIDATION_LIMITS.EMAIL_MAX, ''),
-          phone: clampStr(firebaseUser.phoneNumber, VALIDATION_LIMITS.PHONE_MAX, ''),
-          whatsapp: clampStr(firebaseUser.phoneNumber, VALIDATION_LIMITS.PHONE_MAX, ''),
-          province: '',
-          district: '',
-          neighborhood: '',
-          termsAccepted: false,
-          creditsBalance: VALIDATION_LIMITS.INITIAL_PACKAGE_CREDITS,
-          consultationsCount: 0,
-          role: isBootstrappedAdmin ? ('admin' as const) : ('visitor' as const),
-          phoneVerified: Boolean(firebaseUser.phoneNumber),
-          emailVerified: Boolean(firebaseUser.emailVerified),
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        };
-
-        tx.set(userRef, newUser);
-      });
-
-      const finalSnap = await getDoc(userRef);
-      if (finalSnap.exists()) {
-        return finalSnap.data() as MozUser;
+        return snap.data() as MozUser;
       }
-    } catch (txErr) {
-      console.warn('Transação de utilizador adiada por conectividade offline; a recuperar registo local ou fallback:', txErr);
-      try {
-        const cachedSnap = await getDoc(userRef);
-        if (cachedSnap.exists()) {
-          return cachedSnap.data() as MozUser;
-        }
-      } catch {
-        // Fallback em memória abaixo
-      }
+
+      const newUser = {
+        id: uid,
+        displayName: clampStr(
+          firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+          VALIDATION_LIMITS.DISPLAY_NAME_MAX,
+          'Utente MozFácil'
+        ),
+        email: clampStr(firebaseUser.email, VALIDATION_LIMITS.EMAIL_MAX, ''),
+        phone: clampStr(firebaseUser.phoneNumber, VALIDATION_LIMITS.PHONE_MAX, ''),
+        whatsapp: clampStr(firebaseUser.phoneNumber, VALIDATION_LIMITS.PHONE_MAX, ''),
+        province: '',
+        district: '',
+        neighborhood: '',
+        termsAccepted: false,
+        creditsBalance: VALIDATION_LIMITS.INITIAL_PACKAGE_CREDITS,
+        consultationsCount: 0,
+        role: isBootstrappedAdmin ? ('admin' as const) : ('visitor' as const),
+        phoneVerified: Boolean(firebaseUser.phoneNumber),
+        emailVerified: Boolean(firebaseUser.emailVerified),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      await setDoc(userRef, newUser);
+      return {
+        ...newUser,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      } as MozUser;
+    } catch (docErr) {
+      console.warn('Criação/leitura de /users/{uid} adiada por conectividade ou token pendente:', docErr);
     }
 
     return {
@@ -2382,3 +2380,232 @@ export async function adminVerifyCompany(params: {
 
   await batch.commit();
 }
+
+// ============================================================================
+// COMMUNITY PUBLIC PLACES REGISTRATION & ADMIN CORRECTION
+// ============================================================================
+
+/**
+ * Generates a deterministic document ID for a public place based on normalized
+ * place name, province, district, and neighborhood to prevent duplicate submissions.
+ */
+export function buildPublicPlaceDeterministicId(
+  placeName: string,
+  province: string,
+  district: string,
+  neighborhood: string
+): string {
+  const normName = normalizeCategoryName(placeName).replace(/\s+/g, '_');
+  const normProv = normalizeCategoryName(province).replace(/\s+/g, '_');
+  const normDist = normalizeCategoryName(district).replace(/\s+/g, '_');
+  const normNeigh = normalizeCategoryName(neighborhood).replace(/\s+/g, '_');
+  const raw = `place_${normProv}_${normDist}_${normNeigh}_${normName}`;
+  return sanitizeId(raw);
+}
+
+export interface SubmitPublicPlacePayload {
+  placeName: string;
+  placeCategory: PublicPlaceCategory;
+  province: string;
+  district: string;
+  neighborhood: string;
+  locality?: string;
+  referenceDescription?: string;
+  existingPlaces?: PublicPlace[];
+}
+
+/**
+ * Persists a community-contributed public place or local landmark to `/public_places/{placeId}`.
+ * - Does not require account creation or GPS coordinates.
+ * - Prevents duplicate submissions using normalized place name and location.
+ * - Never overwrites existing records.
+ */
+export async function submitPublicPlace(
+  payload: SubmitPublicPlacePayload
+): Promise<PublicPlace> {
+  const cleanName = clampStr(payload.placeName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, '');
+  const normalizedName = normalizeCategoryName(cleanName);
+  const cleanProvince = clampStr(payload.province, VALIDATION_LIMITS.PROVINCE_MAX, '');
+  const cleanDistrict = clampStr(payload.district, VALIDATION_LIMITS.DISTRICT_MAX, '');
+  const cleanNeighborhood = clampStr(payload.neighborhood, VALIDATION_LIMITS.NEIGHBORHOOD_MAX, '');
+  const cleanLocality = clampStr(payload.locality, VALIDATION_LIMITS.LOCALITY_MAX, '');
+  const cleanReference = clampStr(payload.referenceDescription, 500, '');
+
+  if (cleanName.length < 2 || normalizedName.length < 2) {
+    throw new Error('Por favor, indique o nome do local (mínimo 2 caracteres).');
+  }
+  if (cleanProvince.length < 2) {
+    throw new Error('Por favor, selecione a província.');
+  }
+  if (cleanDistrict.length < 2) {
+    throw new Error('Por favor, indique o distrito ou município.');
+  }
+  if (cleanNeighborhood.length < 1) {
+    throw new Error('Por favor, indique o bairro, localidade ou comunidade.');
+  }
+
+  const placeId = buildPublicPlaceDeterministicId(
+    cleanName,
+    cleanProvince,
+    cleanDistrict,
+    cleanNeighborhood
+  );
+  const placePath = `public_places/${placeId}`;
+
+  // Check against known in-memory places first if provided
+  if (payload.existingPlaces && payload.existingPlaces.length > 0) {
+    const duplicate = payload.existingPlaces.find(
+      (p) =>
+        p.id === placeId ||
+        (p.normalizedPlaceName === normalizedName &&
+          normalizeCategoryName(p.province) === normalizeCategoryName(cleanProvince) &&
+          normalizeCategoryName(p.district) === normalizeCategoryName(cleanDistrict) &&
+          normalizeCategoryName(p.neighborhood) === normalizeCategoryName(cleanNeighborhood))
+    );
+    if (duplicate) {
+      throw new Error(
+        `O local "${duplicate.placeName}" já se encontra registado em ${duplicate.neighborhood}, ${duplicate.district} (${duplicate.province}).`
+      );
+    }
+  }
+
+  const placeRef = doc(db, 'public_places', placeId);
+
+  try {
+    const existingSnap = await getDoc(placeRef);
+    if (existingSnap.exists()) {
+      const existingData = existingSnap.data() as PublicPlace;
+      throw new Error(
+        `O local "${existingData.placeName}" já se encontra registado nesta localização.`
+      );
+    }
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('já se encontra registado')) {
+      throw err;
+    }
+  }
+
+  const contributorId = auth.currentUser?.uid
+    ? sanitizeId(auth.currentUser.uid)
+    : 'community';
+
+  try {
+    await setDoc(placeRef, {
+      id: placeId,
+      placeName: cleanName,
+      normalizedPlaceName: clampStr(normalizedName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, cleanName.toLowerCase()),
+      placeCategory: payload.placeCategory || 'other_landmark',
+      province: cleanProvince,
+      district: cleanDistrict,
+      neighborhood: cleanNeighborhood,
+      locality: cleanLocality,
+      referenceDescription: cleanReference,
+      contributorId,
+      publicationStatus: 'published',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    if (
+      auth.currentUser?.uid &&
+      (auth.currentUser.emailVerified || auth.currentUser.phoneNumber)
+    ) {
+      try {
+        await recordAuditLog({
+          actorId: auth.currentUser.uid,
+          actorName: auth.currentUser.displayName || auth.currentUser.email || 'Colaborador',
+          operation: 'public_place_created',
+          targetCollection: 'public_places',
+          targetRecordId: placeId,
+          details: `Local comunitário registado: "${cleanName}" (${payload.placeCategory}) em ${cleanNeighborhood}, ${cleanDistrict}, ${cleanProvince}.`,
+        });
+      } catch {
+        // Non-blocking audit log for community submission
+      }
+    }
+
+    const savedSnap = await getDoc(placeRef);
+    return savedSnap.data() as PublicPlace;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, placePath);
+  }
+}
+
+export interface AdminUpdatePublicPlacePayload {
+  placeId: string;
+  placeName: string;
+  placeCategory: PublicPlaceCategory;
+  province: string;
+  district: string;
+  neighborhood: string;
+  locality: string;
+  referenceDescription: string;
+  publicationStatus: PublicPlacePublicationStatus;
+  adminId: string;
+  adminName: string;
+}
+
+/**
+ * Allows an authorized administrator to review and correct submitted public-place information,
+ * including name, category, location fields, reference directions, and publication status.
+ * Persists an immutable audit log record.
+ */
+export async function adminUpdatePublicPlace(
+  params: AdminUpdatePublicPlacePayload
+): Promise<void> {
+  const placeId = sanitizeId(params.placeId);
+  const placePath = `public_places/${placeId}`;
+  const cleanName = clampStr(params.placeName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, '');
+  const normalizedName = normalizeCategoryName(cleanName);
+  const cleanProvince = clampStr(params.province, VALIDATION_LIMITS.PROVINCE_MAX, '');
+  const cleanDistrict = clampStr(params.district, VALIDATION_LIMITS.DISTRICT_MAX, '');
+  const cleanNeighborhood = clampStr(params.neighborhood, VALIDATION_LIMITS.NEIGHBORHOOD_MAX, '');
+  const cleanLocality = clampStr(params.locality, VALIDATION_LIMITS.LOCALITY_MAX, '');
+  const cleanReference = clampStr(params.referenceDescription, 500, '');
+
+  if (cleanName.length < 2 || normalizedName.length < 2) {
+    throw new Error('O nome do local deve ter pelo menos 2 caracteres.');
+  }
+  if (cleanProvince.length < 2 || cleanDistrict.length < 2 || cleanNeighborhood.length < 1) {
+    throw new Error('Província, distrito e bairro/localidade são obrigatórios.');
+  }
+
+  try {
+    const placeRef = doc(db, 'public_places', placeId);
+    const batch = writeBatch(db);
+
+    batch.update(placeRef, {
+      placeName: cleanName,
+      normalizedPlaceName: clampStr(normalizedName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, cleanName.toLowerCase()),
+      placeCategory: params.placeCategory,
+      province: cleanProvince,
+      district: cleanDistrict,
+      neighborhood: cleanNeighborhood,
+      locality: cleanLocality,
+      referenceDescription: cleanReference,
+      publicationStatus: params.publicationStatus,
+      updatedAt: serverTimestamp(),
+    });
+
+    const auditId = sanitizeId(`audit_place_upd_${placeId}_${Date.now()}`);
+    batch.set(doc(db, 'audit_logs', auditId), {
+      id: auditId,
+      actorId: sanitizeId(params.adminId),
+      actorName: clampStr(params.adminName, VALIDATION_LIMITS.DISPLAY_NAME_MAX, 'Administrador'),
+      operation: 'public_place_updated',
+      targetCollection: 'public_places',
+      targetRecordId: placeId,
+      details: clampStr(
+        `Local público corrigido pela administração: "${cleanName}" (${params.placeCategory}) — ${cleanNeighborhood}, ${cleanDistrict}, ${cleanProvince} [${params.publicationStatus}].`,
+        VALIDATION_LIMITS.AUDIT_DETAILS_MAX,
+        'Local público atualizado'
+      ),
+      createdAt: serverTimestamp(),
+    });
+
+    await batch.commit();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, placePath);
+  }
+}
+

@@ -800,7 +800,16 @@
             "category_rejected",
             "category_renamed",
             "category_merged",
-            "category_fields_configured"
+            "category_fields_configured",
+            "company_created",
+            "company_updated",
+            "company_status_changed",
+            "company_verified",
+            "company_category_created",
+            "company_category_approved",
+            "video_viewed",
+            "public_place_created",
+            "public_place_updated"
           ]
         },
         "targetCollection": {
@@ -883,6 +892,100 @@
         "amountMzn",
         "createdAt"
       ]
+    },
+    "PublicPlace": {
+      "title": "PublicPlace",
+      "description": "Community-contributed public-interest place or local landmark in Mozambique (e.g., market, bus stop, public institution, reference point).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "placeName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "normalizedPlaceName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "placeCategory": {
+          "type": "string",
+          "enum": [
+            "market",
+            "bus_stop",
+            "public_institution",
+            "school_education",
+            "health_center",
+            "police_safety",
+            "public_square",
+            "other_landmark"
+          ]
+        },
+        "province": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "district": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "neighborhood": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "locality": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100
+        },
+        "referenceDescription": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "contributorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "publicationStatus": {
+          "type": "string",
+          "enum": ["published", "pending_review", "suspended"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "placeName",
+        "normalizedPlaceName",
+        "placeCategory",
+        "province",
+        "district",
+        "neighborhood",
+        "locality",
+        "referenceDescription",
+        "contributorId",
+        "publicationStatus",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -925,6 +1028,10 @@
     "/audit_logs/{logId}": {
       "schema": "AuditLog",
       "description": "Immutable audit trail of profile and category operations."
+    },
+    "/public_places/{placeId}": {
+      "schema": "PublicPlace",
+      "description": "Community-registered public places and local landmarks across Mozambique."
     }
   }
 }

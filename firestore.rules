@@ -345,7 +345,7 @@ service cloud.firestore {
           'utente_registered', 'consultation_debit',
           'profile_created', 'profile_updated', 'category_created',
           'company_created', 'company_updated', 'company_category_created',
-          'video_viewed'
+          'video_viewed', 'public_place_created'
         ] ||
         (
           isAdmin() &&
@@ -353,7 +353,8 @@ service cloud.firestore {
             'profile_status_changed', 'contact_verified',
             'category_approved', 'category_rejected',
             'category_renamed', 'category_merged', 'category_fields_configured',
-            'company_status_changed', 'company_verified', 'company_category_approved'
+            'company_status_changed', 'company_verified', 'company_category_approved',
+            'public_place_updated'
           ]
         )
       ) &&
@@ -1283,6 +1284,79 @@ service cloud.firestore {
       allow delete: if isVerifiedUser() && isValidId(docId) && (
         existing().ownerId == request.auth.uid || isAdmin()
       );
+    }
+
+    // =========================================================================
+    // 5. COMMUNITY PUBLIC PLACES (/public_places/{placeId})
+    // =========================================================================
+
+    function isValidPublicPlace(data) {
+      return data.keys().hasAll([
+        'id', 'placeName', 'normalizedPlaceName', 'placeCategory',
+        'province', 'district', 'neighborhood', 'locality',
+        'referenceDescription', 'contributorId', 'publicationStatus',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'placeName', 'normalizedPlaceName', 'placeCategory',
+        'province', 'district', 'neighborhood', 'locality',
+        'referenceDescription', 'contributorId', 'publicationStatus',
+        'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      data.placeName is string && data.placeName.size() >= 2 && data.placeName.size() <= 120 &&
+      data.normalizedPlaceName is string && data.normalizedPlaceName.size() >= 2 && data.normalizedPlaceName.size() <= 120 &&
+      data.placeCategory is string && data.placeCategory in [
+        'market', 'bus_stop', 'public_institution', 'school_education',
+        'health_center', 'police_safety', 'public_square', 'other_landmark'
+      ] &&
+      data.province is string && data.province.size() >= 2 && data.province.size() <= 80 &&
+      data.district is string && data.district.size() >= 2 && data.district.size() <= 80 &&
+      data.neighborhood is string && data.neighborhood.size() >= 1 && data.neighborhood.size() <= 100 &&
+      data.locality is string && data.locality.size() <= 100 &&
+      data.referenceDescription is string && data.referenceDescription.size() <= 500 &&
+      isValidId(data.contributorId) &&
+      data.publicationStatus is string && data.publicationStatus in ['published', 'pending_review', 'suspended'] &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    match /public_places/{placeId} {
+      allow get: if isValidId(placeId) && (
+        existing().publicationStatus == 'published' || isAdmin()
+      );
+
+      allow list: if existing().publicationStatus == 'published' || isAdmin();
+
+      // Community contributions allowed (authenticated or unauthenticated), strictly preventing overwrite of existing IDs
+      allow create: if isValidId(placeId) &&
+        !exists(/databases/$(database)/documents/public_places/$(placeId)) &&
+        isValidPublicPlace(incoming()) &&
+        incoming().id == placeId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        incoming().publicationStatus == 'published' &&
+        (
+          (isSignedIn() && incoming().contributorId == request.auth.uid) ||
+          (!isSignedIn() && incoming().contributorId == 'community') ||
+          isAdmin()
+        );
+
+      // Only administrators can correct or update submitted public places
+      allow update: if isAdmin() &&
+        isValidId(placeId) &&
+        isValidPublicPlace(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().contributorId == existing().contributorId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'placeName', 'normalizedPlaceName', 'placeCategory',
+          'province', 'district', 'neighborhood', 'locality',
+          'referenceDescription', 'publicationStatus', 'updatedAt'
+        ]);
+
+      allow delete: if isAdmin() && isValidId(placeId);
     }
   }
 }

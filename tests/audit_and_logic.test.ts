@@ -563,7 +563,7 @@ function runAuditAndLogicTests() {
     'firestore.rules deve exigir via getAfter que a criação de user_consultations debite atomicamente 1 crédito em /users/{uid}'
   );
 
-  // Simplified UtenteRegistrationScreen concise Portuguese UI & compact credit section
+  // Simplified UtenteRegistrationScreen: centralized pricing & no redundant consultation cost text in form
   assert(
     utenteScreenContent.includes('Cadastro do Utente') &&
       utenteScreenContent.includes('Entre para guardar os seus dados e consultar profissionais.') &&
@@ -573,13 +573,26 @@ function runAuditAndLogicTests() {
       utenteScreenContent.includes('3. Localização (opcional)') &&
       utenteScreenContent.includes('Confirme o número através do código de verificação.') &&
       utenteScreenContent.includes('Verificar número') &&
-      utenteScreenContent.includes('Aceito os Termos e Condições. Cada consulta custa 1 crédito (1 MT).') &&
+      utenteScreenContent.includes('Aceito os Termos e Condições') &&
+      !utenteScreenContent.includes('Cada consulta custa 1 crédito (1 MT)') &&
       utenteScreenContent.includes('Guardar cadastro') &&
       utenteScreenContent.includes('Saldo de consultas') &&
-      utenteScreenContent.includes('1 consulta = 1 crédito (1 MT)') &&
+      !utenteScreenContent.includes('1 consulta = 1 crédito (1 MT)') &&
       utenteScreenContent.includes('Consultas efectuadas: {mozUser.consultationsCount}') &&
       !utenteScreenContent.includes('Sessão ainda não iniciada'),
-    'UtenteRegistrationScreen deve usar os textos concisos aprovados e a secção compacta de saldo de consultas sem mensagens redundantes'
+    'UtenteRegistrationScreen deve usar a secção limpa de saldo e termos sem avisos redundantes de preço no formulário'
+  );
+
+  // Centralized pricing configuration verification
+  const typesContent = fs.readFileSync(path.resolve(process.cwd(), 'src/types/mozfacil.ts'), 'utf-8');
+  assert(
+    typesContent.includes('export const PRICING_CONFIG = {') &&
+      typesContent.includes('CREDITS_PER_CONSULTATION: 1') &&
+      typesContent.includes('METICAIS_PER_CREDIT: 1') &&
+      typesContent.includes('INITIAL_WELCOME_CREDITS: 100') &&
+      typesContent.includes('export function getConsultationCreditCostFormatted') &&
+      typesContent.includes('export function formatUserCreditBalance'),
+    'PRICING_CONFIG deve centralizar as regras de preços, créditos e funções de formatação partilhadas'
   );
 
   console.log('\n=== 9. TESTE DO FLUXO REAL DE VERIFICAÇÃO SMS FIREBASE, VALIDAÇÃO +258 E ESTADOS DE CONTACTO ===');

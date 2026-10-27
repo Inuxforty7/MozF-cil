@@ -18,9 +18,121 @@ export const activeFirebaseConfig = {
     env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || firebaseConfig.firestoreDatabaseId,
 };
 
+export function isTokenServiceDisabledError(error: unknown): boolean {
+  const code = (error as { code?: string })?.code || '';
+  const msg = error instanceof Error ? error.message : String(error || '');
+  const combined = `${code} ${msg}`;
+  return (
+    combined.includes('securetoken.googleapis.com') ||
+    combined.includes('token-service-api-has-not-been-used') ||
+    combined.includes('Token Service API')
+  );
+}
+
+type TokenServiceDisabledListener = (error: unknown) => void;
+const tokenServiceDisabledListeners = new Set<TokenServiceDisabledListener>();
+let lastTokenServiceDisabledError: unknown = null;
+
+function notifyTokenServiceDisabled(error: unknown): void {
+  lastTokenServiceDisabledError = error;
+  tokenServiceDisabledListeners.forEach((listener) => {
+    try {
+      listener(error);
+    } catch {
+      // Ignore listener errors
+    }
+  });
+}
+
+export function onTokenServiceDisabled(
+  listener: TokenServiceDisabledListener
+): () => void {
+  tokenServiceDisabledListeners.add(listener);
+  if (lastTokenServiceDisabledError !== null) {
+    try {
+      listener(lastTokenServiceDisabledError);
+    } catch {
+      // Ignore listener errors
+    }
+  }
+  return () => {
+    tokenServiceDisabledListeners.delete(listener);
+  };
+}
+
 export const app = getApps().length > 0 ? getApp() : initializeApp(activeFirebaseConfig);
-export const db = getFirestore(app, activeFirebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
+
+// Protect Auth session restoration and Firestore AuthCredentialsProvider from crashing
+// when a cached IndexedDB user tries to refresh a token while securetoken.googleapis.com is disabled.
+(() => {
+  const authAny = auth as unknown as {
+    reloadAndSetCurrentUserOrClear?: (user: {
+      getIdToken: (forceRefresh?: boolean) => Promise<string>;
+    }) => Promise<void>;
+    directlySetCurrentUser?: (user: unknown) => Promise<void>;
+  };
+
+  if (
+    typeof authAny.reloadAndSetCurrentUserOrClear === 'function' &&
+    typeof authAny.directlySetCurrentUser === 'function'
+  ) {
+    const origReloadAndSet = authAny.reloadAndSetCurrentUserOrClear.bind(authAny);
+    const origDirectlySet = authAny.directlySetCurrentUser.bind(authAny);
+    authAny.reloadAndSetCurrentUserOrClear = async (user) => {
+      if (user && typeof user.getIdToken === 'function') {
+        try {
+          await user.getIdToken();
+        } catch (err) {
+          if (isTokenServiceDisabledError(err)) {
+            notifyTokenServiceDisabled(err);
+            return origDirectlySet(null);
+          }
+        }
+      }
+      return origReloadAndSet(user);
+    };
+  }
+
+  const authInternal = (
+    app as unknown as {
+      container?: {
+        getProvider?: (name: string) => {
+          getImmediate?: (opts?: { optional?: boolean }) => {
+            getToken?: (forceRefresh?: boolean) => Promise<{ accessToken: string } | null>;
+          } | null;
+        };
+      };
+    }
+  ).container
+    ?.getProvider?.('auth-internal')
+    ?.getImmediate?.({ optional: true });
+
+  if (authInternal && typeof authInternal.getToken === 'function') {
+    const origGetToken = authInternal.getToken.bind(authInternal);
+    authInternal.getToken = async (forceRefresh?: boolean) => {
+      try {
+        return await origGetToken(forceRefresh);
+      } catch (err) {
+        if (isTokenServiceDisabledError(err)) {
+          notifyTokenServiceDisabled(err);
+          try {
+            if (typeof authAny.directlySetCurrentUser === 'function') {
+              await authAny.directlySetCurrentUser(null);
+            }
+            await auth.signOut();
+          } catch {
+            // Ignore cleanup errors
+          }
+          return null;
+        }
+        throw err;
+      }
+    };
+  }
+})();
+
+export const db = getFirestore(app, activeFirebaseConfig.firestoreDatabaseId);
 export const googleProvider = new GoogleAuthProvider();
 
 export function getCurrentHostDomain(): string {
@@ -42,6 +154,10 @@ export function isUnauthorizedDomainError(error: unknown): boolean {
 export function formatFirebaseAuthError(error: unknown): string {
   const code = (error as { code?: string })?.code || '';
   const msg = error instanceof Error ? error.message : String(error || '');
+
+  if (isTokenServiceDisabledError(error)) {
+    return 'A API "Token Service API" (securetoken.googleapis.com) está desativada no seu projeto Google Cloud 701961670549 (enhanced-voyage-nvr20). Clique no botão abaixo para ativá-la no Google Cloud Console com 1 clique e reestabelecer a ligação.';
+  }
 
   if (isUnauthorizedDomainError(error)) {
     const domain = getCurrentHostDomain();

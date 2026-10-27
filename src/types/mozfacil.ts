@@ -71,7 +71,32 @@ export type AuditOperation =
   | 'company_verified'
   | 'company_category_created'
   | 'company_category_approved'
-  | 'video_viewed';
+  | 'video_viewed'
+  | 'public_place_created'
+  | 'public_place_updated';
+
+export type PublicPlaceCategory =
+  | 'market'
+  | 'bus_stop'
+  | 'public_institution'
+  | 'school_education'
+  | 'health_center'
+  | 'police_safety'
+  | 'public_square'
+  | 'other_landmark';
+
+export type PublicPlacePublicationStatus = 'published' | 'pending_review' | 'suspended';
+
+export const PUBLIC_PLACE_CATEGORY_LABELS: Record<PublicPlaceCategory, string> = {
+  market: 'Mercado / Feira',
+  bus_stop: 'Paragem / Terminal de Transporte',
+  public_institution: 'Instituição Pública / Serviço do Estado',
+  school_education: 'Escola / Universidade / Ensino',
+  health_center: 'Hospital / Centro de Saúde',
+  police_safety: 'Esquadra / Posto Policial',
+  public_square: 'Praça / Jardim / Espaço Comunitário',
+  other_landmark: 'Outro Ponto de Referência Local',
+};
 
 // Validation constants synchronized with firebase-blueprint.json & firestore.rules
 export const VALIDATION_LIMITS = {
@@ -116,6 +141,40 @@ export const VALIDATION_LIMITS = {
   INITIAL_PACKAGE_CREDITS: 100,
   CREDITS_PER_CONSULTATION: 1,
 } as const;
+
+/**
+ * Centralized pricing configuration for the MozFácil credit system.
+ * Keeps business values (costs, currency, initial allocations) defined in one
+ * typed authority for consistent presentation and maintenance.
+ * Note: Database rules and server-side atomic transactions remain the authority for execution.
+ */
+export const PRICING_CONFIG = {
+  CREDITS_PER_CONSULTATION: 1,
+  METICAIS_PER_CREDIT: 1,
+  INITIAL_WELCOME_CREDITS: 100,
+  CURRENCY: 'MT',
+  CURRENCY_CODE: 'MZN',
+  REGISTRATION_FEE_PROFESSIONAL: 0,
+  REGISTRATION_FEE_COMPANY: 0,
+} as const;
+
+export type PricingConfig = typeof PRICING_CONFIG;
+
+/** Returns the standard user-facing representation of consultation cost, e.g. "1 crédito (1 MT)" */
+export function getConsultationCreditCostFormatted(): string {
+  return `${PRICING_CONFIG.CREDITS_PER_CONSULTATION} crédito (${PRICING_CONFIG.CREDITS_PER_CONSULTATION * PRICING_CONFIG.METICAIS_PER_CREDIT} ${PRICING_CONFIG.CURRENCY})`;
+}
+
+/** Returns the standard user-facing representation of welcome credits, e.g. "100 créditos (100 MT)" */
+export function getInitialWelcomeCreditsFormatted(): string {
+  return `${PRICING_CONFIG.INITIAL_WELCOME_CREDITS} créditos (${PRICING_CONFIG.INITIAL_WELCOME_CREDITS * PRICING_CONFIG.METICAIS_PER_CREDIT} ${PRICING_CONFIG.CURRENCY})`;
+}
+
+/** Formats any arbitrary credit amount with its Meticais equivalence, e.g. "10 créditos (10 MT)" */
+export function formatUserCreditBalance(credits: number): string {
+  const safeCredits = typeof credits === 'number' && !isNaN(credits) ? credits : 0;
+  return `${safeCredits} ${safeCredits === 1 ? 'crédito' : 'créditos'} (${safeCredits * PRICING_CONFIG.METICAIS_PER_CREDIT} ${PRICING_CONFIG.CURRENCY})`;
+}
 
 export interface MozUser {
   id: string;
@@ -433,3 +492,20 @@ export interface SearchFilters {
   deliveryMode: DeliveryMode | 'all';
   availabilityStatus: AvailabilityStatus | 'all';
 }
+
+export interface PublicPlace {
+  id: string;
+  placeName: string;
+  normalizedPlaceName: string;
+  placeCategory: PublicPlaceCategory;
+  province: string;
+  district: string;
+  neighborhood: string;
+  locality: string;
+  referenceDescription: string;
+  contributorId: string;
+  publicationStatus: PublicPlacePublicationStatus;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+

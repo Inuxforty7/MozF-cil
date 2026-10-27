@@ -56,7 +56,9 @@ import {
   getCurrentHostDomain,
   googleProvider,
   handleFirestoreError,
+  isTokenServiceDisabledError,
   isUnauthorizedDomainError,
+  onTokenServiceDisabled,
   OperationType,
 } from './firebase';
 import {
@@ -77,6 +79,9 @@ import {
   ProfileType,
   PublicationStatus,
   SearchFilters,
+  formatUserCreditBalance,
+  getConsultationCreditCostFormatted,
+  PRICING_CONFIG,
 } from './types/mozfacil';
 import {
   getProvinces,
@@ -293,6 +298,7 @@ export default function App() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isDomainUnauthorized, setIsDomainUnauthorized] = useState(false);
+  const [isTokenServiceDisabled, setIsTokenServiceDisabled] = useState(false);
   const [domainCopied, setDomainCopied] = useState(false);
 
   // Network Availability State
@@ -498,9 +504,27 @@ export default function App() {
 
   // 1. Firebase Auth Listener
   useEffect(() => {
+    const handleGlobalError = (event: ErrorEvent | PromiseRejectionEvent) => {
+      const reason = 'reason' in event ? event.reason : event.error;
+      if (isTokenServiceDisabledError(reason)) {
+        setIsTokenServiceDisabled(true);
+        setAuthError(formatFirebaseAuthError(reason));
+      }
+    };
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handleGlobalError);
+
+    const unsubTokenService = onTokenServiceDisabled((err) => {
+      setIsTokenServiceDisabled(true);
+      setAuthError(formatFirebaseAuthError(err));
+    });
+
     getRedirectResult(auth).catch((err) => {
       if (err) {
         setIsDomainUnauthorized(isUnauthorizedDomainError(err));
+        if (isTokenServiceDisabledError(err)) {
+          setIsTokenServiceDisabled(true);
+        }
         setAuthError(formatFirebaseAuthError(err));
       }
     });
@@ -510,11 +534,17 @@ export default function App() {
       if (user) {
         setAuthError(null);
         setIsDomainUnauthorized(false);
+        setIsTokenServiceDisabled(false);
         try {
+          await user.getIdToken();
           const userDoc = await ensureUserDocument(user);
           setMozUser(userDoc);
-        } catch (err) {
+        } catch (err: unknown) {
           console.error('Error ensuring user doc:', err);
+          if (isTokenServiceDisabledError(err)) {
+            setIsTokenServiceDisabled(true);
+            setAuthError(formatFirebaseAuthError(err));
+          }
         }
       } else {
         setMozUser(null);
@@ -528,7 +558,12 @@ export default function App() {
       }
       setIsAuthReady(true);
     });
-    return () => unsub();
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleGlobalError);
+      unsubTokenService();
+      unsub();
+    };
   }, []);
 
   // Redirect away from protected screens if signed out or not admin
@@ -1285,18 +1320,18 @@ export default function App() {
 
       if (res.alreadyConsulted) {
         setConsultationNotice(
-          `Consulta de "${prof.displayName}" já desbloqueada anteriormente (sem débito duplicado). Créditos de Consulta disponíveis: ${res.remainingCredits} créditos (${res.remainingCredits} MT).`
+          `Consulta de "${prof.displayName}" já desbloqueada anteriormente (sem débito duplicado). Saldo: ${formatUserCreditBalance(res.remainingCredits)}.`
         );
       } else {
         setConsultationNotice(
-          `Consulta efetuada ("${prof.displayName}"): débito de 1 crédito (1 MT). Créditos de Consulta disponíveis: ${res.remainingCredits} créditos (${res.remainingCredits} MT).`
+          `Consulta efetuada ("${prof.displayName}"): débito de ${getConsultationCreditCostFormatted()}. Saldo restante: ${formatUserCreditBalance(res.remainingCredits)}.`
         );
       }
     } catch (err) {
       const msg =
         err instanceof Error
           ? err.message
-          : 'Não foi possível concluir o débito de 1 crédito (1 MT) para esta consulta.';
+          : `Não foi possível concluir o débito de ${getConsultationCreditCostFormatted()} para esta consulta.`;
       setConsultationNotice(msg);
       if (msg.includes('Termos e Condições') || msg.includes('Cadastro do Utente')) {
         navigateTo('utente_registration');
@@ -1353,7 +1388,11 @@ export default function App() {
   return (
     <MozErrorBoundary>
       <div
-        className={`min-h-screen flex flex-col pb-24 transition-colors ${
+        className={`flex flex-col transition-colors ${
+          activeView === 'home'
+            ? 'h-[100dvh] max-h-[100dvh] overflow-hidden pb-[66px]'
+            : 'min-h-screen pb-24'
+        } ${
           isExploreDarkTheme
             ? 'bg-gradient-to-b from-[#02102E] via-[#062054] to-[#031438]'
             : 'bg-[#F4F7FB]'
@@ -1515,20 +1554,21 @@ export default function App() {
                     >
                       <Coins className="w-3.5 h-3.5 text-[#E85B0D]" />
                       <span>
-                        {mozUser.creditsBalance} Créditos ({mozUser.creditsBalance} MT)
+                        {formatUserCreditBalance(mozUser.creditsBalance)}
                       </span>
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => {
-                        navigateTo('utente_registration');
+                        setActiveSidebarModal('user_info');
                         setShowTopMenu(false);
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-white/10 text-blue-100 font-semibold flex items-center gap-1"
+                      className="px-2.5 py-1 rounded-lg bg-white/10 text-blue-100 font-semibold flex items-center gap-1 hover:bg-white/20 transition-colors"
+                      title="Informação sobre créditos e custos de utilização"
                     >
                       <Coins className="w-3.5 h-3.5 text-[#F97316]" />
-                      <span>1 Consulta = 1 Crédito (1 MT)</span>
+                      <span>Informação de Créditos</span>
                     </button>
                   )}
 
@@ -1599,12 +1639,32 @@ export default function App() {
                   onClick={() => {
                     setAuthError(null);
                     setIsDomainUnauthorized(false);
+                    setIsTokenServiceDisabled(false);
                   }}
                   className="font-bold underline shrink-0"
                 >
                   Fechar
                 </button>
               </div>
+              {isTokenServiceDisabled && (
+                <div className="pt-2 border-t border-red-200/80 flex flex-wrap items-center gap-2">
+                  <a
+                    href="https://console.developers.google.com/apis/api/securetoken.googleapis.com/overview?project=701961670549"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-lg bg-[#E85B0D] hover:bg-[#c94d09] text-white font-extrabold text-xs transition-colors shadow-xs"
+                  >
+                    Ativar "Token Service API" no Google Cloud (1 clique)
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="px-2.5 py-1.5 rounded-lg bg-white border border-red-300 hover:bg-red-50 text-red-900 font-bold text-xs transition-colors"
+                  >
+                    Já ativei / Atualizar página
+                  </button>
+                </div>
+              )}
               {isDomainUnauthorized && (
                 <div className="pt-1.5 border-t border-red-200/80 flex flex-wrap items-center gap-2">
                   <button
@@ -1661,9 +1721,11 @@ export default function App() {
         {/* ================================================================= */}
         <main
           className={`flex-1 max-w-7xl w-full mx-auto ${
-            activeView === 'home' || activeView === 'explore'
-              ? 'px-1.5 sm:px-6 py-1 sm:py-3'
-              : 'px-2 sm:px-6 py-2 sm:py-4'
+            activeView === 'home'
+              ? 'min-h-0 flex flex-col overflow-hidden px-1.5 sm:px-6 py-0.5'
+              : activeView === 'explore'
+                ? 'px-1.5 sm:px-6 py-1 sm:py-3'
+                : 'px-2 sm:px-6 py-2 sm:py-4'
           }`}
         >
           {/* VIEW 0.1: HOME SCREEN ("Início" button in bottom bar matching reference print) */}
@@ -1682,6 +1744,9 @@ export default function App() {
                 navigateTo('directory', { moduleId: 'professionals_services' });
               }}
               onOpenDirectContact={() => setActiveSidebarModal('direct_contact')}
+              onOpenUserInfo={() => setActiveSidebarModal('user_info')}
+              onOpenRegisterChoice={() => setActiveSidebarModal('register_choice')}
+              onOpenShareMozfacil={() => setActiveSidebarModal('share_mozfacil')}
               onOpenExploreModules={() => navigateTo('explore')}
               onOpenProfessionalsDirectory={() =>
                 navigateTo('directory', { moduleId: 'professionals_services' })
@@ -2721,6 +2786,13 @@ export default function App() {
               handleLogin();
             } else {
               navigateTo('register_edit', { editingProfileId: null });
+            }
+          }}
+          onNavigateCompanyRegistration={() => {
+            if (!firebaseUser) {
+              handleLogin();
+            } else {
+              navigateTo('company_registration', { editingCompanyId: null });
             }
           }}
         />

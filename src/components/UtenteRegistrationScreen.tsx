@@ -13,7 +13,12 @@ import {
   formatFirebasePhoneAuthError,
   validateMozambiquePhone,
 } from '../firebase';
-import { MozUser } from '../types/mozfacil';
+import {
+  MozUser,
+  getConsultationCreditCostFormatted,
+  getInitialWelcomeCreditsFormatted,
+  PRICING_CONFIG,
+} from '../types/mozfacil';
 import {
   getProvinces,
   getDistrictsByProvince,
@@ -470,9 +475,6 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
                       <div className="text-xs font-extrabold uppercase tracking-wide text-orange-300">
                         Saldo de consultas
                       </div>
-                      <div className="text-xs text-blue-100">
-                        1 consulta = 1 crédito (1 MT)
-                      </div>
                       <div className="text-[11px] text-blue-200 mt-0.5 tabular-nums">
                         Consultas efectuadas: {mozUser.consultationsCount}
                       </div>
@@ -695,7 +697,7 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
               />
               <div className="text-xs leading-relaxed text-slate-800">
                 <label htmlFor="utente-terms" className="cursor-pointer font-medium">
-                  Aceito os Termos e Condições. Cada consulta custa 1 crédito (1 MT).
+                  Aceito os Termos e Condições da plataforma MozFácil.
                 </label>{' '}
                 <button
                   type="button"
@@ -755,13 +757,13 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
 
             <div className="space-y-2.5 text-xs text-slate-700 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
               <p>
-                <strong>1. Créditos de consulta:</strong> Na ativação da conta de utente são atribuídos
-                100 créditos para utilização exclusiva na plataforma. Os créditos não constituem saldo
+                <strong>1. Créditos de consulta:</strong> Na ativação da conta de utente são atribuídos{' '}
+                <strong>{getInitialWelcomeCreditsFormatted()}</strong> para utilização exclusiva na plataforma. Os créditos não constituem saldo
                 monetário reembolsável.
               </p>
               <p>
-                <strong>2. Custo por consulta:</strong> Cada consulta de contacto profissional custa
-                1 crédito (1 MT). Consultas repetidas ao mesmo perfil não são cobradas novamente.
+                <strong>2. Custo por consulta:</strong> Cada consulta de contacto profissional custa{' '}
+                <strong>{getConsultationCreditCostFormatted()}</strong>. Consultas repetidas ao mesmo perfil não são cobradas novamente.
               </p>
               <p>
                 <strong>3. Dados do utente:</strong> O utilizador compromete-se a indicar o seu nome e
