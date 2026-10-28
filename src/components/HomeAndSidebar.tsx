@@ -475,11 +475,11 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
               onChange={(e) => onSearchQueryChange(e.target.value)}
-              aria-label="Pesquise serviços, contactos e obtenha soluções..."
+              aria-label="Pesquise serviços, contactos e obtenha soluções"
               placeholder={
                 showTwoLinePlaceholder
                   ? ''
-                  : 'Pesquise o que precisa pela mensagem ou pela voz...'
+                  : 'Pesquise o que precisa pela mensagem ou pela voz'
               }
               className={`w-full bg-transparent text-[#07214E] placeholder:text-slate-400 text-sm font-bold focus:outline-none min-w-0 ${
                 showTwoLinePlaceholder ? 'opacity-0 absolute inset-0' : 'py-0.5'
@@ -1740,62 +1740,102 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
 
           {/* Scrollable Cards Body */}
           <div className="p-4 space-y-3.5 overflow-y-auto flex-1">
-            {/* Card 1: Registo de empresas, profissionais e serviços (100% GRATUITO) */}
-            <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-100 space-y-1.5">
-              <h4 className="text-[16px] sm:text-[17px] font-extrabold text-[#0B2545] leading-snug">
-                Registo de empresas, profissionais e serviços
-              </h4>
-              <div className="text-[21px] sm:text-[23px] font-black text-[#EA580C] tracking-tight">
-                100% GRATUITO
-              </div>
-              <p className="text-[13.5px] text-slate-600 leading-relaxed">
-                Cadastre-se e comece a divulgar os seus produtos e serviços na MozFácil.
+            {/* Apresentação da Plataforma — Leitura limpa, coluna única e sem repetições */}
+            <div className="bg-gradient-to-br from-[#08224A] to-[#0D316E] rounded-2xl p-4 text-white shadow-xs border border-blue-900/20">
+              <p className="text-[14px] sm:text-[14.5px] font-medium text-blue-50 leading-relaxed">
+                Encontre o que precisa, divulgue o que oferece e conecte-se a novas oportunidades em todo o país, de forma rápida e segura.
               </p>
             </div>
 
-            {/* Card 2: Linha do Cliente (Via WhatsApp · GRÁTIS) */}
-            <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-100 flex items-start gap-3.5">
-              <div className="pt-1 shrink-0">
-                <MessageCircle className="w-6 h-6 text-[#EA580C] stroke-[2.3]" />
+            {/* Card 1 Interativo: Registo de empresas, profissionais e serviços (100% GRATUITO) */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onSwitchModal) {
+                  onSwitchModal('register_choice');
+                } else {
+                  onClose();
+                  onNavigateUtenteRegistration();
+                }
+              }}
+              className="w-full text-left bg-white hover:bg-orange-50/40 active:scale-[0.99] rounded-2xl p-4 shadow-xs border border-slate-200/90 hover:border-[#EA580C]/50 transition-all group space-y-2"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1 min-w-0">
+                  <h4 className="text-[16px] sm:text-[17px] font-extrabold text-[#0B2545] leading-snug">
+                    Registo de empresas, profissionais e serviços
+                  </h4>
+                  <div className="text-[20px] sm:text-[22px] font-black text-[#EA580C] tracking-tight leading-none pt-0.5">
+                    100% GRATUITO
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-[#FEF3E7] group-hover:bg-[#EA580C] text-[#EA580C] group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
+                  <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+                </div>
               </div>
-              <div className="space-y-1 flex-1 min-w-0">
-                <h4 className="text-[16px] sm:text-[17px] font-extrabold text-[#0B2545] leading-tight">
-                  Linha do Cliente
-                </h4>
-                <div className="text-[14.5px] font-extrabold text-[#EA580C]">
-                  Via WhatsApp · GRÁTIS
+              <p className="text-[13.5px] text-slate-600 leading-relaxed">
+                Cadastre-se gratuitamente e comece a divulgar os seus produtos, serviços ou empresa em todo o país.
+              </p>
+            </button>
+
+            {/* Card 2 Interativo: Linha do Cliente (Via WhatsApp · GRÁTIS) */}
+            <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200/90 flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#FEF3E7] flex items-center justify-center shrink-0">
+                <MessageCircle className="w-5 h-5 text-[#EA580C] stroke-[2.3]" />
+              </div>
+              <div className="space-y-1.5 flex-1 min-w-0">
+                <div>
+                  <h4 className="text-[16px] sm:text-[17px] font-extrabold text-[#0B2545] leading-tight">
+                    Linha do Cliente
+                  </h4>
+                  <div className="text-[14px] font-extrabold text-[#EA580C] mt-0.5">
+                    Via WhatsApp · GRÁTIS
+                  </div>
                 </div>
                 <p className="text-[13.5px] text-slate-600 leading-relaxed">
-                  Apoio geral e esclarecimentos sobre o uso da plataforma. Apenas para pessoas registadas.
+                  Apoio geral e esclarecimentos sobre o uso da plataforma para utilizadores registados.
                 </p>
                 {isRegisteredUtente ? (
-                  <div className="pt-1.5">
+                  <div className="pt-1">
                     <a
-                      href="https://wa.me/258843001234?text=Ol%C3%A1%20Linha%20do%20Cliente%20MozF%C3%A1cil%2C%20preciso%20de%20apoio."
+                      href="https://wa.me/258843001234?text=Ol%C3%A1%20Linha%20do%20Cliente%2C%20preciso%20de%20apoio."
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors"
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
                       <span>Abrir Linha do Cliente no WhatsApp</span>
                     </a>
                   </div>
                 ) : (
-                  <div className="pt-1 flex items-center gap-1.5 text-[11.5px] font-bold text-slate-500">
-                    <Lock className="w-3.5 h-3.5 text-[#EA580C]" />
-                    <span>Disponível após concluir o seu registo gratuito.</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onSwitchModal) {
+                        onSwitchModal('register_choice');
+                      } else {
+                        onClose();
+                        onNavigateUtenteRegistration();
+                      }
+                    }}
+                    className="pt-1 inline-flex items-center gap-1.5 text-[12px] font-extrabold text-[#EA580C] hover:text-[#C2410C] transition-colors text-left"
+                  >
+                    <Lock className="w-3.5 h-3.5 shrink-0" />
+                    <span className="underline underline-offset-2">
+                      Concluir registo gratuito para desbloquear
+                    </span>
+                  </button>
                 )}
               </div>
             </div>
 
             {/* Card 3: Consulta Normal (Por SMS ou voz + 1 crédito = 1 MT + 4 Interactive Packages) */}
-            <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-100 space-y-3">
+            <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200/90 space-y-3">
               <div>
                 <h4 className="text-[16px] sm:text-[17px] font-extrabold text-[#0B2545] leading-tight">
                   Consulta Normal
                 </h4>
-                <div className="text-[14.5px] font-extrabold text-[#EA580C] mt-0.5">
+                <div className="text-[14px] font-extrabold text-[#EA580C] mt-0.5">
                   Por SMS ou voz
                 </div>
               </div>
@@ -1813,7 +1853,7 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
                 </p>
               </div>
 
-              {/* 4 Interactive Package Rows matching image_1f97c858.png */}
+              {/* 4 Interactive Package Rows */}
               <div className="space-y-2" role="radiogroup" aria-label="Pacotes de acesso">
                 {CREDIT_PACKAGES.map((pack) => {
                   const isSelected = selectedPackId === pack.id;
@@ -1850,7 +1890,7 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
                           </span>
                         )}
                       </div>
-                      <span className="text-[16px] font-extrabold text-[#EA580C] shrink-0">
+                      <span className="text-[15.5px] font-extrabold text-[#EA580C] shrink-0">
                         {pack.durationLabel}
                       </span>
                     </button>
@@ -1858,31 +1898,31 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
                 })}
               </div>
 
-              {/* Interactive Selected Package Action Bar */}
-              <div className="rounded-xl bg-slate-50 border border-slate-200/90 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                <div className="text-xs">
-                  <div className="font-extrabold text-[#0B2545] flex items-center gap-1">
+              {/* Harmonious Single-Column Selected Package Action Box */}
+              <div className="rounded-xl bg-slate-50 border border-slate-200/90 p-3.5 space-y-2.5">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-extrabold text-[#0B2545] flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#EA580C] shrink-0" />
                     <span>
-                      Selecionado: {selectedPackageObj.creditsLabel} ({selectedPackageObj.durationLabel})
+                      Pacote selecionado: {selectedPackageObj.creditsLabel} ({selectedPackageObj.durationLabel})
                     </span>
                   </div>
-                  <div className="text-[11.5px] text-slate-600 mt-0.5">
+                  <p className="text-[12px] text-slate-600 leading-snug">
                     {selectedPackageObj.benefitText}
-                  </div>
+                  </p>
                 </div>
 
                 <button
                   type="button"
                   disabled={isActivatingPack}
                   onClick={handleActivateSelectedPackage}
-                  className="px-3.5 py-2 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] text-white text-xs font-extrabold shrink-0 transition-colors disabled:opacity-60"
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] text-white text-xs sm:text-[13px] font-extrabold transition-colors disabled:opacity-60 shadow-2xs"
                 >
                   {isActivatingPack
-                    ? 'A ativar...'
+                    ? 'A ativar pacote...'
                     : isRegisteredUtente
-                      ? `Ativar (${selectedPackageObj.priceMzn} MT)`
-                      : 'Registar para Ativar'}
+                      ? `Ativar Pacote (${selectedPackageObj.priceMzn} MT)`
+                      : 'Concluir Registo para Ativar Pacote'}
                 </button>
               </div>
 
@@ -1898,10 +1938,6 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
                   {packError}
                 </div>
               )}
-
-              <p className="text-[12.5px] text-slate-500">
-                Pacotes de acesso para pessoas registadas.
-              </p>
             </div>
 
             {/* Indique e Ganhe matching image_a9e1aa88.png */}
@@ -2048,7 +2084,7 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
           {/* Modal Body */}
           <div className="px-4 sm:px-5 pt-3.5 pb-5 space-y-3.5 overflow-y-auto">
             <p className="text-[14.5px] sm:text-[15.5px] font-medium text-[#061E45] leading-snug">
-              Escolha o tipo de registo que pretende efetuar na plataforma MozFácil:
+              Escolha o tipo de registo gratuito que pretende efetuar:
             </p>
 
             {/* Card 1: 1. Cadastro do Utente (Consultar Serviços) — Navy & Soft Blue */}
@@ -2538,7 +2574,7 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
           {activeModal === 'help_support' && (
             <div className="space-y-4">
               <p className="text-slate-600 leading-relaxed">
-                A equipa <strong>MOZFÁCIL Conexões Rápidas</strong> apoia utentes, profissionais e empresas em Moçambique.
+                A nossa equipa de suporte apoia utentes, profissionais e empresas em todas as províncias de Moçambique.
               </p>
 
               <div className="grid grid-cols-1 gap-2.5">
@@ -2607,7 +2643,7 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
                 <CheckCircle2 className="w-6 h-6 text-[#F97316] shrink-0" />
                 <div>
                   <div className="font-extrabold text-[#0D316E] text-sm">
-                    MOZFÁCIL — Conexões Rápidas
+                    Conexões Rápidas
                   </div>
                   <div className="text-xs text-slate-500">
                     Moçambique na Palma da Sua Mão
@@ -2616,7 +2652,7 @@ export const MozfacilActionModals: React.FC<MozfacilActionModalsProps> = ({
               </div>
 
               <p className="text-slate-600 leading-relaxed">
-                O <strong>MozFácil</strong> é a plataforma digital integrada de serviços, profissionais independentes, empresas, oportunidades e utilidade pública em Moçambique.
+                Plataforma digital integrada de serviços, profissionais independentes, empresas, oportunidades e utilidade pública em todo o país.
               </p>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1 text-xs text-slate-600">

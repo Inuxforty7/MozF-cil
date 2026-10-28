@@ -1984,7 +1984,7 @@ export default function App() {
                       onChange={(e) =>
                         setFilters((prev) => ({ ...prev, query: e.target.value }))
                       }
-                      placeholder="Pesquisar profissão, nome ou bairro..."
+                      placeholder="Pesquisar profissão, nome ou bairro"
                       className="w-full h-9 sm:h-10 pl-9 pr-8 rounded-xl bg-white text-slate-900 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                     />
                     {filters.query && (
