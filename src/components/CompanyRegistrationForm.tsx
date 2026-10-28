@@ -114,6 +114,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const stepTabRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+  const formBodyScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const activeBtn = stepTabRefs.current[activeStep];
@@ -123,6 +124,9 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
         inline: 'center',
         block: 'nearest',
       });
+    }
+    if (formBodyScrollRef.current) {
+      formBodyScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [activeStep]);
 
@@ -516,14 +520,14 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
   const currentStepMeta = companySteps.find((s) => s.num === activeStep) || companySteps[0];
 
   return (
-    <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-20 sm:mb-8">
-      {/* Structured Mobile-First Top App Bar */}
-      <div className="bg-gradient-to-r from-[#071F4A] via-[#0D316E] to-[#1E4B9B] px-3.5 sm:px-5 pt-3.5 pb-3 text-white border-b border-blue-900/80">
-        <div className="flex items-center justify-between gap-2.5">
+    <div className="max-w-3xl w-full mx-auto h-full flex-1 min-h-0 bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col overflow-hidden">
+      {/* Structured Mobile-First Top App Bar (SHRINK-0) */}
+      <div className="shrink-0 bg-gradient-to-r from-[#071F4A] via-[#0D316E] to-[#1E4B9B] px-3 sm:px-5 pt-2.5 pb-2.5 text-white border-b border-blue-900/80">
+        <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={onBack}
-            className="min-h-[40px] px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-[0.98] border border-white/15 flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-white transition-all shrink-0"
+            className="min-h-[36px] sm:min-h-[40px] px-2.5 sm:px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 active:scale-[0.98] border border-white/15 flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-white transition-all shrink-0"
             aria-label="Voltar"
           >
             <ArrowLeft className="w-4 h-4 shrink-0" />
@@ -531,21 +535,21 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
           </button>
 
           <div className="min-w-0 flex-1 text-center px-1">
-            <h2 className="text-sm sm:text-base font-black text-white leading-tight truncate">
+            <h2 className="text-xs sm:text-base font-black text-white leading-tight truncate">
               {initialCompany ? 'Editar Empresa / Instituição' : 'Registo de Empresa ou Instituição'}
             </h2>
-            <p className="text-[11px] text-blue-200 font-semibold truncate mt-0.5">
+            <p className="text-[10.5px] sm:text-[11px] text-blue-200 font-semibold truncate">
               {currentStepMeta.title}
             </p>
           </div>
 
-          <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-[#EA580C] text-white whitespace-nowrap shrink-0 shadow-2xs tabular-nums">
+          <span className="text-[10.5px] sm:text-[11px] font-extrabold px-2.5 py-0.5 sm:py-1 rounded-full bg-[#EA580C] text-white whitespace-nowrap shrink-0 shadow-2xs tabular-nums">
             Passo {activeStep} de 5
           </span>
         </div>
 
         {/* Linear Step Progress Bar */}
-        <div className="mt-2.5 h-1.5 w-full bg-white/15 rounded-full overflow-hidden">
+        <div className="mt-2 h-1.5 w-full bg-white/15 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-[#F97316] to-[#FB923C] rounded-full transition-all duration-300"
             style={{ width: `${(activeStep / 5) * 100}%` }}
@@ -553,9 +557,9 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
         </div>
       </div>
 
-      {/* Horizontal Scrollable Step Carousel with Full Step Names */}
-      <div className="bg-slate-50 border-b border-slate-200 px-3 py-2.5 overflow-x-auto no-scrollbar scroll-smooth">
-        <div className="flex items-center gap-2 min-w-max">
+      {/* Horizontal Scrollable Step Carousel with Full Step Names (SHRINK-0) */}
+      <div className="shrink-0 bg-slate-50 border-b border-slate-200 px-2.5 sm:px-3 py-2 overflow-x-auto no-scrollbar scroll-smooth">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-max">
           {companySteps.map((s) => {
             const isActive = activeStep === s.num;
             const isCompleted = s.num < activeStep;
@@ -567,7 +571,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
                 }}
                 type="button"
                 onClick={() => setActiveStep(s.num)}
-                className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap shrink-0 flex items-center gap-2 transition-all active:scale-[0.98] ${
+                className={`min-h-[36px] sm:min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap shrink-0 flex items-center gap-1.5 sm:gap-2 transition-all active:scale-[0.98] ${
                   isActive
                     ? 'bg-[#0D316E] text-white shadow-xs ring-2 ring-[#0D316E]/20'
                     : isCompleted
@@ -593,22 +597,24 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
         </div>
       </div>
 
-      {/* Alerts */}
-      {errorMessage && (
-        <div className="m-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-xs text-red-700">
-          <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
-          <span>{errorMessage}</span>
-        </div>
-      )}
-      {successMessage && (
-        <div className="m-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-xs text-emerald-800 font-bold">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>{successMessage}</span>
-        </div>
-      )}
-
-      {/* Form Content */}
-      <div className="p-4 sm:p-6 space-y-5">
+      {/* Internal Self-Contained Scrollable Form Body */}
+      <div
+        ref={formBodyScrollRef}
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3.5 sm:p-5 space-y-4"
+      >
+        {/* Alerts */}
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-xs text-red-700">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+        {successMessage && (
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-xs text-emerald-800 font-bold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{successMessage}</span>
+          </div>
+        )}
         {/* ================= STEP 1: IDENTIFICAÇÃO ================= */}
         {activeStep === 1 && (
           <div className="space-y-4">
@@ -1329,14 +1335,14 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
 
       </div>
 
-      {/* Sticky Bottom Navigation & Submission Bar */}
-      <div className="sticky bottom-[68px] sm:bottom-0 z-20 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-[0_-4px_16px_rgba(13,49,110,0.08)] flex items-center justify-between gap-2.5">
+      {/* Docked Bottom Navigation & Submission Bar (SHRINK-0 — Never Clips Fields) */}
+      <div className="shrink-0 bg-white border-t border-slate-200 px-3.5 sm:px-5 py-2.5 shadow-[0_-4px_16px_rgba(13,49,110,0.06)] flex items-center justify-between gap-2">
         <div>
           {activeStep > 1 ? (
             <button
               type="button"
               onClick={() => setActiveStep((prev) => Math.max(1, prev - 1))}
-              className="min-h-[44px] px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 text-xs sm:text-sm font-extrabold flex items-center gap-1.5 transition-all"
+              className="min-h-[42px] px-3.5 sm:px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 text-xs sm:text-sm font-extrabold flex items-center gap-1.5 transition-all"
             >
               <ChevronLeft className="w-4 h-4 shrink-0" />
               <span>Anterior</span>
@@ -1345,7 +1351,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
             <button
               type="button"
               onClick={onBack}
-              className="min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-600 text-xs font-bold flex items-center gap-1.5 transition-all"
+              className="min-h-[42px] px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-600 text-xs font-bold flex items-center gap-1.5 transition-all"
             >
               <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
               <span>Cancelar</span>
@@ -1358,7 +1364,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
             type="button"
             disabled={isSubmitting}
             onClick={() => handleSubmit('draft')}
-            className="min-h-[44px] px-3 sm:px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 active:scale-[0.98] text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
+            className="min-h-[42px] px-3 sm:px-4 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 active:scale-[0.98] text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
             title="Guardar progresso como rascunho"
           >
             <Save className="w-3.5 h-3.5 text-[#0D316E] shrink-0" />
@@ -1369,7 +1375,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
             <button
               type="button"
               onClick={() => setActiveStep((prev) => Math.min(5, prev + 1))}
-              className="min-h-[44px] px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0D316E] to-[#1E4B9B] hover:from-[#092452] hover:to-[#0D316E] active:scale-[0.98] text-white text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all shadow-sm"
+              className="min-h-[42px] px-4 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-[#0D316E] to-[#1E4B9B] hover:from-[#092452] hover:to-[#0D316E] active:scale-[0.98] text-white text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all shadow-sm"
             >
               <span>Próximo Passo</span>
               <ChevronRight className="w-4 h-4 shrink-0" />
@@ -1379,7 +1385,7 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
               type="button"
               disabled={isSubmitting}
               onClick={() => handleSubmit('published')}
-              className="min-h-[44px] px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] active:scale-[0.98] text-white text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all shadow-md disabled:opacity-50"
+              className="min-h-[42px] px-4 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] active:scale-[0.98] text-white text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all shadow-md disabled:opacity-50"
             >
               <Send className="w-4 h-4 shrink-0" />
               <span>{isSubmitting ? 'A Gravar...' : 'Publicar Empresa'}</span>

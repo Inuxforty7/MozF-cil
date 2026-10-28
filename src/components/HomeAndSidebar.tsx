@@ -43,6 +43,11 @@ import {
   getConsultationCreditCostFormatted,
 } from '../types/mozfacil';
 
+interface HomeAdSlideItem {
+  imageUrl: string;
+  caption: string;
+}
+
 interface HomeVideoAdItem {
   id: string;
   titleLine1: string;
@@ -54,6 +59,7 @@ interface HomeVideoAdItem {
   durationSeconds: number;
   initialProgressPercent: number;
   thumbnailUrl: string;
+  slides: HomeAdSlideItem[];
   videoUrl: string;
   fallbackVideoUrl: string;
   ctaLabel: string;
@@ -75,12 +81,34 @@ const HOME_VIDEO_ADS: HomeVideoAdItem[] = [
     initialProgressPercent: 62,
     thumbnailUrl:
       'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80',
+    slides: [
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80',
+        caption: 'Ilhas de Bazaruto',
+      },
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=700&q=80',
+        caption: 'Resorts & Villas',
+      },
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=700&q=80',
+        caption: 'Safari Gorongosa',
+      },
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=700&q=80',
+        caption: 'Ponta do Ouro',
+      },
+    ],
     videoUrl:
       'https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-seashore-with-rocks-1090-large.mp4',
     fallbackVideoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
     ctaLabel: 'Reservar Destino via WhatsApp',
     whatsappText:
-      'Olá! Vi o anúncio de vídeo "Reserva de Moçambique" no MozFácil e gostaria de receber informações sobre pacotes e reservas.',
+      'Olá! Vi o anúncio "Reserva de Moçambique" no MozFácil e gostaria de receber informações sobre pacotes e reservas.',
     viewsCount: 1420,
     likesCount: 318,
   },
@@ -96,12 +124,34 @@ const HOME_VIDEO_ADS: HomeVideoAdItem[] = [
     initialProgressPercent: 74,
     thumbnailUrl:
       'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=700&q=80',
+    slides: [
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=700&q=80',
+        caption: 'Crédito na Hora',
+      },
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=700&q=80',
+        caption: 'Apoio Familiar',
+      },
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=700&q=80',
+        caption: 'Sonhos & Casa',
+      },
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&q=80',
+        caption: 'Taxas Flexíveis',
+      },
+    ],
     videoUrl:
       'https://assets.mixkit.co/videos/preview/mixkit-people-working-in-a-modern-office-4345-large.mp4',
     fallbackVideoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
     ctaLabel: 'Simular Crédito Pessoal',
     whatsappText:
-      'Olá! Vi o anúncio de vídeo "Banco BCI - Crédito Pessoal" no MozFácil e gostaria de saber mais sobre condições de financiamento.',
+      'Olá! Vi o anúncio "Banco BCI - Crédito Pessoal" no MozFácil e gostaria de saber mais sobre condições de financiamento.',
     viewsCount: 2890,
     likesCount: 542,
   },
@@ -118,12 +168,34 @@ const HOME_VIDEO_ADS: HomeVideoAdItem[] = [
     initialProgressPercent: 80,
     thumbnailUrl:
       'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=700&q=80',
+    slides: [
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=700&q=80',
+        caption: 'Cobertura Total',
+      },
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=700&q=80',
+        caption: 'Assistência 24h',
+      },
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=700&q=80',
+        caption: 'Frota & Pessoal',
+      },
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=700&q=80',
+        caption: 'Apoio na Estrada',
+      },
+    ],
     videoUrl:
       'https://assets.mixkit.co/videos/preview/mixkit-man-buying-a-car-in-a-dealership-42929-large.mp4',
     fallbackVideoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
     ctaLabel: 'Pedir Cotação Segura Auto',
     whatsappText:
-      'Olá! Vi o anúncio de vídeo "Segura Auto - Proteja já" no MozFácil e gostaria de pedir uma cotação de seguro automóvel.',
+      'Olá! Vi o anúncio "Segura Auto - Proteja já" no MozFácil e gostaria de pedir uma cotação de seguro automóvel.',
     viewsCount: 1965,
     likesCount: 410,
   },
@@ -166,12 +238,36 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
     'ad-segura-auto': 1965,
   }));
 
+  // Automatic silent dynamic slide index & smooth progress (changes every 3.5 seconds)
+  const [slideTick, setSlideTick] = useState(0);
+  const [slideStepProgress, setSlideStepProgress] = useState(0);
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const fullscreenContainerRef = useRef<HTMLDivElement>(null);
   const videoElementRef = useRef<HTMLVideoElement>(null);
 
   const activeVideoAd =
     activeVideoAdIndex !== null ? HOME_VIDEO_ADS[activeVideoAdIndex] || null : null;
+
+  useEffect(() => {
+    if (activeVideoAdIndex !== null) return;
+    const SLIDE_DURATION_MS = 3500;
+    const TICK_INTERVAL_MS = 100;
+    let elapsed = 0;
+
+    const interval = window.setInterval(() => {
+      elapsed += TICK_INTERVAL_MS;
+      if (elapsed >= SLIDE_DURATION_MS) {
+        elapsed = 0;
+        setSlideTick((prev) => prev + 1);
+        setSlideStepProgress(0);
+      } else {
+        setSlideStepProgress(Math.min(100, Math.round((elapsed / SLIDE_DURATION_MS) * 100)));
+      }
+    }, TICK_INTERVAL_MS);
+
+    return () => window.clearInterval(interval);
+  }, [activeVideoAdIndex]);
 
   useEffect(() => {
     if (!activeVideoAd) {
@@ -326,37 +422,42 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
       </svg>
 
       {/* Main Content Stack fitted to 100% viewport with zero scroll */}
-      <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-evenly text-center gap-1.5 sm:gap-2">
-        {/* 1. Hero Headline Block matching image_26b8cff8.png */}
-        <div className="space-y-0.5 w-full pt-0.5">
-          <h1 className="text-[26px] sm:text-[31px] font-black uppercase tracking-wide text-white leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
+      <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-between text-center gap-1 sm:gap-1.5 py-0.5">
+        {/* 1. Hero Headline Block + Subtitle */}
+        <div className="space-y-0.5 w-full pt-0.5 shrink-0">
+          <h1 className="text-[23px] sm:text-[29px] font-black uppercase tracking-wide text-white leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
             MOÇAMBIQUE
           </h1>
-          <p className="text-[16px] sm:text-[19px] font-black uppercase tracking-tight text-[#F97316] leading-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
+          <p className="text-[15px] sm:text-[18px] font-black uppercase tracking-tight text-[#F97316] leading-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
             NA PALMA DA SUA MÃO
           </p>
 
           {/* Golden-Yellow Glowing Horizon Flare Divider */}
-          <div className="relative w-4/5 max-w-[270px] mx-auto pt-1">
-            <div className="h-[2.5px] w-full bg-gradient-to-r from-transparent via-[#F59E0B] to-transparent" />
-            <div className="absolute inset-x-1/4 top-1 h-[4px] bg-gradient-to-r from-transparent via-[#FDE047] to-transparent blur-[1.5px]" />
+          <div className="relative w-4/5 max-w-[260px] mx-auto pt-0.5 pb-0.5">
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#F59E0B] to-transparent" />
+            <div className="absolute inset-x-1/4 top-0.5 h-[3.5px] bg-gradient-to-r from-transparent via-[#FDE047] to-transparent blur-[1.5px]" />
           </div>
+
+          {/* Subtitle below headline */}
+          <p className="text-[11px] sm:text-[12.5px] font-medium text-blue-50/95 leading-[1.28] max-w-[345px] mx-auto px-1.5 pt-0.5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
+            Encontre o que precisa, divulgue o que oferece e conecte-se a novas oportunidades em todo o país, de forma rápida e segura.
+          </p>
         </div>
 
-        {/* 2. White Pill Search Bar matching reference print ("Pesquise o que precisa / pela mensagem ou pela voz") */}
+        {/* 2. White Pill Search Bar ("Pesquise o que precisa / pela mensagem ou pela voz") */}
         <form
           onSubmit={handleFormSubmit}
-          className="w-full bg-gradient-to-b from-[#FFFFFF] via-[#F8FAFC] to-[#E2E8F0] rounded-full shadow-[0_5px_18px_rgba(0,0,0,0.38)] border border-white px-3.5 py-2 flex items-center gap-2.5 shrink-0"
+          className="w-full bg-gradient-to-b from-[#FFFFFF] via-[#F8FAFC] to-[#E2E8F0] rounded-full shadow-[0_5px_16px_rgba(0,0,0,0.38)] border border-white px-3.5 py-1.5 sm:py-2 flex items-center gap-2.5 shrink-0"
         >
           <button
             type="submit"
             aria-label="Pesquisar"
             className="text-[#EA580C] hover:text-[#C2410C] transition-colors shrink-0 pl-0.5"
           >
-            <Search className="w-6 h-6 stroke-[2.3]" />
+            <Search className="w-5.5 h-5.5 sm:w-6 sm:h-6 stroke-[2.3]" />
           </button>
 
-          <div className="h-7 w-[1px] bg-slate-300/90 shrink-0" aria-hidden="true" />
+          <div className="h-6 sm:h-7 w-[1px] bg-slate-300/90 shrink-0" aria-hidden="true" />
 
           <div
             className="relative flex-1 min-w-0 text-left cursor-text"
@@ -364,10 +465,10 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
           >
             {showTwoLinePlaceholder && (
               <div className="pointer-events-none select-none leading-tight">
-                <div className="text-[14px] sm:text-[15.5px] font-extrabold text-[#07214E] truncate">
+                <div className="text-[13.5px] sm:text-[15px] font-extrabold text-[#07214E] truncate">
                   Pesquise o que precisa
                 </div>
-                <div className="text-[11.5px] sm:text-[12.5px] font-normal text-slate-500 truncate">
+                <div className="text-[11px] sm:text-[12px] font-normal text-slate-500 truncate">
                   pela mensagem ou pela voz
                 </div>
               </div>
@@ -386,12 +487,12 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
                   : 'Pesquise o que precisa pela mensagem ou pela voz...'
               }
               className={`w-full bg-transparent text-[#07214E] placeholder:text-slate-400 text-sm font-bold focus:outline-none min-w-0 ${
-                showTwoLinePlaceholder ? 'opacity-0 absolute inset-0' : 'py-1'
+                showTwoLinePlaceholder ? 'opacity-0 absolute inset-0' : 'py-0.5'
               }`}
             />
           </div>
 
-          <div className="h-7 w-[1px] bg-slate-300/90 shrink-0" aria-hidden="true" />
+          <div className="h-6 sm:h-7 w-[1px] bg-slate-300/90 shrink-0" aria-hidden="true" />
 
           <button
             type="button"
@@ -404,29 +505,29 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
                 : 'text-[#EA580C] hover:text-[#C2410C]'
             }`}
           >
-            <Mic className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.2]" />
+            <Mic className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" />
           </button>
         </form>
 
-        {/* 3. "SERVIÇOS MOZFÁCIL & TERMOS DE USO" Pill Card matching image_26b8cff8.png */}
+        {/* 3. "SERVIÇOS MOZFÁCIL & TERMOS DE USO" Pill Card */}
         <button
           type="button"
           onClick={() => (onOpenUserInfo ? onOpenUserInfo() : onOpenDirectContact())}
           aria-label="Serviços MozFácil e Termos de Uso"
-          className="w-full rounded-[26px] bg-gradient-to-r from-[#031330]/95 via-[#061F4C]/95 to-[#031330]/95 border-[2px] border-[#EA580C] shadow-[0_0_18px_rgba(234,88,12,0.34)] hover:shadow-[0_0_24px_rgba(234,88,12,0.55)] px-3.5 py-2.5 flex items-center gap-3 transition-all group shrink-0"
+          className="w-full rounded-[24px] bg-gradient-to-r from-[#031330]/95 via-[#061F4C]/95 to-[#031330]/95 border-[2px] border-[#EA580C] shadow-[0_0_16px_rgba(234,88,12,0.34)] hover:shadow-[0_0_22px_rgba(234,88,12,0.55)] px-3 sm:px-3.5 py-2 flex items-center gap-2.5 sm:gap-3 transition-all group shrink-0"
         >
           {/* Left Thick Orange Circle with Bold White Gear/Cog Icon */}
           <div className="shrink-0 flex items-center justify-center pl-0.5">
-            <div className="w-11 h-11 rounded-full border-[3.5px] border-[#EA580C] flex items-center justify-center shadow-[0_0_10px_rgba(234,88,12,0.35)] bg-[#041638]">
-              <Settings className="w-6 h-6 text-white stroke-[2.4]" />
+            <div className="w-9.5 h-9.5 sm:w-11 sm:h-11 rounded-full border-[3px] border-[#EA580C] flex items-center justify-center shadow-[0_0_10px_rgba(234,88,12,0.35)] bg-[#041638]">
+              <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.4]" />
             </div>
           </div>
 
-          <div className="h-9 w-[1px] bg-white/30 shrink-0" aria-hidden="true" />
+          <div className="h-8 w-[1px] bg-white/30 shrink-0" aria-hidden="true" />
 
           {/* Centered Bold White Uppercase Title */}
           <div className="flex-1 min-w-0 text-center">
-            <div className="text-[14.5px] sm:text-[16.5px] font-black uppercase text-white tracking-wide leading-[1.2]">
+            <div className="text-[13.5px] sm:text-[15.5px] font-black uppercase text-white tracking-wide leading-[1.18]">
               SERVIÇOS MOZFÁCIL &amp;
               <br />
               TERMOS DE USO
@@ -436,10 +537,10 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
           <ChevronRight className="w-5 h-5 text-[#EA580C] group-hover:translate-x-0.5 transition-transform shrink-0 stroke-[2.8]" />
         </button>
 
-        {/* 4. Contacts + PUBLICIDADE Header Row & 3 Video Ad Cards + Sweeping Orange Curve */}
-        <div className="relative w-full pb-2.5 shrink-0">
+        {/* 4. Contacts + PUBLICIDADE Header Row & 3 Dynamic Silent Slide Ad Cards + Sweeping Orange Curve */}
+        <div className="relative w-full pb-2 shrink-0">
           {/* Header Row: Left WhatsApp Circle | Center PUBLICIDADE | Right Direct Phone Circle */}
-          <div className="flex items-center justify-between px-1 mb-1.5">
+          <div className="flex items-center justify-between px-1 mb-1">
             {/* Left Circular Button: Linha do Cliente (WhatsApp Orange Icon) */}
             <a
               href="https://wa.me/258843001234?text=Ol%C3%A1%20Linha%20do%20Cliente%20MozF%C3%A1cil%2C%20preciso%20de%20apoio."
@@ -457,11 +558,11 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
                   }
                 }
               }}
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#04183D] shadow-[0_4px_12px_rgba(0,0,0,0.45)] flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#04183D] shadow-[0_4px_12px_rgba(0,0,0,0.45)] flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
             >
               <svg
                 viewBox="0 0 44 44"
-                className="w-10 h-10 sm:w-11 sm:h-11"
+                className="w-9 h-9 sm:w-10 sm:h-10"
                 aria-hidden="true"
               >
                 <path
@@ -479,7 +580,7 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
             </a>
 
             {/* Center Label: PUBLICIDADE */}
-            <span className="text-[12.5px] sm:text-[13.5px] font-black uppercase tracking-wider text-[#F97316] drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
+            <span className="text-[12px] sm:text-[13px] font-black uppercase tracking-wider text-[#F97316] drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
               PUBLICIDADE
             </span>
 
@@ -489,76 +590,101 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
               onClick={onOpenDirectContact}
               title="Contacto Directo de Emergência"
               aria-label="Contacto Directo por Chamada"
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-[2.2px] border-[#EA580C] bg-[#04183D] shadow-[0_4px_12px_rgba(0,0,0,0.45)] flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-[2.2px] border-[#EA580C] bg-[#04183D] shadow-[0_4px_12px_rgba(0,0,0,0.45)] flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
             >
-              <Phone className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-[#EA580C] fill-[#EA580C]" />
+              <Phone className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#EA580C] fill-[#EA580C]" />
             </button>
           </div>
 
-          {/* 3 Video Ad Cards Grid matching image_26b8cff8.png */}
+          {/* 3 Automatic Dynamic Visual Slide Ad Cards Grid (No Classic Play Button) */}
           <div className="relative z-10 grid grid-cols-3 gap-2 w-full">
-            {HOME_VIDEO_ADS.map((ad, idx) => (
-              <button
-                key={ad.id}
-                type="button"
-                onClick={() => handleOpenVideoAd(idx)}
-                aria-label={`Assistir anúncio em vídeo: ${ad.fullTitle} (${ad.durationLabel})`}
-                className="rounded-[14px] bg-gradient-to-b from-[#071D46] via-[#051636] to-[#030F26] border border-white/20 hover:border-[#F97316] p-1 shadow-[0_5px_14px_rgba(0,0,0,0.5)] flex flex-col justify-between text-center transition-all group active:scale-[0.98]"
-              >
-                {/* Video Thumbnail Box */}
-                <div className="relative w-full h-[78px] sm:h-[90px] rounded-[10px] overflow-hidden bg-[#020B1C]">
-                  <img
-                    src={ad.thumbnailUrl}
-                    alt={ad.fullTitle}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-black/25" />
+            {HOME_VIDEO_ADS.map((ad, idx) => {
+              const totalSlides = ad.slides.length;
+              const currentSlideIdx = slideTick % totalSlides;
+              const currentSlide = ad.slides[currentSlideIdx] || ad.slides[0];
 
-                  {/* Top-left Pill Badge: • PUBLICIDADE */}
-                  <span className="absolute top-1 left-1 px-1.5 py-[1.5px] rounded-full bg-[#EA580C] text-white text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider leading-none shadow-sm">
-                    • PUBLICIDADE
-                  </span>
+              return (
+                <button
+                  key={ad.id}
+                  type="button"
+                  onClick={() => handleOpenVideoAd(idx)}
+                  aria-label={`Ver publicidade em destaque: ${ad.fullTitle}`}
+                  className="rounded-[13px] bg-gradient-to-b from-[#071D46] via-[#051636] to-[#030F26] border border-white/20 hover:border-[#F97316] p-1 shadow-[0_5px_14px_rgba(0,0,0,0.5)] flex flex-col justify-between text-center transition-all group active:scale-[0.98]"
+                >
+                  {/* Automatic Silent Dynamic Slide Box (No Play Icon Clutter) */}
+                  <div className="relative w-full h-[68px] sm:h-[82px] rounded-[9px] overflow-hidden bg-[#020B1C]">
+                    {ad.slides.map((slide, sIdx) => {
+                      const isSlideActive = sIdx === currentSlideIdx;
+                      return (
+                        <img
+                          key={slide.imageUrl}
+                          src={slide.imageUrl}
+                          alt={`${ad.fullTitle} - ${slide.caption}`}
+                          className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-out ${
+                            isSlideActive
+                              ? 'opacity-100 scale-105'
+                              : 'opacity-0 scale-100 pointer-events-none'
+                          }`}
+                          loading="lazy"
+                        />
+                      );
+                    })}
 
-                  {/* Center Orange Circle Play Button */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/45 border-[2px] border-[#F97316] flex items-center justify-center shadow-[0_0_12px_rgba(249,115,22,0.55)] group-hover:scale-110 transition-transform">
-                      <Play className="w-4 h-4 text-[#F97316] fill-[#F97316] ml-0.5" />
+                    {/* Subtle bottom vignette for slide caption & progress bar legibility */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/15 pointer-events-none" />
+
+                    {/* Dynamic Micro-Highlight Caption on Current Slide */}
+                    <div className="absolute bottom-2 inset-x-1 flex items-center justify-center pointer-events-none">
+                      <span className="px-1.5 py-0.5 rounded bg-black/55 backdrop-blur-[2px] text-[8px] sm:text-[9px] font-extrabold text-amber-200 tracking-tight truncate max-w-full shadow-xs">
+                        {currentSlide.caption}
+                      </span>
+                    </div>
+
+                    {/* Segmented Automatic Slide Progress Bars */}
+                    <div className="absolute bottom-0.5 inset-x-1 flex items-center gap-0.5 pointer-events-none">
+                      {ad.slides.map((_, sIdx) => {
+                        const isPast = sIdx < currentSlideIdx;
+                        const isCurrent = sIdx === currentSlideIdx;
+                        const barWidth = isPast ? 100 : isCurrent ? slideStepProgress : 0;
+                        return (
+                          <div
+                            key={sIdx}
+                            className="flex-1 h-[2.5px] rounded-full bg-white/30 overflow-hidden"
+                          >
+                            <div
+                              className="h-full bg-[#F97316] rounded-full transition-all duration-100 ease-linear"
+                              style={{ width: `${barWidth}%` }}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  {/* Bottom Video Progress Bar */}
-                  <div className="absolute bottom-0.5 inset-x-1 h-[3px] rounded-full bg-white/30 overflow-hidden">
-                    <div
-                      className="h-full bg-[#F97316] rounded-full"
-                      style={{ width: `${ad.initialProgressPercent}%` }}
-                    />
+                  {/* Card Advertiser Caption & Slide Counter/Duration */}
+                  <div className="pt-1 pb-0.5 px-0.5 flex-1 flex flex-col justify-between items-center">
+                    <div className="text-[9px] sm:text-[10px] font-bold text-white leading-[1.15] line-clamp-2">
+                      {ad.titleLine1}
+                      {ad.titleLine2 && (
+                        <>
+                          <br />
+                          {ad.titleLine2}
+                        </>
+                      )}
+                    </div>
+                    <span className="text-[9px] sm:text-[10px] font-extrabold text-[#F97316] mt-0.5 tabular-nums">
+                      {ad.durationLabel}
+                    </span>
                   </div>
-                </div>
-
-                {/* Card Caption & Duration */}
-                <div className="pt-1 pb-0.5 px-0.5 flex-1 flex flex-col justify-between items-center">
-                  <div className="text-[9.5px] sm:text-[10.5px] font-bold text-white leading-[1.15] line-clamp-2">
-                    {ad.titleLine1}
-                    {ad.titleLine2 && (
-                      <>
-                        <br />
-                        {ad.titleLine2}
-                      </>
-                    )}
-                  </div>
-                  <span className="text-[9.5px] sm:text-[10.5px] font-extrabold text-[#F97316] mt-0.5 tabular-nums">
-                    {ad.durationLabel}
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
 
           {/* Sweeping Glowing Orange/Gold Ribbon Waves right beneath the 3 Video Ad Cards */}
           <svg
             viewBox="0 0 400 56"
-            className="pointer-events-none absolute -bottom-2.5 -inset-x-4 w-[calc(100%+2rem)] h-8"
+            className="pointer-events-none absolute -bottom-2 -inset-x-4 w-[calc(100%+2rem)] h-7"
             preserveAspectRatio="none"
             aria-hidden="true"
           >
@@ -595,13 +721,13 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
           onClick={() =>
             onOpenShareMozfacil ? onOpenShareMozfacil() : onOpenDirectContact()
           }
-          className="w-full rounded-[18px] bg-gradient-to-b from-[#FFFFFF] via-[#FFF9F2] to-[#FDEBD8] border-[2px] border-[#F97316]/85 shadow-[0_5px_18px_rgba(0,0,0,0.42)] px-3 sm:px-3.5 py-2 flex items-center gap-2.5 text-left transition-all active:scale-[0.99] group shrink-0"
+          className="w-full rounded-[16px] bg-gradient-to-b from-[#FFFFFF] via-[#FFF9F2] to-[#FDEBD8] border-[2px] border-[#F97316]/85 shadow-[0_5px_16px_rgba(0,0,0,0.42)] px-3 sm:px-3.5 py-1.5 sm:py-2 flex items-center gap-2.5 text-left transition-all active:scale-[0.99] group shrink-0"
         >
-          {/* Tilted Orange Megaphone Illustration matching screenshot */}
+          {/* Tilted Orange Megaphone Illustration */}
           <div className="shrink-0 flex items-center justify-center pl-0.5">
             <svg
               viewBox="0 0 64 56"
-              className="w-12 h-10 sm:w-13 sm:h-11"
+              className="w-11 h-9 sm:w-12 sm:h-10"
               aria-hidden="true"
             >
               <g transform="rotate(-22 30 28)">
@@ -669,13 +795,13 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
             </svg>
           </div>
 
-          <div className="h-11 w-[1px] bg-[#EA580C]/30 shrink-0" aria-hidden="true" />
+          <div className="h-10 w-[1px] bg-[#EA580C]/30 shrink-0" aria-hidden="true" />
 
           <div className="flex-1 min-w-0">
-            <div className="text-[17px] sm:text-[19px] font-black text-[#07214E] leading-tight tracking-tight">
+            <div className="text-[15.5px] sm:text-[18px] font-black text-[#07214E] leading-tight tracking-tight">
               É moçambicano?
             </div>
-            <p className="text-[11.5px] sm:text-[12.5px] font-extrabold text-[#EA580C] leading-[1.22] mt-0.5">
+            <p className="text-[11px] sm:text-[12px] font-extrabold text-[#EA580C] leading-[1.2] mt-0.5">
               Ajude a colocar Moçambique
               <br />
               na palma de cada moçambicano!

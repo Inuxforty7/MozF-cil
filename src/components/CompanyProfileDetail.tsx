@@ -146,13 +146,13 @@ export const CompanyProfileDetail: React.FC<CompanyProfileDetailProps> = ({
   const visiblePhotos = showAllPhotos ? media : media.slice(0, 2);
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-20 sm:mb-8">
-      {/* Structured Mobile Top App Bar */}
-      <div className="sticky top-0 z-20 bg-gradient-to-r from-[#071F4A] via-[#0D316E] to-[#1E4B9B] text-white px-3.5 sm:px-6 py-3 flex items-center justify-between gap-2.5 border-b border-blue-900 shadow-xs">
+    <div className="max-w-2xl w-full mx-auto h-full flex-1 min-h-0 bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col overflow-hidden">
+      {/* Structured Mobile Top App Bar (SHRINK-0) */}
+      <div className="shrink-0 bg-gradient-to-r from-[#071F4A] via-[#0D316E] to-[#1E4B9B] text-white px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2.5 border-b border-blue-900 shadow-xs">
         <button
           type="button"
           onClick={onBack}
-          className="min-h-[40px] px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-[0.98] border border-white/15 flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-white transition-all shrink-0"
+          className="min-h-[36px] sm:min-h-[40px] px-2.5 sm:px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 active:scale-[0.98] border border-white/15 flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-white transition-all shrink-0"
           aria-label="Voltar"
         >
           <ArrowLeft className="w-4 h-4 shrink-0" />
@@ -169,7 +169,7 @@ export const CompanyProfileDetail: React.FC<CompanyProfileDetailProps> = ({
           <button
             type="button"
             onClick={onEdit}
-            className="min-h-[40px] px-3 py-1.5 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] active:scale-[0.98] text-white text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-xs shrink-0"
+            className="min-h-[36px] sm:min-h-[40px] px-3 py-1 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] active:scale-[0.98] text-white text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-xs shrink-0"
           >
             <Edit3 className="w-3.5 h-3.5 shrink-0" />
             <span>Editar</span>
@@ -181,7 +181,7 @@ export const CompanyProfileDetail: React.FC<CompanyProfileDetailProps> = ({
 
       {/* Non-Published Lifecycle Status Notice (Owner / Admin only) */}
       {company.publicationStatus !== 'published' && (
-        <div className="px-4 py-3 bg-amber-50 border-b border-amber-200 flex items-start gap-2.5 text-xs text-amber-900">
+        <div className="shrink-0 px-4 py-2.5 bg-amber-50 border-b border-amber-200 flex items-start gap-2.5 text-xs text-amber-900">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold">
@@ -201,8 +201,8 @@ export const CompanyProfileDetail: React.FC<CompanyProfileDetailProps> = ({
         </div>
       )}
 
-      {/* Main Profile Content */}
-      <div className="p-4 sm:p-6 space-y-4">
+      {/* Main Profile Content (Internal Scrollable Body) */}
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3.5 sm:p-5 space-y-4">
         {/* Entity Card with Logo, Names, Badges */}
         <div className="flex items-start gap-4">
           <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-100 border-2 border-slate-200 overflow-hidden shrink-0 flex items-center justify-center shadow-xs">

@@ -408,15 +408,15 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
   };
 
   return (
-    <div className="max-w-xl mx-auto pb-8">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        {/* Top bar */}
-        <div className="bg-[#0D316E] px-5 py-4 text-white flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-extrabold tracking-tight">
+    <div className="max-w-xl w-full mx-auto h-full flex-1 min-h-0 flex flex-col">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm h-full flex-1 min-h-0 flex flex-col overflow-hidden">
+        {/* Top bar (SHRINK-0) */}
+        <div className="shrink-0 bg-[#0D316E] px-4 sm:px-5 py-3 text-white flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-xl font-extrabold tracking-tight truncate">
               Cadastro do Utente
             </h1>
-            <p className="text-xs text-blue-100 mt-0.5">
+            <p className="text-[11px] sm:text-xs text-blue-100 truncate">
               Entre para guardar os seus dados e consultar profissionais.
             </p>
           </div>
@@ -430,7 +430,7 @@ export const UtenteRegistrationScreen: React.FC<UtenteRegistrationScreenProps> =
           </button>
         </div>
 
-        <div className="p-5 sm:p-6 space-y-5">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4">
           {/* Authentication & Compact Credit Section */}
           {!firebaseUser ? (
             <div className="space-y-3">

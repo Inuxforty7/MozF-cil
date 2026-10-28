@@ -1459,19 +1459,20 @@ export default function App() {
     [allKnownProfiles, recentProfileIds]
   );
 
-  const isViewportLocked =
+  const isSelfContainedCardView =
     activeView === 'home' ||
     activeView === 'directory' ||
-    activeView === 'companies_directory';
+    activeView === 'companies_directory' ||
+    activeView === 'register_edit' ||
+    activeView === 'company_registration' ||
+    activeView === 'detail' ||
+    activeView === 'company_detail' ||
+    activeView === 'utente_registration';
 
   return (
     <MozErrorBoundary>
       <div
-        className={`flex flex-col transition-colors ${
-          isViewportLocked
-            ? 'h-[100dvh] max-h-[100dvh] overflow-hidden pb-[64px]'
-            : 'min-h-screen pb-24'
-        } ${
+        className={`flex flex-col transition-colors h-[100dvh] max-h-[100dvh] overflow-hidden pb-[64px] ${
           isExploreDarkTheme
             ? 'bg-gradient-to-b from-[#02102E] via-[#062054] to-[#031438]'
             : 'bg-[#F4F7FB]'
@@ -1568,15 +1569,9 @@ export default function App() {
               </div>
             </div>
 
-            {/* Secondary Quick Navigation & Account Bar on internal module screens (hidden on mobile when inside locked directory views to preserve dynamic viewport) */}
+            {/* Secondary Quick Navigation & Account Bar on desktop screens (hidden on mobile to preserve full dynamic viewport height) */}
             {!isExploreDarkTheme && (
-              <div
-                className={`mt-1.5 bg-[#082456]/95 backdrop-blur-xs text-white rounded-2xl border border-blue-800/80 px-3 py-1.5 shadow-md items-center justify-between gap-2 text-xs ${
-                  activeView === 'directory' || activeView === 'companies_directory'
-                    ? 'hidden md:flex'
-                    : 'flex flex-wrap'
-                }`}
-              >
+              <div className="hidden md:flex mt-1.5 bg-[#082456]/95 backdrop-blur-xs text-white rounded-2xl border border-blue-800/80 px-3 py-1.5 shadow-md items-center justify-between gap-2 text-xs">
                 <nav aria-label="Navegação Principal" className="flex flex-wrap items-center gap-1.5">
                   <button
                     type="button"
@@ -1838,11 +1833,9 @@ export default function App() {
           className={`flex-1 max-w-7xl w-full mx-auto ${
             activeView === 'home'
               ? 'min-h-0 flex flex-col overflow-hidden px-1.5 sm:px-6 py-0.5'
-              : activeView === 'directory' || activeView === 'companies_directory'
+              : isSelfContainedCardView
                 ? 'min-h-0 flex flex-col overflow-hidden px-2 sm:px-6 py-1.5 sm:py-2.5'
-                : activeView === 'explore'
-                  ? 'px-1.5 sm:px-6 pt-1 pb-20 sm:py-3'
-                  : 'px-2 sm:px-6 pt-2 pb-24 sm:py-4 sm:pb-24'
+                : 'min-h-0 overflow-y-auto overscroll-contain px-2 sm:px-6 pt-1.5 pb-4 sm:py-3'
           }`}
         >
           {/* VIEW 0.1: HOME SCREEN ("Início" button in bottom bar matching reference print) */}
