@@ -423,7 +423,7 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
 
       {/* Main Content Stack fitted to 100% viewport with zero scroll */}
       <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-between text-center gap-1 sm:gap-1.5 py-0.5">
-        {/* 1. Hero Headline Block + Subtitle */}
+        {/* 1. Hero Headline Block matching reference print */}
         <div className="space-y-0.5 w-full pt-0.5 shrink-0">
           <h1 className="text-[23px] sm:text-[29px] font-black uppercase tracking-wide text-white leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
             MOÇAMBIQUE
@@ -437,11 +437,6 @@ export const MozfacilHomeScreen: React.FC<MozfacilHomeScreenProps> = ({
             <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#F59E0B] to-transparent" />
             <div className="absolute inset-x-1/4 top-0.5 h-[3.5px] bg-gradient-to-r from-transparent via-[#FDE047] to-transparent blur-[1.5px]" />
           </div>
-
-          {/* Subtitle below headline */}
-          <p className="text-[11px] sm:text-[12.5px] font-medium text-blue-50/95 leading-[1.28] max-w-[345px] mx-auto px-1.5 pt-0.5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
-            Encontre o que precisa, divulgue o que oferece e conecte-se a novas oportunidades em todo o país, de forma rápida e segura.
-          </p>
         </div>
 
         {/* 2. White Pill Search Bar ("Pesquise o que precisa / pela mensagem ou pela voz") */}
