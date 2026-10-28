@@ -12,6 +12,8 @@ import {
   Save,
   Send,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Wrench,
   Image as ImageIcon,
@@ -160,6 +162,22 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
   onSaved,
   onCancel,
 }) => {
+  // Active Step (1 to 5) & Step Mode
+  const [activeStep, setActiveStep] = useState<number>(1);
+  const [viewAllSteps, setViewAllSteps] = useState<boolean>(false);
+  const stepTabRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+
+  useEffect(() => {
+    const activeBtn = stepTabRefs.current[activeStep];
+    if (activeBtn) {
+      activeBtn.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
+  }, [activeStep]);
+
   // 1. Identification
   const [profileType, setProfileType] = useState<ProfileType>(
     existingProfile?.profileType || 'independent'
@@ -913,46 +931,52 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
     }
   };
 
+  const professionalSteps = [
+    { num: 1, title: 'Foto e Dados do Profissional', shortLabel: 'Identificação' },
+    { num: 2, title: 'Responsável, Contacto e SMS', shortLabel: 'Contacto e SMS' },
+    { num: 3, title: 'Localização, GPS e Cobertura', shortLabel: 'Localização e GPS' },
+    { num: 4, title: 'Estado dos Serviços e Horário', shortLabel: 'Estado e Horário' },
+    { num: 5, title: 'Fotos, Documentos e Serviços', shortLabel: 'Fotos e Serviços' },
+  ];
+
+  const currentStepMeta =
+    professionalSteps.find((s) => s.num === activeStep) || professionalSteps[0];
+
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+    <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-20 sm:mb-8">
       {/* Container for real Firebase Phone Auth reCAPTCHA */}
       <div ref={recaptchaContainerRef} id="mozfacil-prof-recaptcha" aria-hidden="true" />
 
       {/* ================================================================= */}
-      {/* TOP DARK NAVY HEADER BANNER MATCHING REFERENCE PRINT              */}
+      {/* TOP DARK NAVY HEADER BANNER WITH STEP PROGRESS                    */}
       {/* ================================================================= */}
-      <div className="bg-gradient-to-b from-[#071F4A] via-[#0B2B64] to-[#0E3578] text-white px-4 sm:px-6 py-4 border-b border-blue-900">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-b from-[#071F4A] via-[#0B2B64] to-[#0E3578] text-white px-3.5 sm:px-6 pt-3.5 pb-3 border-b border-blue-900">
+        <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="min-h-[38px] min-w-[38px] flex items-center gap-1.5 text-sm font-bold text-white hover:text-orange-300 transition-colors"
+            className="min-h-[40px] px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-[0.98] border border-white/15 flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-white transition-all shrink-0"
             aria-label="Voltar"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span>Voltar</span>
           </button>
 
-          {/* Center Brand Badge */}
-          <div className="flex items-center gap-2">
-            <svg viewBox="0 0 60 50" className="w-7 h-6 shrink-0" aria-hidden="true">
-              <path d="M18 14 L56 2 L44 16 L8 20 Z" fill="#EA580C" />
-              <path d="M4 28 L52 17 L41 31 L2 33 Z" fill="#FFFFFF" />
-              <path d="M12 42 L48 32 L38 46 L6 45 Z" fill="#EA580C" />
-            </svg>
-            <div className="leading-none text-left">
-              <div className="text-base font-black italic tracking-tight">
-                <span className="text-white">MOZ</span>
-                <span className="text-[#F97316]">FÁCIL</span>
-              </div>
-              <span className="text-[9px] font-bold text-blue-200 block">
-                Conexões Rápidas
-              </span>
-            </div>
+          {/* Center Brand & Title */}
+          <div className="min-w-0 flex-1 text-center px-1">
+            <h2 className="text-sm sm:text-base font-black tracking-tight text-white truncate">
+              {existingProfile
+                ? 'Editar Perfil Profissional'
+                : 'Cadastrar Profissional / Serviço'}
+            </h2>
+            <p className="text-[11px] text-blue-200 font-semibold truncate mt-0.5">
+              {viewAllSteps ? 'Visualização completa (5 secções)' : currentStepMeta.title}
+            </p>
           </div>
 
-          <div className="w-9 text-right">
+          <div className="shrink-0 flex items-center gap-1.5">
             {existingProfile && (
-              <span className="text-[10px] bg-white/15 px-2 py-0.5 rounded-full text-orange-300 font-bold">
+              <span className="hidden sm:inline-block text-[10px] bg-white/15 px-2 py-0.5 rounded-full text-orange-300 font-bold">
                 {existingProfile.publicationStatus === 'published'
                   ? 'Publicado'
                   : existingProfile.publicationStatus === 'draft'
@@ -964,16 +988,75 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                   : 'Suspenso'}
               </span>
             )}
+            <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-[#EA580C] text-white whitespace-nowrap shrink-0 shadow-2xs tabular-nums">
+              Passo {activeStep} de 5
+            </span>
           </div>
         </div>
 
-        <div className="text-center mt-2">
-          <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-white">
-            {existingProfile ? 'Editar Perfil Profissional / Serviço' : 'Cadastrar Profissional / Serviço'}
-          </h2>
-          <p className="text-xs text-blue-200 mt-0.5">
-            Registo gratuito e rápido. Pode editar depois.
-          </p>
+        {/* Linear Progress Bar */}
+        <div className="mt-2.5 h-1.5 w-full bg-white/15 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-[#F97316] to-[#FB923C] rounded-full transition-all duration-300"
+            style={{ width: `${viewAllSteps ? 100 : (activeStep / 5) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Horizontal Scrollable Step Carousel with Full Step Names */}
+      <div className="bg-slate-50 border-b border-slate-200 px-3 py-2.5 overflow-x-auto no-scrollbar scroll-smooth">
+        <div className="flex items-center justify-between gap-2 min-w-max">
+          <div className="flex items-center gap-2">
+            {professionalSteps.map((s) => {
+              const isActive = !viewAllSteps && activeStep === s.num;
+              const isCompleted = !viewAllSteps && s.num < activeStep;
+              return (
+                <button
+                  key={s.num}
+                  ref={(el) => {
+                    stepTabRefs.current[s.num] = el;
+                  }}
+                  type="button"
+                  onClick={() => {
+                    setViewAllSteps(false);
+                    setActiveStep(s.num);
+                  }}
+                  className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap shrink-0 flex items-center gap-2 transition-all active:scale-[0.98] ${
+                    isActive
+                      ? 'bg-[#0D316E] text-white shadow-xs ring-2 ring-[#0D316E]/20'
+                      : isCompleted
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100/70'
+                      : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <span
+                    className={`w-5 h-5 rounded-full text-[11px] font-black flex items-center justify-center shrink-0 tabular-nums ${
+                      isActive
+                        ? 'bg-[#F97316] text-white'
+                        : isCompleted
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    {isCompleted ? '✓' : s.num}
+                  </span>
+                  <span>{s.shortLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setViewAllSteps((prev) => !prev)}
+            className={`min-h-[40px] px-3 py-2 rounded-xl text-[11px] font-extrabold whitespace-nowrap shrink-0 border transition-all ${
+              viewAllSteps
+                ? 'bg-[#EA580C] text-white border-[#EA580C]'
+                : 'bg-white text-[#0D316E] border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            {viewAllSteps ? 'Modo por Passos' : 'Ver Tudo'}
+          </button>
         </div>
       </div>
 
@@ -991,6 +1074,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
         {/* ================================================================= */}
         {/* SECTION 1: FOTO E DADOS DO PROFISSIONAL / SERVIÇO                 */}
         {/* ================================================================= */}
+        {(viewAllSteps || activeStep === 1) && (
         <section className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
             <span className="w-6 h-6 rounded-full bg-[#EA580C] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs">
@@ -1196,10 +1280,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             />
           </div>
         </section>
+        )}
 
         {/* ================================================================= */}
         {/* SECTION 2: RESPONSÁVEL E AUTORIZAÇÃO (MATCHING REFERENCE PRINT)   */}
         {/* ================================================================= */}
+        {(viewAllSteps || activeStep === 2) && (
         <section className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
             <span className="w-6 h-6 rounded-full bg-[#EA580C] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs">
@@ -1424,10 +1510,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             </span>
           </label>
         </section>
+        )}
 
         {/* ================================================================= */}
         {/* SECTION 3: LOCALIZAÇÃO (MATCHING REFERENCE PRINT)                 */}
         {/* ================================================================= */}
+        {(viewAllSteps || activeStep === 3) && (
         <section className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
             <span className="w-6 h-6 rounded-full bg-[#EA580C] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs">
@@ -1622,10 +1710,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             </div>
           )}
         </section>
+        )}
 
         {/* ================================================================= */}
         {/* SECTION 4: ESTADO DOS SERVIÇOS E HORÁRIO (MATCHING REFERENCE)     */}
         {/* ================================================================= */}
+        {(viewAllSteps || activeStep === 4) && (
         <section className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
             <span className="w-6 h-6 rounded-full bg-[#EA580C] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs">
@@ -1815,10 +1905,12 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             )}
           </div>
         </section>
+        )}
 
         {/* ================================================================= */}
         {/* SECTION 5: FOTOS, DOCUMENTOS E SERVIÇOS (MATCHING REFERENCE)      */}
         {/* ================================================================= */}
+        {(viewAllSteps || activeStep === 5) && (
         <section className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
             <span className="w-6 h-6 rounded-full bg-[#EA580C] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs">
@@ -2070,7 +2162,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                 type="button"
                 disabled={isSaving}
                 onClick={() => handleSubmit('draft')}
-                className="w-full min-h-[40px] py-2 px-3 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
+                className="w-full min-h-[42px] py-2 px-3 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
               >
                 <Save className="w-3.5 h-3.5 text-[#0D316E]" />
                 <span>Guardar Rascunho</span>
@@ -2080,7 +2172,7 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
                 type="button"
                 disabled={isSaving}
                 onClick={() => handleSubmit('pending_review')}
-                className="w-full min-h-[40px] py-2 px-3 rounded-xl bg-[#0D316E] hover:bg-[#092452] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
+                className="w-full min-h-[42px] py-2 px-3 rounded-xl bg-[#0D316E] hover:bg-[#092452] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Submeter à Revisão</span>
@@ -2088,6 +2180,72 @@ export const ProfessionalRegistrationForm: React.FC<ProfessionalRegistrationForm
             </div>
           </div>
         </section>
+        )}
+      </div>
+
+      {/* Sticky Bottom Step Navigation & Submission Bar */}
+      <div className="sticky bottom-[68px] sm:bottom-0 z-20 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-[0_-4px_16px_rgba(13,49,110,0.08)] flex items-center justify-between gap-2.5">
+        <div>
+          {!viewAllSteps && activeStep > 1 ? (
+            <button
+              type="button"
+              onClick={() => setActiveStep((prev) => Math.max(1, prev - 1))}
+              className="min-h-[44px] px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 text-xs sm:text-sm font-extrabold flex items-center gap-1.5 transition-all"
+            >
+              <ChevronLeft className="w-4 h-4 shrink-0" />
+              <span>Anterior</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-600 text-xs font-bold flex items-center gap-1.5 transition-all"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+              <span>Cancelar</span>
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => handleSubmit('draft')}
+            className="min-h-[44px] px-3 sm:px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 active:scale-[0.98] text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
+            title="Guardar progresso como rascunho"
+          >
+            <Save className="w-3.5 h-3.5 text-[#0D316E] shrink-0" />
+            <span className="hidden min-[380px]:inline">Rascunho</span>
+          </button>
+
+          {!viewAllSteps && activeStep < 5 ? (
+            <button
+              type="button"
+              onClick={() => setActiveStep((prev) => Math.min(5, prev + 1))}
+              className="min-h-[44px] px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0D316E] to-[#1E4B9B] hover:from-[#092452] hover:to-[#0D316E] active:scale-[0.98] text-white text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all shadow-sm"
+            >
+              <span>Próximo Passo</span>
+              <ChevronRight className="w-4 h-4 shrink-0" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={isSaving}
+              onClick={() => handleSubmit('published')}
+              className="min-h-[44px] px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] active:scale-[0.98] text-white text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all shadow-md disabled:opacity-50"
+            >
+              <Send className="w-4 h-4 shrink-0" />
+              <span>
+                {isSaving
+                  ? 'A guardar...'
+                  : existingProfile
+                  ? 'Guardar e Publicar'
+                  : 'Publicar Perfil'}
+              </span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

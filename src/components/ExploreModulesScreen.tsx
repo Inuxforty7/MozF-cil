@@ -17,7 +17,7 @@ export const ExploreModulesScreen: React.FC<ExploreModulesScreenProps> = ({
   return (
     <section
       aria-label="Explore — Diretório de Módulos MozFácil"
-      className="w-full max-w-3xl mx-auto relative overflow-hidden"
+      className="w-full max-w-3xl mx-auto relative overflow-hidden pb-20 sm:pb-8"
     >
       {/* Decorative glowing orange swoosh arc on top-right matching the reference print */}
       <svg
@@ -59,13 +59,13 @@ export const ExploreModulesScreen: React.FC<ExploreModulesScreenProps> = ({
             <button
               type="button"
               onClick={onBack}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white transition-colors"
+              className="min-h-[38px] min-w-[38px] rounded-xl bg-white/10 hover:bg-white/20 active:scale-[0.96] border border-white/15 flex items-center justify-center text-white transition-all shrink-0"
               aria-label="Voltar"
             >
-              <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+              <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
             </button>
           ) : (
-            <div className="w-8 h-8 sm:w-9 sm:h-9" aria-hidden="true" />
+            <div className="w-9 h-9" aria-hidden="true" />
           )}
 
           <div className="flex flex-col items-center">
@@ -152,15 +152,16 @@ export const ModuleDestinationUnavailable: React.FC<ModuleDestinationUnavailable
   onOpenProfessionalsModule,
 }) => {
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
+    <div className="max-w-xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden mb-20 sm:mb-8">
       <div className="bg-gradient-to-r from-[#061A3E] to-[#0D316E] text-white p-4 sm:p-5 flex items-center gap-3">
         <button
           type="button"
           onClick={onBackToExplore}
-          className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors shrink-0"
+          className="min-h-[40px] px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-[0.98] border border-white/15 flex items-center gap-1.5 text-xs font-extrabold text-white transition-all shrink-0"
           aria-label="Voltar para Explore"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 shrink-0" />
+          <span>Voltar</span>
         </button>
         <div className="min-w-0">
           <div className="flex items-center gap-2">

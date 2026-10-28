@@ -46,6 +46,7 @@ import {
   User,
   LayoutGrid,
   Eye,
+  EyeOff,
   Menu,
 } from 'lucide-react';
 import {
@@ -1458,12 +1459,17 @@ export default function App() {
     [allKnownProfiles, recentProfileIds]
   );
 
+  const isViewportLocked =
+    activeView === 'home' ||
+    activeView === 'directory' ||
+    activeView === 'companies_directory';
+
   return (
     <MozErrorBoundary>
       <div
         className={`flex flex-col transition-colors ${
-          activeView === 'home'
-            ? 'h-[100dvh] max-h-[100dvh] overflow-hidden pb-[66px]'
+          isViewportLocked
+            ? 'h-[100dvh] max-h-[100dvh] overflow-hidden pb-[64px]'
             : 'min-h-screen pb-24'
         } ${
           isExploreDarkTheme
@@ -1474,9 +1480,9 @@ export default function App() {
         {/* ================================================================= */}
         {/* TOP BRAND BAR MATCHING REFERENCE PRINT (MOZFÁCIL Conexões Rápidas) */}
         {/* ================================================================= */}
-        <header className="sticky top-0 z-30 pt-2 px-2.5 sm:px-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-gradient-to-b from-[#FFFFFF] via-[#F1F5F9] to-[#CBD5E1] rounded-2xl shadow-[0_4px_14px_rgba(0,0,0,0.3)] border border-white/90 px-3 sm:px-5 py-2 flex items-center justify-between gap-2">
+        <header className="sticky top-0 z-30 pt-1.5 sm:pt-2 px-2 sm:px-4 shrink-0">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gradient-to-b from-[#FFFFFF] via-[#F1F5F9] to-[#CBD5E1] rounded-2xl shadow-[0_4px_14px_rgba(0,0,0,0.25)] border border-white/90 px-3 sm:px-5 py-1.5 sm:py-2 flex items-center justify-between gap-2">
               {/* Left / Center: 3-Wing Swoosh + MOZFÁCIL + Conexões Rápidas */}
               <button
                 type="button"
@@ -1484,22 +1490,22 @@ export default function App() {
                 className="flex items-center gap-2 sm:gap-3 focus:outline-none group text-left"
               >
                 {/* 3-Wing Swoosh Emblem (Orange, Navy, Orange) */}
-                <svg viewBox="0 0 60 50" className="w-11 h-9 sm:w-13 sm:h-11 shrink-0" aria-hidden="true">
+                <svg viewBox="0 0 60 50" className="w-10 h-8 sm:w-13 sm:h-11 shrink-0" aria-hidden="true">
                   <path d="M18 14 L56 2 L44 16 L8 20 Z" fill="#EA580C" />
                   <path d="M4 28 L52 17 L41 31 L2 33 Z" fill="#07214E" />
                   <path d="M12 42 L48 32 L38 46 L6 45 Z" fill="#EA580C" />
                 </svg>
 
                 <div className="flex flex-col items-center leading-none">
-                  <div className="text-[22px] sm:text-[28px] font-black italic tracking-tight flex items-center">
+                  <div className="text-[20px] sm:text-[28px] font-black italic tracking-tight flex items-center">
                     <span className="text-[#07214E]">MOZ</span>
                     <span className="text-[#D9530F]">FÁCIL</span>
                   </div>
-                  <span className="text-[11px] sm:text-xs font-extrabold italic text-[#07214E] -mt-0.5">
+                  <span className="text-[10px] sm:text-xs font-extrabold italic text-[#07214E] -mt-0.5">
                     Conexões Rápidas
                   </span>
                   {/* Tapered orange swoosh underline */}
-                  <svg viewBox="0 0 180 10" className="w-36 sm:w-44 h-2 -mt-0.5" aria-hidden="true">
+                  <svg viewBox="0 0 180 10" className="w-32 sm:w-44 h-1.5 sm:h-2 -mt-0.5" aria-hidden="true">
                     <path
                       d="M 2 8 Q 90 1 178 4 Q 95 4 2 8 Z"
                       fill="#EA580C"
@@ -1508,22 +1514,52 @@ export default function App() {
                 </div>
               </button>
 
-              {/* Right: Eye Counter + Divider + Orange Menu Button */}
+              {/* Right: EyeOff Counter + Divider + UserPlus Register Icon + Divider + Orange Menu Button */}
               <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                <div
-                  className="flex items-center gap-1 text-[#07214E] font-extrabold text-xs sm:text-sm tabular-nums"
-                  title="Perfis publicados no diretório"
+                <button
+                  type="button"
+                  onClick={() => setActiveSidebarModal('user_info')}
+                  className="flex items-center gap-1 text-[#07214E] font-extrabold text-xs sm:text-sm tabular-nums hover:opacity-80 transition-opacity"
+                  title="Serviços MozFácil e Créditos"
                 >
-                  <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-[#D9530F] shrink-0" />
-                  <span>{publishedProfiles.length}</span>
-                </div>
+                  <EyeOff className="w-4 h-4 sm:w-5 sm:h-5 text-[#D9530F] shrink-0" />
+                  <span>{mozUser ? mozUser.creditsBalance : 0}</span>
+                </button>
 
-                <div className="h-6 w-[1px] bg-slate-400/70" aria-hidden="true" />
+                <div className="h-5 sm:h-6 w-[1px] bg-slate-400/70" aria-hidden="true" />
+
+                <button
+                  type="button"
+                  onClick={() => setActiveSidebarModal('register_choice')}
+                  className="p-1 sm:p-1.5 rounded-lg hover:bg-slate-200/70 text-[#EA580C] transition-colors flex items-center justify-center"
+                  aria-label="Cadastre-se Agora no MozFácil"
+                  title="Cadastre-se Agora no MozFácil"
+                >
+                  <svg
+                    viewBox="0 0 28 24"
+                    className="w-6 h-5 sm:w-7 sm:h-6"
+                    aria-hidden="true"
+                  >
+                    <circle cx="10" cy="7" r="4.5" fill="#EA580C" />
+                    <path
+                      d="M2 20c0-4.2 3.6-7 8-7s8 2.8 8 7H2z"
+                      fill="#EA580C"
+                    />
+                    <path
+                      d="M22 8v6M19 11h6"
+                      stroke="#EA580C"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+
+                <div className="h-5 sm:h-6 w-[1px] bg-slate-400/70" aria-hidden="true" />
 
                 <button
                   type="button"
                   onClick={() => setShowTopMenu((prev) => !prev)}
-                  className="p-1.5 rounded-lg hover:bg-slate-200/70 text-[#D9530F] transition-colors"
+                  className="p-1 sm:p-1.5 rounded-lg hover:bg-slate-200/70 text-[#D9530F] transition-colors"
                   aria-label="Abrir menu lateral"
                   aria-expanded={showTopMenu}
                 >
@@ -1532,9 +1568,15 @@ export default function App() {
               </div>
             </div>
 
-            {/* Secondary Quick Navigation & Account Bar on internal module screens */}
+            {/* Secondary Quick Navigation & Account Bar on internal module screens (hidden on mobile when inside locked directory views to preserve dynamic viewport) */}
             {!isExploreDarkTheme && (
-              <div className="mt-1.5 bg-[#082456]/95 backdrop-blur-xs text-white rounded-2xl border border-blue-800/80 px-3 py-2 shadow-md flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div
+                className={`mt-1.5 bg-[#082456]/95 backdrop-blur-xs text-white rounded-2xl border border-blue-800/80 px-3 py-1.5 shadow-md items-center justify-between gap-2 text-xs ${
+                  activeView === 'directory' || activeView === 'companies_directory'
+                    ? 'hidden md:flex'
+                    : 'flex flex-wrap'
+                }`}
+              >
                 <nav aria-label="Navegação Principal" className="flex flex-wrap items-center gap-1.5">
                   <button
                     type="button"
@@ -1796,9 +1838,11 @@ export default function App() {
           className={`flex-1 max-w-7xl w-full mx-auto ${
             activeView === 'home'
               ? 'min-h-0 flex flex-col overflow-hidden px-1.5 sm:px-6 py-0.5'
-              : activeView === 'explore'
-                ? 'px-1.5 sm:px-6 py-1 sm:py-3'
-                : 'px-2 sm:px-6 py-2 sm:py-4'
+              : activeView === 'directory' || activeView === 'companies_directory'
+                ? 'min-h-0 flex flex-col overflow-hidden px-2 sm:px-6 py-1.5 sm:py-2.5'
+                : activeView === 'explore'
+                  ? 'px-1.5 sm:px-6 pt-1 pb-20 sm:py-3'
+                  : 'px-2 sm:px-6 pt-2 pb-24 sm:py-4 sm:pb-24'
           }`}
         >
           {/* VIEW 0.1: HOME SCREEN ("Início" button in bottom bar matching reference print) */}
@@ -1873,23 +1917,156 @@ export default function App() {
             </div>
           )}
 
-          {/* VIEW 1: PUBLIC DIRECTORY & REAL-TIME SEARCH / FILTERS (MODULE 1) */}
+          {/* VIEW 1: PUBLIC DIRECTORY & REAL-TIME SEARCH / FILTERS (MODULE 1 — DYNAMIC MOBILE VIEWPORT) */}
           {activeView === 'directory' && (
-            <div className="space-y-6">
-              {/* Hero & Search Filter Bar */}
-              <div className="bg-gradient-to-b from-[#092452] to-[#0D316E] rounded-2xl p-5 sm:p-6 text-white shadow-md space-y-4">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-                      MozFácil — Profissionais Independentes, Serviços e Vendedores
-                    </h1>
-                    <p className="text-xs sm:text-sm text-blue-200 max-w-2xl">
-                      Encontre mecânicos, técnicos, enfermeiros, carpinteiros, prestadores de serviços e vendedores ambulantes verificados na sua província, distrito ou bairro.
-                    </p>
+            <div className="h-full flex-1 min-h-0 flex flex-col gap-2 max-w-4xl w-full mx-auto overflow-hidden">
+              {/* Top Compact Header, Search & Quick Filter Control Bar (shrink-0) */}
+              <div className="shrink-0 bg-gradient-to-r from-[#071F4A] via-[#0D316E] to-[#1E4B9B] rounded-2xl p-2.5 sm:p-3.5 text-white shadow-md border border-[#1E4B9B]/80 space-y-2">
+                {/* Row 1: Title + Count + Quick Register CTA */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-[#F97316]/20 border border-[#F97316]/40 flex items-center justify-center shrink-0">
+                      <Briefcase className="w-4 h-4 text-[#F97316]" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h1 className="text-sm sm:text-lg font-black tracking-tight text-white truncate">
+                          Profissionais e Serviços
+                        </h1>
+                        <span className="px-2 py-0.5 rounded-full bg-white/15 text-orange-300 text-[10px] sm:text-xs font-extrabold tabular-nums shrink-0">
+                          {filteredPublishedProfiles.length}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-blue-200 truncate hidden sm:block">
+                        Mecânicos, técnicos, prestadores de serviços e vendedores verificados em Moçambique
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Quick Filter Preset Buttons */}
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {firebaseUser && mozUser ? (
+                      <button
+                        type="button"
+                        onClick={() => navigateTo('utente_registration')}
+                        className="h-8 px-2.5 rounded-xl bg-amber-50 text-[#0D316E] font-extrabold text-[11px] flex items-center gap-1 tabular-nums md:hidden"
+                      >
+                        <Coins className="w-3.5 h-3.5 text-[#E85B0D]" />
+                        <span>{formatUserCreditBalance(mozUser.creditsBalance)}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setActiveSidebarModal('user_info')}
+                        className="h-8 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-blue-100 font-bold text-[11px] flex items-center gap-1 md:hidden"
+                      >
+                        <Coins className="w-3.5 h-3.5 text-[#F97316]" />
+                        <span>Créditos</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!firebaseUser) {
+                          handleLogin();
+                        } else {
+                          navigateTo('register_edit', { editingProfileId: null });
+                        }
+                      }}
+                      className="h-8 sm:h-9 px-3 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white text-[11px] sm:text-xs font-extrabold flex items-center gap-1 shadow-xs transition-transform active:scale-95 shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Cadastrar</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Row 2: Search Input + Compact Filter Drawer Toggle */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1 min-w-0">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={filters.query}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, query: e.target.value }))
+                      }
+                      placeholder="Pesquisar profissão, nome ou bairro..."
+                      className="w-full h-9 sm:h-10 pl-9 pr-8 rounded-xl bg-white text-slate-900 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                    />
+                    {filters.query && (
+                      <button
+                        type="button"
+                        onClick={() => setFilters((prev) => ({ ...prev, query: '' }))}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvancedFilters((prev) => !prev)}
+                    className={`h-9 sm:h-10 px-3 rounded-xl font-extrabold text-xs flex items-center gap-1.5 transition-colors shrink-0 border ${
+                      showAdvancedFilters ||
+                      filters.district ||
+                      filters.neighborhood ||
+                      filters.specialtyId ||
+                      filters.profileType !== 'all' ||
+                      filters.coverageAreaType !== 'all'
+                        ? 'bg-[#F97316] border-[#F97316] text-white'
+                        : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    <Filter className="w-3.5 h-3.5" />
+                    <span>Filtros</span>
+                  </button>
+                </div>
+
+                {/* Row 3: 2-Column Quick Selectors (Profissão + Província) & Quick Status Chips */}
+                <div className="grid grid-cols-2 sm:grid-cols-12 gap-1.5 sm:gap-2 items-center">
+                  <div className="sm:col-span-4">
+                    <select
+                      value={filters.categoryId}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, categoryId: e.target.value }))
+                      }
+                      className="w-full h-8 sm:h-9 px-2.5 rounded-xl bg-white/95 text-slate-900 text-[11px] sm:text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                    >
+                      <option value="">Todas as Profissões ({approvedPublicProfessions.length})</option>
+                      {approvedPublicProfessions.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.originalName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <select
+                      value={filters.province}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          province: e.target.value,
+                          district: '',
+                          neighborhood: '',
+                        }))
+                      }
+                      className="w-full h-8 sm:h-9 px-2.5 rounded-xl bg-white/95 text-slate-900 text-[11px] sm:text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                    >
+                      <option value="">Toda Moçambique</option>
+                      {provinces.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Quick Pills Strip */}
+                  <div className="col-span-2 sm:col-span-5 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                     <button
                       type="button"
                       onClick={() =>
@@ -1899,14 +2076,14 @@ export default function App() {
                             prev.availabilityStatus === 'available' ? 'all' : 'available',
                         }))
                       }
-                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 ${
+                      className={`h-7 sm:h-8 px-2.5 rounded-lg text-[11px] font-extrabold flex items-center gap-1 transition-all whitespace-nowrap shrink-0 ${
                         filters.availabilityStatus === 'available'
                           ? 'bg-emerald-500 text-white shadow-xs'
                           : 'bg-white/10 text-blue-100 hover:bg-white/20'
                       }`}
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Disponíveis Agora (ON)</span>
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Disponíveis (ON)</span>
                     </button>
 
                     <button
@@ -1920,296 +2097,193 @@ export default function App() {
                               : 'customer_location',
                         }))
                       }
-                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap shrink-0 ${
+                      className={`h-7 sm:h-8 px-2.5 rounded-lg text-[11px] font-extrabold transition-all whitespace-nowrap shrink-0 ${
                         filters.deliveryMode === 'customer_location'
                           ? 'bg-[#F97316] text-white shadow-xs'
                           : 'bg-white/10 text-blue-100 hover:bg-white/20'
                       }`}
                     >
-                      Atendimento ao Domicílio / No Local
+                      <span>Ao Domicílio</span>
                     </button>
+
+                    {(filters.query ||
+                      filters.profileType !== 'all' ||
+                      filters.categoryId ||
+                      filters.specialtyId ||
+                      filters.province ||
+                      filters.district ||
+                      filters.neighborhood ||
+                      filters.coverageAreaType !== 'all' ||
+                      filters.deliveryMode !== 'all' ||
+                      filters.availabilityStatus !== 'all') && (
+                      <button
+                        type="button"
+                        onClick={handleResetFilters}
+                        className="h-7 sm:h-8 px-2.5 rounded-lg bg-red-500/20 border border-red-300/40 text-orange-200 hover:bg-red-500/30 text-[11px] font-extrabold flex items-center gap-1 whitespace-nowrap shrink-0"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Limpar</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                {/* Primary Search & Location Bar */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                  <div className="md:col-span-5 relative">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      value={filters.query}
-                      onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, query: e.target.value }))
-                      }
-                      placeholder="Pesquisar nome, profissão, serviço, bairro (ex: Mecânico Matola)..."
-                      className="w-full min-h-[48px] h-12 pl-10 pr-3.5 py-2.5 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]"
-                    />
-                  </div>
-
-                  <div className="md:col-span-3">
+                {/* Expandable Compact Multi-Filter Drawer */}
+                {showAdvancedFilters && (
+                  <div className="pt-2 border-t border-white/15 grid grid-cols-2 sm:grid-cols-5 gap-2 text-slate-900">
                     <select
-                      value={filters.categoryId}
-                      onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, categoryId: e.target.value }))
-                      }
-                      className="w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]"
-                    >
-                      <option value="">Todas as Profissões ({approvedPublicProfessions.length})</option>
-                      {approvedPublicProfessions.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.originalName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <select
-                      value={filters.province}
+                      value={filters.district}
                       onChange={(e) =>
                         setFilters((prev) => ({
                           ...prev,
-                          province: e.target.value,
-                          district: '',
+                          district: e.target.value,
                           neighborhood: '',
                         }))
                       }
-                      className="w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                      disabled={!filters.province}
+                      className="w-full h-8 px-2.5 rounded-lg bg-white text-[11px] font-semibold disabled:opacity-60"
                     >
-                      <option value="">Toda Moçambique</option>
-                      {provinces.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
+                      <option value="">
+                        {filters.province ? 'Todos os Distritos' : 'Distrito (Província 1º)'}
+                      </option>
+                      {filterDistricts.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
                         </option>
                       ))}
                     </select>
-                  </div>
 
-                  <div className="md:col-span-2 flex gap-2">
+                    <select
+                      value={filters.neighborhood}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, neighborhood: e.target.value }))
+                      }
+                      disabled={!filters.district}
+                      className="w-full h-8 px-2.5 rounded-lg bg-white text-[11px] font-semibold disabled:opacity-60"
+                    >
+                      <option value="">
+                        {filters.district ? 'Todos os Bairros' : 'Bairro (Distrito 1º)'}
+                      </option>
+                      {filterNeighborhoods.map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={filters.specialtyId}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, specialtyId: e.target.value }))
+                      }
+                      className="w-full h-8 px-2.5 rounded-lg bg-white text-[11px] font-semibold"
+                    >
+                      <option value="">Todas Especialidades</option>
+                      {approvedPublicSpecialties.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.originalName}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={filters.profileType}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          profileType: e.target.value as ProfileType | 'all',
+                        }))
+                      }
+                      className="w-full h-8 px-2.5 rounded-lg bg-white text-[11px] font-semibold"
+                    >
+                      <option value="all">Todos os Prestadores</option>
+                      <option value="independent">Independente</option>
+                      <option value="service_provider">Prestador de Serviços</option>
+                      <option value="street_vendor">Vendedor Ambulante</option>
+                    </select>
+
+                    <select
+                      value={filters.coverageAreaType}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          coverageAreaType: e.target.value as CoverageAreaType | 'all',
+                        }))
+                      }
+                      className="col-span-2 sm:col-span-1 w-full h-8 px-2.5 rounded-lg bg-white text-[11px] font-semibold"
+                    >
+                      <option value="all">Qualquer Cobertura</option>
+                      <option value="neighborhood">Bairro</option>
+                      <option value="district">Distrito</option>
+                      <option value="province">Província</option>
+                      <option value="selected_locations">Zonas Selecionadas</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Dynamic Self-Contained Results Viewport (flex-1 min-h-0 overflow-y-auto) */}
+              <div className="flex-1 min-h-0 overflow-y-auto pr-0.5 pb-2 space-y-2.5">
+                {/* INTERFACE STATE 1: REQUEST FAILED */}
+                {requestError && (
+                  <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-center space-y-2">
+                    <AlertTriangle className="w-6 h-6 text-red-600 mx-auto" />
+                    <h3 className="text-xs font-extrabold text-red-900">
+                      Falha ao carregar dados da base de dados
+                    </h3>
+                    <p className="text-[11px] text-red-700">{requestError}</p>
                     <button
                       type="button"
-                      onClick={() => setShowAdvancedFilters((prev) => !prev)}
-                      className="w-full min-h-[48px] h-12 px-3.5 py-2.5 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors"
+                      onClick={() => window.location.reload()}
+                      className="px-3.5 py-1.5 rounded-xl bg-red-600 text-white text-xs font-bold"
                     >
-                      <Filter className="w-4 h-4" />
-                      <span>Mais Filtros</span>
+                      Tentar Novamente
                     </button>
                   </div>
-                </div>
+                )}
 
-                {/* Expandable Multi-Filter Row */}
-                {showAdvancedFilters && (
-                  <div className="pt-3.5 border-t border-white/15 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-slate-900">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-blue-200 mb-1.5">
-                        Distrito
-                      </label>
-                      <select
-                        value={filters.district}
-                        onChange={(e) =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            district: e.target.value,
-                            neighborhood: '',
-                          }))
-                        }
-                        disabled={!filters.province}
-                        className="w-full min-h-[46px] px-3 py-2 rounded-xl bg-white text-xs sm:text-sm disabled:opacity-60"
+                {/* INTERFACE STATE 2: LOADING */}
+                {isLoadingData && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    {[1, 2, 3, 4].map((n) => (
+                      <div
+                        key={n}
+                        className="bg-white rounded-2xl p-3.5 border border-slate-200 animate-pulse space-y-2.5"
                       >
-                        <option value="">
-                          {filters.province ? 'Todos os Distritos' : 'Selecione a Província'}
-                        </option>
-                        {filterDistricts.map((d) => (
-                          <option key={d} value={d}>
-                            {d}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-blue-200 mb-1.5">
-                        Bairro
-                      </label>
-                      <select
-                        value={filters.neighborhood}
-                        onChange={(e) =>
-                          setFilters((prev) => ({ ...prev, neighborhood: e.target.value }))
-                        }
-                        disabled={!filters.district}
-                        className="w-full min-h-[46px] px-3 py-2 rounded-xl bg-white text-xs sm:text-sm disabled:opacity-60"
-                      >
-                        <option value="">
-                          {filters.district ? 'Todos os Bairros' : 'Selecione o Distrito'}
-                        </option>
-                        {filterNeighborhoods.map((n) => (
-                          <option key={n} value={n}>
-                            {n}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-blue-200 mb-1.5">
-                        Especialidade
-                      </label>
-                      <select
-                        value={filters.specialtyId}
-                        onChange={(e) =>
-                          setFilters((prev) => ({ ...prev, specialtyId: e.target.value }))
-                        }
-                        className="w-full min-h-[46px] px-3 py-2 rounded-xl bg-white text-xs sm:text-sm"
-                      >
-                        <option value="">Todas as Especialidades</option>
-                        {approvedPublicSpecialties.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.originalName}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-blue-200 mb-1.5">
-                        Tipo de Prestador
-                      </label>
-                      <select
-                        value={filters.profileType}
-                        onChange={(e) =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            profileType: e.target.value as ProfileType | 'all',
-                          }))
-                        }
-                        className="w-full min-h-[46px] px-3 py-2 rounded-xl bg-white text-xs sm:text-sm"
-                      >
-                        <option value="all">Todos os Tipos</option>
-                        <option value="independent">Profissional Independente</option>
-                        <option value="service_provider">Prestador de Serviços</option>
-                        <option value="street_vendor">Vendedor Ambulante / Móvel</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-blue-200 mb-1.5">
-                        Área de Cobertura
-                      </label>
-                      <select
-                        value={filters.coverageAreaType}
-                        onChange={(e) =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            coverageAreaType: e.target.value as CoverageAreaType | 'all',
-                          }))
-                        }
-                        className="w-full min-h-[46px] px-3 py-2 rounded-xl bg-white text-xs sm:text-sm"
-                      >
-                        <option value="all">Qualquer Cobertura</option>
-                        <option value="neighborhood">Bairro</option>
-                        <option value="district">Distrito</option>
-                        <option value="province">Província</option>
-                        <option value="selected_locations">Zonas Selecionadas</option>
-                      </select>
-                    </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-slate-200" />
+                          <div className="space-y-1.5 flex-1">
+                            <div className="h-3.5 bg-slate-200 rounded w-3/4" />
+                            <div className="h-3 bg-slate-200 rounded w-1/2" />
+                          </div>
+                        </div>
+                        <div className="h-8 bg-slate-100 rounded-xl" />
+                      </div>
+                    ))}
                   </div>
                 )}
-              </div>
 
-              {/* Filter Summary & Count Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-xs sm:text-sm font-bold text-[#0D316E] tabular-nums">
-                  {isLoadingData
-                    ? 'A pesquisar perfis publicados...'
-                    : `${filteredPublishedProfiles.length} ${
-                        filteredPublishedProfiles.length === 1
-                          ? 'profissional publicado encontrado'
-                          : 'profissionais publicados encontrados'
-                      }`}
-                </div>
+                {/* INTERFACE STATE 3: RESULTS FOUND */}
+                {!isLoadingData && filteredPublishedProfiles.length > 0 && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                      {filteredPublishedProfiles.slice(0, visibleCount).map((prof) => {
+                        const profServices = servicesByProfileId[prof.id] || [];
+                        const cleanWa = (prof.whatsapp || prof.phone).replace(/\D/g, '');
+                        const cleanTel = prof.phone.replace(/[^\d+]/g, '');
+                        const firstService = profServices[0];
 
-                {(filters.query ||
-                  filters.profileType !== 'all' ||
-                  filters.categoryId ||
-                  filters.specialtyId ||
-                  filters.province ||
-                  filters.district ||
-                  filters.neighborhood ||
-                  filters.coverageAreaType !== 'all' ||
-                  filters.deliveryMode !== 'all' ||
-                  filters.availabilityStatus !== 'all') && (
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="text-xs font-bold text-[#F97316] hover:underline flex items-center gap-1"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Limpar todos os filtros</span>
-                  </button>
-                )}
-              </div>
-
-              {/* INTERFACE STATE 1: REQUEST FAILED */}
-              {requestError && (
-                <div className="p-6 rounded-2xl bg-red-50 border border-red-200 text-center space-y-3">
-                  <AlertTriangle className="w-8 h-8 text-red-600 mx-auto" />
-                  <h3 className="text-sm font-extrabold text-red-900">
-                    Falha ao carregar dados da base de dados
-                  </h3>
-                  <p className="text-xs text-red-700">{requestError}</p>
-                  <button
-                    type="button"
-                    onClick={() => window.location.reload()}
-                    className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold"
-                  >
-                    Tentar Novamente
-                  </button>
-                </div>
-              )}
-
-              {/* INTERFACE STATE 2: LOADING */}
-              {isLoadingData && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[1, 2, 3].map((n) => (
-                    <div
-                      key={n}
-                      className="bg-white rounded-2xl p-5 border border-slate-200 animate-pulse space-y-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-14 h-14 rounded-full bg-slate-200" />
-                        <div className="space-y-2 flex-1">
-                          <div className="h-4 bg-slate-200 rounded w-3/4" />
-                          <div className="h-3 bg-slate-200 rounded w-1/2" />
-                        </div>
-                      </div>
-                      <div className="h-12 bg-slate-100 rounded-xl" />
-                      <div className="h-9 bg-slate-200 rounded-xl" />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* INTERFACE STATE 3: RESULTS FOUND */}
-              {!isLoadingData && filteredPublishedProfiles.length > 0 && (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {filteredPublishedProfiles.slice(0, visibleCount).map((prof) => {
-                      const profServices = servicesByProfileId[prof.id] || [];
-                      const cleanWa = (prof.whatsapp || prof.phone).replace(/\D/g, '');
-                      const cleanTel = prof.phone.replace(/[^\d+]/g, '');
-
-                      return (
-                        <article
-                          key={prof.id}
-                          className="bg-white rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between overflow-hidden"
-                        >
-                          <div className="p-5 space-y-3.5">
-                            {/* Card Top: Avatar + Name + Category + Availability */}
-                            <div className="flex items-start gap-3.5">
+                        return (
+                          <article
+                            key={prof.id}
+                            className="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md transition-shadow p-3 sm:p-3.5 flex flex-col justify-between gap-2.5"
+                          >
+                            {/* Card Top: Compact Avatar + Name + Category + Location + Status */}
+                            <div className="flex items-start gap-3">
                               <button
                                 type="button"
                                 onClick={() => handleConsultProfile(prof)}
-                                className="w-16 h-16 rounded-full border-2 border-[#0D316E] bg-blue-50 flex items-center justify-center overflow-hidden shrink-0"
+                                className="w-12 h-12 sm:w-13 sm:h-13 rounded-full border-2 border-[#0D316E] bg-blue-50 flex items-center justify-center overflow-hidden shrink-0"
                               >
                                 {prof.photoUrl ? (
                                   <img
@@ -2219,22 +2293,22 @@ export default function App() {
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
-                                  <Briefcase className="w-7 h-7 text-[#0D316E]" />
+                                  <Briefcase className="w-5 h-5 text-[#0D316E]" />
                                 )}
                               </button>
 
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0 space-y-0.5">
+                                <div className="flex items-center justify-between gap-1.5">
                                   <button
                                     type="button"
                                     onClick={() => handleConsultProfile(prof)}
-                                    className="text-left font-extrabold text-base text-[#0D316E] hover:text-[#F97316] transition-colors line-clamp-2"
+                                    className="text-left font-extrabold text-sm sm:text-base text-[#0D316E] hover:text-[#F97316] transition-colors truncate"
                                   >
                                     {prof.displayName}
                                   </button>
 
                                   <span
-                                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold shrink-0 ${
+                                    className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${
                                       prof.operationalState === 'on'
                                         ? 'bg-emerald-600 text-white'
                                         : prof.operationalState === 'off'
@@ -2246,12 +2320,12 @@ export default function App() {
                                   </span>
                                 </div>
 
-                                <div className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-1.5">
-                                  <span className="font-bold text-emerald-800">
+                                <div className="text-[11px] text-slate-600 flex flex-wrap items-center gap-1">
+                                  <span className="font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-md">
                                     {prof.primaryCategoryName}
                                   </span>
-                                  <span aria-hidden="true">·</span>
-                                  <span>
+                                  <span>·</span>
+                                  <span className="font-semibold text-slate-700">
                                     {prof.profileType === 'independent'
                                       ? 'Independente'
                                       : prof.profileType === 'service_provider'
@@ -2259,155 +2333,148 @@ export default function App() {
                                       : 'Ambulante'}
                                   </span>
                                   {prof.phoneVerified && (
-                                    <>
-                                      <span aria-hidden="true">·</span>
-                                      <span className="text-emerald-700 font-semibold">
-                                        Verificado
-                                      </span>
-                                    </>
+                                    <span className="text-emerald-700 font-bold">· Verificado</span>
                                   )}
                                 </div>
 
-                                <div className="flex items-center gap-1 text-xs font-semibold text-[#0D316E] mt-1">
-                                  <MapPin className="w-3.5 h-3.5 text-[#F97316] shrink-0" />
-                                  <span className="truncate">
-                                    {prof.neighborhood}, {prof.district} ({prof.province})
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {prof.description && (
-                              <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                                {prof.description}
-                              </p>
-                            )}
-
-                            {/* Individual Services Preview */}
-                            {profServices.length > 0 && (
-                              <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                                <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
-                                  <Wrench className="w-3 h-3 text-[#0D316E]" />
-                                  <span>Serviços Registados ({profServices.length}):</span>
-                                </div>
-                                {profServices.slice(0, 2).map((srv) => (
-                                  <div
-                                    key={srv.id}
-                                    className="flex items-center justify-between text-xs bg-slate-50 px-2.5 py-1.5 rounded-lg"
-                                  >
-                                    <span className="font-semibold text-slate-800 truncate pr-2">
-                                      {srv.serviceName}
-                                    </span>
-                                    <span className="font-mono font-bold text-[#0D316E] shrink-0">
-                                      {srv.hasFixedPrice && srv.price > 0
-                                        ? `${srv.price.toLocaleString('pt-MZ')} MT`
-                                        : 'Sob consulta'}
+                                <div className="flex items-center justify-between gap-2 text-[11px] pt-0.5">
+                                  <div className="flex items-center gap-1 font-semibold text-[#0D316E] min-w-0">
+                                    <MapPin className="w-3 h-3 text-[#F97316] shrink-0" />
+                                    <span className="truncate">
+                                      {prof.neighborhood}, {prof.district} ({prof.province})
                                     </span>
                                   </div>
-                                ))}
+
+                                  <div className="flex items-center gap-1 text-slate-500 shrink-0">
+                                    <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                                    <span className="truncate max-w-[95px]">
+                                      {prof.workingDaysSummary}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Compact Service / Description Strip */}
+                            {(firstService || prof.description) && (
+                              <div className="bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-2 text-[11px]">
+                                {firstService ? (
+                                  <>
+                                    <span className="font-bold text-slate-700 truncate flex items-center gap-1">
+                                      <Wrench className="w-3 h-3 text-[#0D316E] shrink-0" />
+                                      <span className="truncate">{firstService.serviceName}</span>
+                                      {profServices.length > 1 && (
+                                        <span className="text-slate-400 font-semibold shrink-0">
+                                          +{profServices.length - 1}
+                                        </span>
+                                      )}
+                                    </span>
+                                    <span className="font-mono font-extrabold text-[#0D316E] shrink-0">
+                                      {firstService.hasFixedPrice && firstService.price > 0
+                                        ? `${firstService.price.toLocaleString('pt-MZ')} MT`
+                                        : 'Sob consulta'}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-slate-600 truncate">{prof.description}</span>
+                                )}
                               </div>
                             )}
 
-                            <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
-                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span className="truncate">{prof.workingDaysSummary}</span>
+                            {/* Compact Action Bar */}
+                            <div className="grid grid-cols-3 gap-1.5 pt-0.5">
+                              <a
+                                href={`https://wa.me/${cleanWa}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="h-8 sm:h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold flex items-center justify-center gap-1 transition-colors"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                                <span>WhatsApp</span>
+                              </a>
+
+                              <a
+                                href={`tel:${cleanTel}`}
+                                className="h-8 sm:h-9 rounded-xl bg-[#0D316E] hover:bg-[#092452] text-white text-xs font-extrabold flex items-center justify-center gap-1 transition-colors"
+                              >
+                                <Phone className="w-3.5 h-3.5 shrink-0" />
+                                <span>Ligar</span>
+                              </a>
+
+                              <button
+                                type="button"
+                                onClick={() => handleConsultProfile(prof)}
+                                className="h-8 sm:h-9 rounded-xl bg-white border border-[#0D316E] hover:bg-blue-50 text-[#0D316E] text-xs font-extrabold flex items-center justify-center transition-colors"
+                              >
+                                <span>Ver Perfil</span>
+                              </button>
                             </div>
-                          </div>
-
-                          {/* Card Footer Actions */}
-                          <div className="p-3 bg-slate-50 border-t border-slate-200 grid grid-cols-3 gap-2">
-                            <a
-                              href={`https://wa.me/${cleanWa}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="min-h-[38px] rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1 transition-colors"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5" />
-                              <span>Chat</span>
-                            </a>
-
-                            <a
-                              href={`tel:${cleanTel}`}
-                              className="min-h-[38px] rounded-lg bg-[#0D316E] hover:bg-[#092452] text-white text-xs font-bold flex items-center justify-center gap-1 transition-colors"
-                            >
-                              <Phone className="w-3.5 h-3.5" />
-                              <span>Ligar</span>
-                            </a>
-
-                            <button
-                              type="button"
-                              onClick={() => handleConsultProfile(prof)}
-                              className="min-h-[38px] rounded-lg bg-white border border-[#0D316E] hover:bg-blue-50 text-[#0D316E] text-xs font-bold flex items-center justify-center transition-colors"
-                            >
-                              Ver Perfil
-                            </button>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-
-                  {/* Incremental Pagination Button */}
-                  {filteredPublishedProfiles.length > visibleCount && (
-                    <div className="text-center pt-4">
-                      <button
-                        type="button"
-                        onClick={() => setVisibleCount((prev) => prev + 12)}
-                        className="px-6 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-[#0D316E] font-bold text-xs shadow-xs"
-                      >
-                        Carregar mais profissionais (
-                        {filteredPublishedProfiles.length - visibleCount} restantes)
-                      </button>
+                          </article>
+                        );
+                      })}
                     </div>
-                  )}
-                </>
-              )}
 
-              {/* INTERFACE STATE 4: NO RESULTS */}
-              {!isLoadingData && filteredPublishedProfiles.length === 0 && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center max-w-xl mx-auto space-y-4 shadow-xs">
-                  <Briefcase className="w-10 h-10 text-[#0D316E] mx-auto" />
-                  <div className="space-y-1">
-                    <h3 className="text-base font-extrabold text-[#0D316E]">
-                      {publishedProfiles.length === 0
-                        ? 'Ainda Não Existem Perfis Publicados no Diretório'
-                        : 'Nenhum profissional corresponde aos filtros selecionados'}
-                    </h3>
-                    <p className="text-xs text-slate-600">
-                      {publishedProfiles.length === 0
-                        ? 'Registe o primeiro perfil profissional ou serviço para iniciar o catálogo público no MozFácil.'
-                        : 'Tente ajustar a pesquisa, mudar de distrito ou limpar os filtros ativos.'}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                    {publishedProfiles.length === 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!firebaseUser) {
-                            handleLogin();
-                          } else {
-                            navigateTo('register_edit', { editingProfileId: null });
-                          }
-                        }}
-                        className="min-h-[42px] px-4 py-2 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold flex items-center gap-1.5"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>Criar Perfil Profissional</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleResetFilters}
-                        className="px-4 py-2 rounded-xl bg-[#0D316E] text-white text-xs font-bold"
-                      >
-                        Limpar Filtros de Pesquisa
-                      </button>
+                    {/* Incremental Pagination Button */}
+                    {filteredPublishedProfiles.length > visibleCount && (
+                      <div className="text-center pt-1 pb-2">
+                        <button
+                          type="button"
+                          onClick={() => setVisibleCount((prev) => prev + 12)}
+                          className="px-5 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-[#0D316E] font-extrabold text-xs shadow-xs"
+                        >
+                          Carregar mais ({filteredPublishedProfiles.length - visibleCount} restantes)
+                        </button>
+                      </div>
                     )}
+                  </>
+                )}
+
+                {/* INTERFACE STATE 4: NO RESULTS */}
+                {!isLoadingData && filteredPublishedProfiles.length === 0 && (
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 text-center max-w-md mx-auto space-y-3 shadow-xs my-2">
+                    <Briefcase className="w-8 h-8 text-[#0D316E] mx-auto" />
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-extrabold text-[#0D316E]">
+                        {publishedProfiles.length === 0
+                          ? 'Ainda Não Existem Perfis Publicados'
+                          : 'Nenhum profissional corresponde aos filtros'}
+                      </h3>
+                      <p className="text-xs text-slate-600">
+                        {publishedProfiles.length === 0
+                          ? 'Registe o primeiro perfil profissional ou serviço para iniciar o catálogo público.'
+                          : 'Tente ajustar a pesquisa, mudar de província ou limpar os filtros ativos.'}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                      {publishedProfiles.length === 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!firebaseUser) {
+                              handleLogin();
+                            } else {
+                              navigateTo('register_edit', { editingProfileId: null });
+                            }
+                          }}
+                          className="h-9 px-4 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-extrabold flex items-center gap-1.5"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>Criar Perfil Profissional</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleResetFilters}
+                          className="h-9 px-4 rounded-xl bg-[#0D316E] text-white text-xs font-extrabold"
+                        >
+                          Limpar Filtros
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
 
@@ -2447,34 +2514,36 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Status Filter Tabs for My Profiles */}
-              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-white border border-slate-200 rounded-xl w-fit">
-                {(
-                  [
-                    { id: 'all', label: `Todos (${myProfileCounts.all})` },
-                    { id: 'published', label: `Publicados (${myProfileCounts.published})` },
-                    {
-                      id: 'pending_review',
-                      label: `Em Revisão (${myProfileCounts.pending_review})`,
-                    },
-                    { id: 'draft', label: `Rascunhos (${myProfileCounts.draft})` },
-                    { id: 'rejected', label: `Rejeitados (${myProfileCounts.rejected})` },
-                    { id: 'suspended', label: `Suspensos (${myProfileCounts.suspended})` },
-                  ] as const
-                ).map((st) => (
-                  <button
-                    key={st.id}
-                    type="button"
-                    onClick={() => setMyProfilesFilter(st.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap shrink-0 ${
-                      myProfilesFilter === st.id
-                        ? 'bg-[#0D316E] text-white shadow-xs'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    {st.label}
-                  </button>
-                ))}
+              {/* Horizontally Scrollable Status Filter Carousel for My Profiles */}
+              <div className="bg-white border border-slate-200 rounded-xl p-1.5 overflow-x-auto no-scrollbar scroll-smooth">
+                <div className="flex items-center gap-1.5 min-w-max">
+                  {(
+                    [
+                      { id: 'all', label: `Todos (${myProfileCounts.all})` },
+                      { id: 'published', label: `Publicados (${myProfileCounts.published})` },
+                      {
+                        id: 'pending_review',
+                        label: `Em Revisão (${myProfileCounts.pending_review})`,
+                      },
+                      { id: 'draft', label: `Rascunhos (${myProfileCounts.draft})` },
+                      { id: 'rejected', label: `Rejeitados (${myProfileCounts.rejected})` },
+                      { id: 'suspended', label: `Suspensos (${myProfileCounts.suspended})` },
+                    ] as const
+                  ).map((st) => (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => setMyProfilesFilter(st.id)}
+                      className={`min-h-[38px] px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all whitespace-nowrap shrink-0 active:scale-[0.98] ${
+                        myProfilesFilter === st.id
+                          ? 'bg-[#0D316E] text-white shadow-xs'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {st.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {requestError && (

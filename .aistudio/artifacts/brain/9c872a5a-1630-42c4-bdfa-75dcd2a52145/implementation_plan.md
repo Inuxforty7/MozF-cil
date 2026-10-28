@@ -1,64 +1,49 @@
-# Plano de Implementação: Lógica de Créditos, Pacotes de Acesso e Engajamento Visual (MozFácil)
+# Plano de Melhorias — Navegação Mobile, Cartões, Ecrãs e Design System (MozFácil)
 
-## 1. Diagnóstico e Eliminação de Contradições
-
-Atualmente, a aplicação apresenta inconsistências face ao modelo oficial das imagens de referência:
-- **Contradição no Saldo Inicial**: O código atribui `100 créditos` automáticos no registo (`INITIAL_WELCOME_CREDITS: 100`), contradizendo diretamente a regra **"O cadastro não gera recompensa"** e desvalorizando o pacote pago de **100 créditos = 30 dias (100 MT)**.
-- **Contradição no Modelo de Consulta**: O código cobra avulso sem noção de pacotes temporais, enquanto o modelo oficial oferece **Pacotes de Acesso por Tempo** (`1 crédito = 2 horas`, `5 créditos = 24 horas`, `30 créditos = 7 dias`, `100 créditos = 30 dias`) para pessoas registadas e **Contacto Directo Emergente** (`50 créditos = 50 MT`) para pessoas registadas e não registadas.
-- **Contradição na Linha do Cliente**: O botão **Linha do Cliente** na página inicial abre o WhatsApp para qualquer visitante sem verificar registo, contradizendo a regra **"Apenas para pessoas registadas"**.
-- **Excesso de Texto nos Modais e Termos**: O modal atual de `Informação ao Utente` e a secção de termos do cadastro utilizam parágrafos longos que não seguem o design limpo, escaneável e orientado ao benefício das imagens fornecidas.
-
----
-
-## 2. Arquitetura da Nova Lógica de Créditos (`src/constants.ts`, `src/types.ts`, `src/App.tsx`)
-
-### 2.1. Configuração Oficial de Preços e Pacotes (`PRICING_CONFIG`)
-- **`INITIAL_WELCOME_CREDITS: 0`**: Novos cadastros iniciam com `0 créditos`, respeitando estritamente que o registo de empresas, profissionais, serviços e utentes é **100% GRATUITO**, mas não gera créditos gratuitos de recompensa.
-- **Tabela de Pacotes de Acesso (`CREDIT_PACKAGES`)**:
-  - **2 Horas (`1 crédito = 1 MT`)**: Ideal para 1 consulta rápida imediata.
-  - **24 Horas (`5 créditos = 5 MT`)**: Acesso durante todo o dia (*Poupança de 58% por hora*).
-  - **7 Dias (`30 créditos = 30 MT`)**: Selo **"Popular · ~4,2 MT/dia"** para pesquisas semanais.
-  - **30 Dias (`100 créditos = 100 MT`)**: Selo **"Melhor Valor · ~3,3 MT/dia"** para acesso mensal contínuo.
-- **Contacto Directo Emergente (`50 créditos = 50 MT`)**:
-  - Chamada telefónica prioritária para casos urgentes que exigem orientação imediata, disponível para pessoas registadas e não registadas.
-- **Passe de Acesso Ativo (`activePassExpiresAt`)**:
-  - Ao ativar um pacote de tempo ou usar créditos numa Consulta Normal, o utente fica com acesso ativo durante a janela temporal correspondente (ex.: 2h, 24h, 7 dias ou 30 dias), visualizando um contador claro do tempo restante e sentindo o benefício imediato do pacote escolhido.
+## 1. Diagnóstico e Objetivos
+Com base na análise da captura de ecrã enviada e nas suas escolhas de navegação mobile, identificámos os seguintes pontos críticos de usabilidade no telemóvel (360px–430px):
+- **Cabeçalho Superior Apertado**: No ecrã de *Registo de Empresa ou Instituição*, o botão `Voltar`, o título `Registo de Empresa ou In...` e o selo `Passo 1 de 5` colidem horizontalmente sem espaçamento (`gap`), cortando o título e partindo o indicador de passo em duas linhas.
+- **Abas de Passos Cortadas (`grid-cols-5`)**: A grelha fixa de 5 colunas força cada etapa a ocupar apenas 20% da largura do ecrã, truncando todos os nomes (`1. Identi...`, `2. Conta...`, `3. Locali...`, `4. Fotos ...`, `5. Horári...`).
+- **Navegação entre Etapas e Cartões**: Falta um carrossel horizontal deslizável com os nomes completos de cada etapa, auto-scroll suave para a etapa ativa e uma **barra fixa inferior ergonómica** com os botões `Anterior` e `Próximo Passo` / `Publicar` na zona natural do polegar.
+- **Consistência de Cartões e Ecrãs de Detalhe / Exploração**: Os ecrãs de *Registo de Profissional*, *Perfil da Empresa*, *Perfil do Profissional*, *Meus Perfis* e *Explore* precisam de cabeçalhos padronizados (com botão de retorno de 44×44px, título nítido e badge de estado alinhado), cartões com hierarquia visual limpa e espaçamento inferior seguro para não colidir com a navegação fixa.
 
 ---
 
-## 3. Redesign Visual e Interativo de "Informação ao Utente" (`src/components/HomeAndSidebar.tsx`)
-
-Fiel às 3 imagens de referência, com micro-interações que incentivam a conversão sem blocos de texto cansativos:
-
-1. **Cabeçalho Azul Institucional (`#0f2d52`)**:
-   - Ícone circular laranja (`#f97316`), título **"Informação ao Utente"** e subtítulo **"Canais de apoio e custos de utilização"**.
-2. **Cartão 1 — Registo de empresas, profissionais e serviços**:
-   - Destaque **`100% GRATUITO`** em laranja vibrante + frase curta *"Cadastre-se e comece a divulgar os seus produtos e serviços na MozFácil."*
-3. **Cartão 2 — Linha do Cliente**:
-   - Destaque **`Via WhatsApp · GRÁTIS`** + *"Apoio geral e esclarecimentos sobre o uso da plataforma. Apenas para pessoas registadas."*
-   - Interativo: se o utilizador já estiver registado/autenticado, permite abrir diretamente o canal; se não estiver, encaminha de imediato para o registo gratuito.
-4. **Secção — Consulta Normal (`Por SMS ou voz`)**:
-   - Banner creme/laranja suave com ícone de moedas: **`1 crédito = 1 MT`** (*"As consultas são efectuadas através de créditos. Cada crédito corresponde a 1 metical (MT)."*).
-   - **4 Cartões de Pacotes Interativos**:
-     - `1 crédito` — `2 horas`
-     - `5 créditos` — `24 horas`
-     - `30 créditos` — `7 dias` *(destaque visual de vantagem)*
-     - `100 créditos` — `30 dias` *(destaque Melhor Benefício)*
-   - Ao clicar num dos 4 pacotes, o cartão fica selecionado com feedback visual nítido, mostra o resumo do benefício (custo diário/horário e vantagem) e disponibiliza o botão rápido de ativação/recarga (para utentes autenticados) ou de criação de conta (para visitantes).
-5. **Cartão — Contacto Directo**:
-   - Ícone de chamada + descrição concisa de atendimento prioritário/emergente + badge **`50 créditos = 50 MT`** + nota *"Disponível para pessoas registadas e não registadas"* com botão de acionamento direto.
-6. **Cartão — Indique e Ganhe**:
-   - Ícone de presente em caixa creme + título **"Indique e Ganhe"** + texto fiel: *"Partilhe o seu link. Quando a pessoa indicada fizer a primeira consulta paga, recebe créditos equivalentes ao valor elegível. O cadastro não gera recompensa."*
-   - Inclui botão prático para **Copiar Link / Partilhar no WhatsApp** com o código pessoal do utente (ou convite para criar conta se visitante).
-7. **Rodapé de Ação**:
-   - Botão primário escuro **`Cadastre-se Agora`** (ou **`Recarregar / Ativar Pacote`** se já autenticado) e botão secundário **`Fechar`**.
+## 2. Garantias de Preservação (Zero Alteração de Lógica)
+- **100% da lógica original preservada**: Todos os campos, validações de NUIT/telefone (+258), OTP SMS Firebase, captura de coordenadas GPS, upload/compressão de imagens, documentos privados, horários semanais, serviços e gravação no Firestore permanecem intocados.
+- **Paleta Oficial MozFácil**: Azul Marinho Institucional (`#071F4A`, `#0D316E`, `#1E4B9B`), Laranja de Destaque (`#EA580C`, `#F97316`), Verde Esmeralda para estados ativos/verificados (`#059669`) e superfícies neutras (`#F8FAFC` / `#FFFFFF`).
 
 ---
 
-## 4. Alinhamento em Toda a Aplicação (Zero Contradições)
+## 3. Melhorias Planeadas por Área
 
-- **Botão "Linha do Cliente" na Home (`HomeAndSidebar.tsx`)**:
-  - Verifica se o utilizador está autenticado. Caso não esteja, apresenta um aviso elegante e direto explicando que a **Linha do Cliente (WhatsApp · GRÁTIS)** é exclusiva para pessoas registadas, com botões para **Entrar** ou **Cadastrar-se Gratuitamente**, além da opção de **Contacto Directo Emergente (50 MT)** para não registados.
-- **Painel da Conta do Utente e Modal de Consulta (`ProfileAndAdmin.tsx`, `AuthModals.tsx`)**:
-  - No painel do utente (`Minha Conta`), exibir o saldo de créditos, o estado do pacote ativo, o seletor interativo para recarregar pacotes (`1, 5, 30 ou 100 MT`) e o cartão **Indique e Ganhe** com código/link único partilhável em 1 clique.
-  - No modal de Termos e Condições (`AuthModals.tsx`), atualizar a cláusula de créditos e benefícios para refletir exatamente os pacotes (`1, 5, 30, 100 créditos`), o Contacto Directo (`50 créditos`) e a regra do Indique e Ganhe sem qualquer promessa contraditória de 100 créditos grátis no registo.
+### A. Registo e Edição de Empresa / Instituição (`src/components/CompanyRegistrationForm.tsx`)
+1. **Cabeçalho Mobile Desafogado (App Bar)**:
+   - Botão `Voltar` com área de toque mínima de `40x40px` (`rounded-xl bg-white/10 hover:bg-white/20`), separado do título com espaçamento generoso (`gap-3`).
+   - Título estruturado em 2 linhas limpas ou subtítulo contextual + badge `Passo X de 5` compacto (`whitespace-nowrap shrink-0`) e barra visual de progresso linear (`20%` a `100%`) na base do cabeçalho.
+2. **Carrossel Horizontal Deslizável com Nomes Completos dos 5 Passos**:
+   - Substituir o `grid-cols-5` truncado por um **carrossel horizontal deslizável (`overflow-x-auto no-scrollbar scroll-smooth`)** onde cada passo exibe o ícone, número, **nome completo sem cortes** (`1. Identificação`, `2. Contacto`, `3. Localização`, `4. Fotos e Documentos`, `5. Horários e Serviços`) e indicador visual de etapa concluída/ativa.
+   - Sincronizar o scroll horizontal automaticamente para manter o passo ativo centrado no ecrã ao avançar ou recuar.
+3. **Cartões de Formulário e Barra Fixa Inferior (`Anterior` / `Próximo Passo`)**:
+   - Organizar os grupos de campos em cartões claros (`rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs`).
+   - Adicionar **barra de navegação fixa inferior** (`sticky bottom-0 z-20 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-[0_-4px_16px_rgba(13,49,110,0.08)]`) com botões ergonómicos (`min-h-[46px]`):
+     - Passos 1 a 4: Botão `Anterior` + indicador central de etapa + botão primário `Próximo Passo →`.
+     - Passo 5: Botão `Anterior` + `Guardar Rascunho` + CTA principal `Publicar Empresa`.
+
+### B. Registo e Edição de Profissional / Serviço (`src/components/ProfessionalRegistrationForm.tsx`)
+1. **Navegação Rápida por Passos em Carrossel Horizontal**:
+   - Adicionar barra de navegação das 5 secções em **carrossel horizontal deslizável com nomes completos** (`1. Identificação`, `2. Contacto e SMS`, `3. Localização e GPS`, `4. Estado e Horário`, `5. Serviços e Fotos`), permitindo alternar entre visualização passo a passo (modo assistente focado no mobile) ou visão completa, evitando scroll excessivo no telemóvel.
+2. **Cabeçalho e Barra Fixa Inferior**:
+   - Uniformizar o cabeçalho com o mesmo padrão do Design System MozFácil e adicionar a **barra fixa inferior** com `Anterior` / `Próximo Passo` e ações de publicação (`Criar Perfil Gratuito`, `Rascunho`, `Submeter à Revisão`).
+
+### C. Perfis Detalhados de Empresa e Profissional (`src/components/CompanyProfileDetail.tsx` & `src/components/ProfessionalProfileDetail.tsx`)
+1. **App Bar de Detalhe e Cartão de Identidade**:
+   - Cabeçalho superior sticky com botão `Voltar` ergonómico, título sem truncamento abrupto e botão `Editar Perfil` bem destacado.
+   - Cartão principal de identidade com logótipo/avatar, selos de verificação (`Verificado`, `NUIT`, `Categoria`) bem alinhados com `flex-wrap` e sem sobreposição em ecrãs estreitos.
+2. **Barra de Ações Rápidas (Chat WhatsApp, Ligar, Ver no Mapa)**:
+   - Botões de contacto rápido com altura mínima `46px`, ícones claros e feedback tátil (`active:scale-[0.98]`), mantendo a leitura limpa dos cartões de Horários, Serviços/Departamentos, Galeria de Fotos e Vídeo Institucional.
+
+### D. Ecrã Explore, Meus Perfis e Contentor Principal (`src/components/ExploreModulesScreen.tsx` & `src/App.tsx`)
+1. **Fluxo de Exploração e Transição entre Ecrãs**:
+   - Garantir que todas as vistas de formulário, detalhe, `Meus Perfis` e `Explore` têm espaçamento inferior adequado (`pb-24`) para que a barra de navegação principal da aplicação (`Início`, `Empresas`, `Profissionais`, `Mais`) nunca cubra botões ou cartões.
+   - Melhorar o cabeçalho e os filtros de estado em `Meus Perfis` com carrossel horizontal deslizável de filtros (`Todos`, `Publicados`, `Em Revisão`, `Rascunhos`, `Rejeitados`) e cartões de gestão mais limpos no mobile.

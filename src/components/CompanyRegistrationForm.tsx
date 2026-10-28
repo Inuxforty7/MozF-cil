@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Building2,
   MapPin,
@@ -10,6 +10,8 @@ import {
   Save,
   Send,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Briefcase,
   Image as ImageIcon,
@@ -111,6 +113,18 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const stepTabRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+
+  useEffect(() => {
+    const activeBtn = stepTabRefs.current[activeStep];
+    if (activeBtn) {
+      activeBtn.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
+  }, [activeStep]);
 
   // Section 1: Identification
   const [tradeName, setTradeName] = useState(initialCompany?.tradeName || '');
@@ -491,48 +505,92 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
     }
   };
 
+  const companySteps = [
+    { num: 1, title: 'Identificação Institucional', shortLabel: 'Identificação' },
+    { num: 2, title: 'Contacto e Responsável', shortLabel: 'Contacto e SMS' },
+    { num: 3, title: 'Localização e GPS', shortLabel: 'Localização e GPS' },
+    { num: 4, title: 'Fotos e Documentos', shortLabel: 'Fotos e Documentos' },
+    { num: 5, title: 'Horários e Serviços', shortLabel: 'Horários e Serviços' },
+  ];
+
+  const currentStepMeta = companySteps.find((s) => s.num === activeStep) || companySteps[0];
+
   return (
-    <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#071F4A] via-[#0D316E] to-[#1E4B9B] p-4 sm:p-5 text-white flex items-center justify-between">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white hover:text-orange-300 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Voltar</span>
-        </button>
-        <h2 className="text-sm sm:text-base font-black truncate">
-          {initialCompany ? 'Editar Empresa / Instituição' : 'Registo de Empresa ou Instituição'}
-        </h2>
-        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-orange-200">
-          Passo {activeStep} de 5
-        </span>
+    <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-20 sm:mb-8">
+      {/* Structured Mobile-First Top App Bar */}
+      <div className="bg-gradient-to-r from-[#071F4A] via-[#0D316E] to-[#1E4B9B] px-3.5 sm:px-5 pt-3.5 pb-3 text-white border-b border-blue-900/80">
+        <div className="flex items-center justify-between gap-2.5">
+          <button
+            type="button"
+            onClick={onBack}
+            className="min-h-[40px] px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-[0.98] border border-white/15 flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-white transition-all shrink-0"
+            aria-label="Voltar"
+          >
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span>Voltar</span>
+          </button>
+
+          <div className="min-w-0 flex-1 text-center px-1">
+            <h2 className="text-sm sm:text-base font-black text-white leading-tight truncate">
+              {initialCompany ? 'Editar Empresa / Instituição' : 'Registo de Empresa ou Instituição'}
+            </h2>
+            <p className="text-[11px] text-blue-200 font-semibold truncate mt-0.5">
+              {currentStepMeta.title}
+            </p>
+          </div>
+
+          <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-[#EA580C] text-white whitespace-nowrap shrink-0 shadow-2xs tabular-nums">
+            Passo {activeStep} de 5
+          </span>
+        </div>
+
+        {/* Linear Step Progress Bar */}
+        <div className="mt-2.5 h-1.5 w-full bg-white/15 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-[#F97316] to-[#FB923C] rounded-full transition-all duration-300"
+            style={{ width: `${(activeStep / 5) * 100}%` }}
+          />
+        </div>
       </div>
 
-      {/* Progress Tabs */}
-      <div className="grid grid-cols-5 border-b border-slate-200 text-center text-xs font-bold divide-x divide-slate-200 bg-slate-50">
-        {[
-          { num: 1, label: '1. Identificação' },
-          { num: 2, label: '2. Contacto' },
-          { num: 3, label: '3. Localização' },
-          { num: 4, label: '4. Fotos e Docs' },
-          { num: 5, label: '5. Horários' },
-        ].map((s) => (
-          <button
-            key={s.num}
-            type="button"
-            onClick={() => setActiveStep(s.num)}
-            className={`py-2.5 px-1 truncate transition-colors ${
-              activeStep === s.num
-                ? 'bg-white text-[#0D316E] border-b-2 border-[#0D316E] font-black'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            {s.label}
-          </button>
-        ))}
+      {/* Horizontal Scrollable Step Carousel with Full Step Names */}
+      <div className="bg-slate-50 border-b border-slate-200 px-3 py-2.5 overflow-x-auto no-scrollbar scroll-smooth">
+        <div className="flex items-center gap-2 min-w-max">
+          {companySteps.map((s) => {
+            const isActive = activeStep === s.num;
+            const isCompleted = s.num < activeStep;
+            return (
+              <button
+                key={s.num}
+                ref={(el) => {
+                  stepTabRefs.current[s.num] = el;
+                }}
+                type="button"
+                onClick={() => setActiveStep(s.num)}
+                className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap shrink-0 flex items-center gap-2 transition-all active:scale-[0.98] ${
+                  isActive
+                    ? 'bg-[#0D316E] text-white shadow-xs ring-2 ring-[#0D316E]/20'
+                    : isCompleted
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100/70'
+                    : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <span
+                  className={`w-5 h-5 rounded-full text-[11px] font-black flex items-center justify-center shrink-0 tabular-nums ${
+                    isActive
+                      ? 'bg-[#F97316] text-white'
+                      : isCompleted
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  {isCompleted ? '✓' : s.num}
+                </span>
+                <span>{s.shortLabel}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Alerts */}
@@ -1269,53 +1327,64 @@ export const CompanyRegistrationForm: React.FC<CompanyRegistrationFormProps> = (
           </div>
         )}
 
-        {/* Navigation & Submission Controls */}
-        <div className="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2.5">
-          <div>
-            {activeStep > 1 && (
-              <button
-                type="button"
-                onClick={() => setActiveStep((prev) => prev - 1)}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
-              >
-                Anterior
-              </button>
-            )}
-          </div>
+      </div>
 
-          <div className="flex items-center gap-2">
-            {activeStep < 5 ? (
-              <button
-                type="button"
-                onClick={() => setActiveStep((prev) => prev + 1)}
-                className="px-5 py-2.5 rounded-xl bg-[#0D316E] hover:bg-[#092452] text-white text-xs font-black transition-colors"
-              >
-                Próximo Passo
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => handleSubmit('draft')}
-                  className="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold flex items-center gap-1.5 transition-colors"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Guardar Rascunho</span>
-                </button>
+      {/* Sticky Bottom Navigation & Submission Bar */}
+      <div className="sticky bottom-[68px] sm:bottom-0 z-20 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-[0_-4px_16px_rgba(13,49,110,0.08)] flex items-center justify-between gap-2.5">
+        <div>
+          {activeStep > 1 ? (
+            <button
+              type="button"
+              onClick={() => setActiveStep((prev) => Math.max(1, prev - 1))}
+              className="min-h-[44px] px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 text-xs sm:text-sm font-extrabold flex items-center gap-1.5 transition-all"
+            >
+              <ChevronLeft className="w-4 h-4 shrink-0" />
+              <span>Anterior</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onBack}
+              className="min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-600 text-xs font-bold flex items-center gap-1.5 transition-all"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+              <span>Cancelar</span>
+            </button>
+          )}
+        </div>
 
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => handleSubmit('published')}
-                  className="px-5 py-2.5 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] text-white text-xs font-black flex items-center gap-1.5 transition-colors shadow-sm"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{isSubmitting ? 'A Gravar...' : 'Publicar Empresa'}</span>
-                </button>
-              </>
-            )}
-          </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => handleSubmit('draft')}
+            className="min-h-[44px] px-3 sm:px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 active:scale-[0.98] text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
+            title="Guardar progresso como rascunho"
+          >
+            <Save className="w-3.5 h-3.5 text-[#0D316E] shrink-0" />
+            <span className="hidden min-[380px]:inline">Rascunho</span>
+          </button>
+
+          {activeStep < 5 ? (
+            <button
+              type="button"
+              onClick={() => setActiveStep((prev) => Math.min(5, prev + 1))}
+              className="min-h-[44px] px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0D316E] to-[#1E4B9B] hover:from-[#092452] hover:to-[#0D316E] active:scale-[0.98] text-white text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all shadow-sm"
+            >
+              <span>Próximo Passo</span>
+              <ChevronRight className="w-4 h-4 shrink-0" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit('published')}
+              className="min-h-[44px] px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] active:scale-[0.98] text-white text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all shadow-md disabled:opacity-50"
+            >
+              <Send className="w-4 h-4 shrink-0" />
+              <span>{isSubmitting ? 'A Gravar...' : 'Publicar Empresa'}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

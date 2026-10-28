@@ -146,27 +146,36 @@ export const CompanyProfileDetail: React.FC<CompanyProfileDetailProps> = ({
   const visiblePhotos = showAllPhotos ? media : media.slice(0, 2);
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-      {/* Top Header Bar */}
-      <div className="bg-gradient-to-b from-[#071F4A] via-[#0B2B64] to-[#0E3578] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-blue-900">
+    <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-20 sm:mb-8">
+      {/* Structured Mobile Top App Bar */}
+      <div className="sticky top-0 z-20 bg-gradient-to-r from-[#071F4A] via-[#0D316E] to-[#1E4B9B] text-white px-3.5 sm:px-6 py-3 flex items-center justify-between gap-2.5 border-b border-blue-900 shadow-xs">
         <button
           type="button"
           onClick={onBack}
-          className="min-h-[38px] flex items-center gap-2 text-sm font-bold text-white hover:text-orange-300 transition-colors"
+          className="min-h-[40px] px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-[0.98] border border-white/15 flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-white transition-all shrink-0"
+          aria-label="Voltar"
         >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-base font-extrabold">Perfil da Entidade</span>
+          <ArrowLeft className="w-4 h-4 shrink-0" />
+          <span>Voltar</span>
         </button>
 
-        {canManage && (
+        <div className="min-w-0 flex-1 text-center px-1">
+          <span className="text-sm sm:text-base font-black text-white truncate block">
+            Perfil da Entidade
+          </span>
+        </div>
+
+        {canManage ? (
           <button
             type="button"
             onClick={onEdit}
-            className="min-h-[36px] px-3 py-1.5 rounded-lg bg-[#EA580C] hover:bg-[#C2410C] text-white text-xs font-extrabold flex items-center gap-1.5 transition-colors shadow-xs"
+            className="min-h-[40px] px-3 py-1.5 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] active:scale-[0.98] text-white text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-xs shrink-0"
           >
-            <Edit3 className="w-3.5 h-3.5" />
-            <span>Editar Perfil</span>
+            <Edit3 className="w-3.5 h-3.5 shrink-0" />
+            <span>Editar</span>
           </button>
+        ) : (
+          <div className="w-16 shrink-0" aria-hidden="true" />
         )}
       </div>
 
@@ -378,7 +387,7 @@ export const CompanyProfileDetail: React.FC<CompanyProfileDetailProps> = ({
             href={`https://wa.me/${cleanWhatsappDigits}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="min-h-[44px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+            className="min-h-[46px] rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs transition-all"
           >
             <MessageCircle className="w-4 h-4 shrink-0" />
             <span>Chat Grátis</span>
@@ -386,7 +395,7 @@ export const CompanyProfileDetail: React.FC<CompanyProfileDetailProps> = ({
 
           <a
             href={`tel:${cleanPhoneDigits}`}
-            className="min-h-[44px] rounded-xl bg-[#0D316E] hover:bg-[#092452] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+            className="min-h-[46px] rounded-xl bg-[#0D316E] hover:bg-[#092452] active:scale-[0.98] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs transition-all"
           >
             <Phone className="w-4 h-4 shrink-0" />
             <span>Ligar</span>
@@ -395,7 +404,7 @@ export const CompanyProfileDetail: React.FC<CompanyProfileDetailProps> = ({
           <button
             type="button"
             onClick={() => setShowMapPanel((prev) => !prev)}
-            className="min-h-[44px] rounded-xl bg-white border-2 border-[#1E4B9B] hover:bg-blue-50 text-[#0D316E] font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors"
+            className="min-h-[46px] rounded-xl bg-white border-2 border-[#1E4B9B] hover:bg-blue-50 active:scale-[0.98] text-[#0D316E] font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all"
           >
             <MapPin className="w-4 h-4 text-[#1E4B9B] shrink-0" />
             <span>Ver no mapa</span>
